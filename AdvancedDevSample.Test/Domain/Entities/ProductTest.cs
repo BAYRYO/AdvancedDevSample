@@ -1,0 +1,239 @@
+using AdvancedDevSample.Domain.Entities;
+using AdvancedDevSample.Domain.Exceptions;
+using AdvancedDevSample.Domain.ValueObjects;
+using Xunit;
+
+namespace AdvancedDevSample.Test.Domain.Entities;
+
+public class ProductTest
+{
+    [Fact]
+    public void ChangePrice_Should_Update_Price_When_Product_Is_Active()
+    {
+        var product = new Product(10);
+
+        product.ChangePrice(20);
+
+        Assert.Equal(20, product.Price);
+    }
+
+    [Fact]
+    public void ChangePrice_Should_Throw_Exception_When_Product_Is_Inactive()
+    {
+        var product = new Product(10);
+        product.Deactivate();
+
+        var exception = Assert.Throws<DomainException>(() => product.ChangePrice(20));
+
+        Assert.Equal("Produit inactif", exception.Message);
+    }
+
+    [Fact]
+    public void ChangePrice_Should_Throw_Exception_When_Price_Is_Invalid()
+    {
+        var product = new Product(10);
+
+        var exception = Assert.Throws<DomainException>(() => product.ChangePrice(0));
+
+        Assert.Equal("Prix invalide", exception.Message);
+    }
+
+    [Fact]
+    public void ChangePrice_Should_Throw_Exception_When_Price_Is_Negative()
+    {
+        var product = new Product(10);
+
+        var exception = Assert.Throws<DomainException>(() => product.ChangePrice(-5));
+
+        Assert.Equal("Prix invalide", exception.Message);
+    }
+
+    [Fact]
+    public void ApplyDiscount_Should_Set_CurrentDiscount()
+    {
+        var product = new Product("Test Product", 100m, new Sku("TEST-001"));
+
+        product.ApplyDiscount(25m);
+
+        Assert.NotNull(product.CurrentDiscount);
+        Assert.Equal(25m, product.CurrentDiscount!.Value.Percentage);
+    }
+
+    [Fact]
+    public void ApplyDiscount_Should_Throw_When_Product_Is_Inactive()
+    {
+        var product = new Product("Test Product", 100m, new Sku("TEST-001"));
+        product.Deactivate();
+
+        var exception = Assert.Throws<DomainException>(() => product.ApplyDiscount(25m));
+
+        Assert.Equal("Impossible d'appliquer une reduction a un produit inactif.", exception.Message);
+    }
+
+    [Fact]
+    public void ApplyDiscount_Should_Throw_When_Discount_Exceeds_Maximum()
+    {
+        var product = new Product("Test Product", 100m, new Sku("TEST-001"));
+
+        var exception = Assert.Throws<DomainException>(() => product.ApplyDiscount(60m));
+
+        Assert.Equal("La reduction ne peut pas depasser 50%.", exception.Message);
+    }
+
+    [Fact]
+    public void RemoveDiscount_Should_Clear_CurrentDiscount()
+    {
+        var product = new Product("Test Product", 100m, new Sku("TEST-001"));
+        product.ApplyDiscount(25m);
+
+        product.RemoveDiscount();
+
+        Assert.Null(product.CurrentDiscount);
+    }
+
+    [Fact]
+    public void GetEffectivePrice_Should_Return_Full_Price_When_No_Discount()
+    {
+        var product = new Product("Test Product", 100m, new Sku("TEST-001"));
+
+        var effectivePrice = product.GetEffectivePrice();
+
+        Assert.Equal(100m, effectivePrice);
+    }
+
+    [Fact]
+    public void GetEffectivePrice_Should_Return_Discounted_Price_When_Discount_Applied()
+    {
+        var product = new Product("Test Product", 100m, new Sku("TEST-001"));
+        product.ApplyDiscount(25m);
+
+        var effectivePrice = product.GetEffectivePrice();
+
+        Assert.Equal(75m, effectivePrice);
+    }
+
+    [Fact]
+    public void AddStock_Should_Increase_Stock_Quantity()
+    {
+        var product = new Product("Test Product", 100m, new Sku("TEST-001"), stock: 10);
+
+        product.AddStock(5);
+
+        Assert.Equal(15, product.Stock.Quantity);
+    }
+
+    [Fact]
+    public void RemoveStock_Should_Decrease_Stock_Quantity()
+    {
+        var product = new Product("Test Product", 100m, new Sku("TEST-001"), stock: 10);
+
+        product.RemoveStock(5);
+
+        Assert.Equal(5, product.Stock.Quantity);
+    }
+
+    [Fact]
+    public void RemoveStock_Should_Throw_When_Insufficient_Stock()
+    {
+        var product = new Product("Test Product", 100m, new Sku("TEST-001"), stock: 10);
+
+        var exception = Assert.Throws<DomainException>(() => product.RemoveStock(15));
+
+        Assert.Equal("Stock insuffisant pour cette operation.", exception.Message);
+    }
+
+    [Fact]
+    public void UpdateName_Should_Update_Name()
+    {
+        var product = new Product("Old Name", 100m, new Sku("TEST-001"));
+
+        product.UpdateName("New Name");
+
+        Assert.Equal("New Name", product.Name);
+    }
+
+    [Fact]
+    public void UpdateName_Should_Throw_When_Name_Is_Empty()
+    {
+        var product = new Product("Test Product", 100m, new Sku("TEST-001"));
+
+        var exception = Assert.Throws<DomainException>(() => product.UpdateName(""));
+
+        Assert.Equal("Le nom du produit est obligatoire.", exception.Message);
+    }
+
+    [Fact]
+    public void UpdateName_Should_Throw_When_Name_Too_Long()
+    {
+        var product = new Product("Test Product", 100m, new Sku("TEST-001"));
+        var longName = new string('a', 201);
+
+        var exception = Assert.Throws<DomainException>(() => product.UpdateName(longName));
+
+        Assert.Equal("Le nom du produit ne peut pas depasser 200 caracteres.", exception.Message);
+    }
+
+    [Fact]
+    public void UpdateCategory_Should_Update_CategoryId()
+    {
+        var product = new Product("Test Product", 100m, new Sku("TEST-001"));
+        var categoryId = Guid.NewGuid();
+
+        product.UpdateCategory(categoryId);
+
+        Assert.Equal(categoryId, product.CategoryId);
+    }
+
+    [Fact]
+    public void Activate_Should_Set_IsActive_True()
+    {
+        var product = new Product(10);
+        product.Deactivate();
+
+        product.Activate();
+
+        Assert.True(product.IsActive);
+    }
+
+    [Fact]
+    public void Deactivate_Should_Set_IsActive_False()
+    {
+        var product = new Product(10);
+
+        product.Deactivate();
+
+        Assert.False(product.IsActive);
+    }
+
+    [Fact]
+    public void BackwardCompatibility_Constructor_With_Price_Only()
+    {
+        var product = new Product(10m);
+
+        Assert.Equal(10m, product.Price);
+        Assert.True(product.IsActive);
+        Assert.NotEqual(Guid.Empty, product.Id);
+    }
+
+    [Fact]
+    public void BackwardCompatibility_Constructor_With_Id_And_Price()
+    {
+        var id = Guid.NewGuid();
+        var product = new Product(id, 10m);
+
+        Assert.Equal(id, product.Id);
+        Assert.Equal(10m, product.Price);
+        Assert.True(product.IsActive);
+    }
+
+    [Fact]
+    public void BackwardCompatibility_Constructor_With_All_Parameters()
+    {
+        var id = Guid.NewGuid();
+        var product = new Product(id, 10m, false);
+
+        Assert.Equal(id, product.Id);
+        Assert.Equal(10m, product.Price);
+        Assert.False(product.IsActive);
+    }
+}
