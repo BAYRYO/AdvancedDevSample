@@ -1,0 +1,311 @@
+@page "/products"
+@attribute [Authorize]
+@inject ApiClient ApiClient
+
+<PageTitle>Products</PageTitle>
+
+<h1>Products</h1>
+
+@if (!string.IsNullOrWhiteSpace(_errorMessage))
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
+
+<div class="card mb-3">
+    <div class="card-header">Search</div>
+    <div class="card-body">
+        <EditForm Model="_search" OnValidSubmit="SearchAsync" class="row g-2">
+            <div class="col-md-3">
+                <InputText class="form-control" @bind-Value="_search.Name" placeholder="Name" />
+            </div>
+            <div class="col-md-2">
+                <InputNumber class="form-control" @bind-Value="_search.MinPrice" placeholder="Min price" />
+            </div>
+            <div class="col-md-2">
+                <InputNumber class="form-control" @bind-Value="_search.MaxPrice" placeholder="Max price" />
+            </div>
+            <div class="col-md-3">
+                <InputSelect class="form-select" @bind-Value="_search.CategoryId">
+                    <option value="">All categories</option>
+                    @foreach (var category in _categories)
+                    {
+                        <option value="@category.Id">@category.Name</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="col-md-2">
+                <InputSelect class="form-select" @bind-Value="_statusFilter">
+                    <option value="all">All</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </InputSelect>
+            </div>
+            <div class="col-12 d-flex gap-2">
+                <button class="btn btn-primary" type="submit" disabled="@_loading">Search</button>
+                <button class="btn btn-outline-secondary" type="button" @onclick="ResetSearchAsync">Reset</button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">Create Product</div>
+    <div class="card-body">
+        <EditForm Model="_createModel" OnValidSubmit="CreateProductAsync" class="row g-2">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="col-md-3">
+                <InputText class="form-control" @bind-Value="_createModel.Name" placeholder="Name" />
+            </div>
+            <div class="col-md-2">
+                <InputText class="form-control" @bind-Value="_createModel.Sku" placeholder="SKU" />
+            </div>
+            <div class="col-md-2">
+                <InputNumber class="form-control" @bind-Value="_createModel.Price" placeholder="Price" />
+            </div>
+            <div class="col-md-2">
+                <InputNumber class="form-control" @bind-Value="_createModel.Stock" placeholder="Stock" />
+            </div>
+            <div class="col-md-3">
+                <InputSelect class="form-select" @bind-Value="_createModel.CategoryId">
+                    <option value="">No category</option>
+                    @foreach (var category in _categories)
+                    {
+                        <option value="@category.Id">@category.Name</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="col-12">
+                <InputTextArea class="form-control" @bind-Value="_createModel.Description" placeholder="Description"></InputTextArea>
+            </div>
+            <div class="col-12">
+                <button class="btn btn-success" type="submit" disabled="@_loading">Create</button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <p class="text-muted">Total products: @_products.TotalCount</p>
+
+    <table class="table table-striped table-sm">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>SKU</th>
+                <th>Price</th>
+                <th>Effective</th>
+                <th>Stock</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Discount</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in _products.Items)
+            {
+                <tr>
+                    <td>@product.Name</td>
+                    <td>@product.Sku</td>
+                    <td>@product.Price</td>
+                    <td>@product.EffectivePrice</td>
+                    <td>@product.Stock</td>
+                    <td>@(product.CategoryName ?? "-")</td>
+                    <td>@(product.IsActive ? "Active" : "Inactive")</td>
+                    <td>@(product.DiscountPercentage?.ToString("0.##") ?? "-")</td>
+                    <td>
+                        <div class="d-flex gap-1 flex-wrap">
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => ToggleActiveAsync(product)">
+                                @(product.IsActive ? "Deactivate" : "Activate")
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning" @onclick="() => ApplyDiscountAsync(product.Id)">Apply 10%</button>
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => RemoveDiscountAsync(product.Id)">Remove discount</button>
+                            <AuthorizeView Roles="Admin">
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteProductAsync(product.Id)">Delete</button>
+                            </AuthorizeView>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="d-flex gap-2 align-items-center">
+        <button class="btn btn-outline-secondary btn-sm" disabled="@(_products.Page <= 1)" @onclick="PreviousPageAsync">Previous</button>
+        <span>Page @_products.Page / @_products.TotalPages</span>
+        <button class="btn btn-outline-secondary btn-sm" disabled="@(_products.Page >= _products.TotalPages)" @onclick="NextPageAsync">Next</button>
+    </div>
+}
+
+@code {
+    private ProductSearchModel _search = new();
+    private string _statusFilter = "all";
+    private CreateProductFormModel _createModel = new();
+    private PagedResponse<ProductResponse> _products = new(Array.Empty<ProductResponse>(), 0, 1, 20, 0);
+    private IReadOnlyList<CategoryResponse> _categories = Array.Empty<CategoryResponse>();
+    private bool _loading = true;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _errorMessage = null;
+
+        try
+        {
+            _categories = await ApiClient.GetCategoriesAsync();
+            _products = await ApiClient.SearchProductsAsync(BuildRequest());
+        }
+        catch (ApiException ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task SearchAsync()
+    {
+        _search.Page = 1;
+        await LoadAsync();
+    }
+
+    private async Task CreateProductAsync()
+    {
+        _errorMessage = null;
+
+        try
+        {
+            await ApiClient.CreateProductAsync(_createModel.ToRequest());
+            _createModel = new CreateProductFormModel();
+            await LoadAsync();
+        }
+        catch (ApiException ex)
+        {
+            _errorMessage = ex.Message;
+        }
+    }
+
+    private async Task ToggleActiveAsync(ProductResponse product)
+    {
+        _errorMessage = null;
+
+        try
+        {
+            if (product.IsActive)
+            {
+                await ApiClient.DeactivateProductAsync(product.Id);
+            }
+            else
+            {
+                await ApiClient.ActivateProductAsync(product.Id);
+            }
+
+            await LoadAsync();
+        }
+        catch (ApiException ex)
+        {
+            _errorMessage = ex.Message;
+        }
+    }
+
+    private async Task ApplyDiscountAsync(Guid productId)
+    {
+        _errorMessage = null;
+
+        try
+        {
+            await ApiClient.ApplyDiscountAsync(productId, new ApplyDiscountRequest(10m, "Applied from frontend"));
+            await LoadAsync();
+        }
+        catch (ApiException ex)
+        {
+            _errorMessage = ex.Message;
+        }
+    }
+
+    private async Task RemoveDiscountAsync(Guid productId)
+    {
+        _errorMessage = null;
+
+        try
+        {
+            await ApiClient.RemoveDiscountAsync(productId);
+            await LoadAsync();
+        }
+        catch (ApiException ex)
+        {
+            _errorMessage = ex.Message;
+        }
+    }
+
+    private async Task DeleteProductAsync(Guid productId)
+    {
+        _errorMessage = null;
+
+        try
+        {
+            await ApiClient.DeleteProductAsync(productId);
+            await LoadAsync();
+        }
+        catch (ApiException ex)
+        {
+            _errorMessage = ex.Message;
+        }
+    }
+
+    private async Task PreviousPageAsync()
+    {
+        if (_search.Page <= 1)
+        {
+            return;
+        }
+
+        _search.Page--;
+        await LoadAsync();
+    }
+
+    private async Task NextPageAsync()
+    {
+        if (_search.Page >= _products.TotalPages)
+        {
+            return;
+        }
+
+        _search.Page++;
+        await LoadAsync();
+    }
+
+    private async Task ResetSearchAsync()
+    {
+        _search = new ProductSearchModel();
+        _statusFilter = "all";
+        await LoadAsync();
+    }
+
+    private ProductSearchRequest BuildRequest()
+    {
+        _search.IsActive = _statusFilter switch
+        {
+            "active" => true,
+            "inactive" => false,
+            _ => null
+        };
+
+        return _search.ToRequest();
+    }
+}

@@ -57,6 +57,18 @@ namespace AdvancedDevSample.Api.Middlewares
                         ["status_code"] = context.Response.StatusCode.ToString()
                     });
             }
+            catch (InvalidCredentialsException ex)
+            {
+                _logger.LogWarning(ex, "Echec d'authentification: {Message}", ex.Message);
+                await CaptureAndRespondAsync(context, ex, "authentication", SentryLevel.Warning,
+                    StatusCodes.Status401Unauthorized, "Authentification echouee");
+            }
+            catch (UserAlreadyExistsException ex)
+            {
+                _logger.LogWarning(ex, "Conflit utilisateur: {Message}", ex.Message);
+                await CaptureAndRespondAsync(context, ex, "conflict", SentryLevel.Warning,
+                    StatusCodes.Status409Conflict, "Conflit");
+            }
             catch (DomainException ex)
             {
                 _logger.LogWarning(ex, "Erreur métier: {Message}", ex.Message);

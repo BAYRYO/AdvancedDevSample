@@ -1,0 +1,85 @@
+@page "/"
+@inject ApiClient ApiClient
+@inject AuthService AuthService
+
+<PageTitle>Dashboard</PageTitle>
+
+<h1>AdvancedDevSample Dashboard</h1>
+
+@if (!string.IsNullOrWhiteSpace(_errorMessage))
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
+
+@if (_loading)
+{
+    <p><em>Loading summary...</em></p>
+}
+else
+{
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Products</h5>
+                    <p class="display-6">@_productCount</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Active Categories</h5>
+                    <p class="display-6">@_activeCategoryCount</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Current User</h5>
+                    <p class="mb-0">@(_session?.User.FullName ?? "Guest")</p>
+                    <small class="text-muted">@(_session?.User.Role ?? "Anonymous")</small>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="d-flex gap-2 flex-wrap">
+    <a class="btn btn-primary" href="products">Manage Products</a>
+    <a class="btn btn-outline-primary" href="categories">Manage Categories</a>
+    @if (_session is null)
+    {
+        <a class="btn btn-success" href="account/login">Sign in</a>
+    }
+</div>
+
+@code {
+    private bool _loading = true;
+    private string? _errorMessage;
+    private int _productCount;
+    private int _activeCategoryCount;
+    private StoredAuthSession? _session;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _session = await AuthService.GetSessionAsync();
+            var products = await ApiClient.SearchProductsAsync(new ProductSearchRequest(Page: 1, PageSize: 1));
+            var categories = await ApiClient.GetCategoriesAsync(activeOnly: true);
+
+            _productCount = products.TotalCount;
+            _activeCategoryCount = categories.Count;
+        }
+        catch (ApiException ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

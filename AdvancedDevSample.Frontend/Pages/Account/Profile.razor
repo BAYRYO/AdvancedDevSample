@@ -1,0 +1,61 @@
+@page "/account/profile"
+@attribute [Authorize]
+@inject ApiClient ApiClient
+
+<PageTitle>Profile</PageTitle>
+
+<h1>My profile</h1>
+
+@if (!string.IsNullOrWhiteSpace(_errorMessage))
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
+
+@if (_loading)
+{
+    <p><em>Loading profile...</em></p>
+}
+else if (_user is not null)
+{
+    <dl class="row">
+        <dt class="col-sm-3">Name</dt>
+        <dd class="col-sm-9">@_user.FullName</dd>
+
+        <dt class="col-sm-3">Email</dt>
+        <dd class="col-sm-9">@_user.Email</dd>
+
+        <dt class="col-sm-3">Role</dt>
+        <dd class="col-sm-9">@_user.Role</dd>
+
+        <dt class="col-sm-3">Active</dt>
+        <dd class="col-sm-9">@(_user.IsActive ? "Yes" : "No")</dd>
+
+        <dt class="col-sm-3">Created</dt>
+        <dd class="col-sm-9">@_user.CreatedAt.ToLocalTime().ToString("g")</dd>
+
+        <dt class="col-sm-3">Last login</dt>
+        <dd class="col-sm-9">@(_user.LastLoginAt?.ToLocalTime().ToString("g") ?? "Never")</dd>
+    </dl>
+}
+
+@code {
+    private bool _loading = true;
+    private string? _errorMessage;
+    private UserResponse? _user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _user = await ApiClient.GetCurrentUserAsync();
+        }
+        catch (ApiException ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

@@ -1,10 +1,18 @@
+using System.Text;
+using System.Threading.RateLimiting;
 using AdvancedDevSample.Api.Middlewares;
+using AdvancedDevSample.Application.Configuration;
+using AdvancedDevSample.Application.Interfaces;
 using AdvancedDevSample.Application.Services;
 using AdvancedDevSample.Domain.Interfaces;
 using AdvancedDevSample.Infrastructure.Persistence;
 using AdvancedDevSample.Infrastructure.Persistence.Seeders;
 using AdvancedDevSample.Infrastructure.Repositories;
+using AdvancedDevSample.Infrastructure.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using Sentry;
 
@@ -64,16 +72,136 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IProductRepository, EfProductRepository>();
 builder.Services.AddScoped<ICategoryRepository, EfCategoryRepository>();
 builder.Services.AddScoped<IPriceHistoryRepository, EfPriceHistoryRepository>();
+builder.Services.AddScoped<IUserRepository, EfUserRepository>();
+builder.Services.AddScoped<IRefreshTokenRepository, EfRefreshTokenRepository>();
+builder.Services.AddScoped<IAuditLogRepository, EfAuditLogRepository>();
 
 // Register services
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<CategoryService>();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<AuditService>();
+
+// Register infrastructure services
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<ITransactionManager, EfTransactionManager>();
 
 // Register database seeder
 builder.Services.AddDatabaseSeeder();
 
+// Configure JWT Settings
+var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
+    ?? builder.Configuration["JWT_SECRET"]
+    ?? throw new InvalidOperationException("JWT_SECRET environment variable is not set. Please set a secure secret key (minimum 32 characters).");
+
+builder.Services.Configure<JwtSettings>(options =>
+{
+    options.Secret = jwtSecret;
+    options.Issuer = builder.Configuration["Jwt:Issuer"] ?? "AdvancedDevSample";
+    options.Audience = builder.Configuration["Jwt:Audience"] ?? "AdvancedDevSample";
+    options.ExpirationMinutes = builder.Configuration.GetValue<int>("Jwt:ExpirationMinutes", 60);
+});
+
+// Configure JWT Authentication
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "AdvancedDevSample",
+        ValidAudience = builder.Configuration["Jwt:Audience"] ?? "AdvancedDevSample",
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+        ClockSkew = TimeSpan.Zero
+    };
+});
+
+// Configure Authorization with role-based policies
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("UserOrAdmin", policy => policy.RequireRole("User", "Admin"));
+});
+
+// Configure Rate Limiting for login endpoint
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Fixed window rate limiter for login endpoint: 5 requests per minute per IP
+    options.AddPolicy("login", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            }));
+});
+
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+
+// Configure CORS for frontend applications
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+    {
+        if (allowedOrigins.Length == 0)
+        {
+            allowedOrigins = ["http://localhost:5173", "https://localhost:7173"];
+        }
+
+        policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod();
+    });
+});
+
+// Configure Swagger with JWT authentication
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "AdvancedDevSample API",
+        Version = "v1",
+        Description = "API with JWT Bearer authentication"
+    });
+
+    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Enter your JWT token. Example: eyJhbGciOiJIUzI1NiIs..."
+    });
+
+    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 var app = builder.Build();
 
@@ -86,10 +214,35 @@ if (app.Environment.IsDevelopment() && SentrySdk.IsEnabled)
 
 // Ensure database is created and seeded
 var seedDatabase = builder.Configuration.GetValue<bool>("SeedDatabase", true);
+var useMigrations = builder.Configuration.GetValue<bool>("UseMigrations", true);
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    dbContext.Database.EnsureCreated();
+
+    if (useMigrations && dbContext.Database.IsRelational())
+    {
+        var hasMigrations = dbContext.Database.GetMigrations().Any();
+        if (hasMigrations)
+        {
+            await dbContext.Database.MigrateAsync();
+        }
+        else if (app.Environment.IsDevelopment())
+        {
+            app.Logger.LogWarning(
+                "UseMigrations is enabled but no EF migrations were found. Falling back to EnsureCreated().");
+            await dbContext.Database.EnsureCreatedAsync();
+        }
+        else
+        {
+            throw new InvalidOperationException(
+                "UseMigrations is enabled but no EF migrations were found. " +
+                "Generate and apply migrations before starting in non-development environments.");
+        }
+    }
+    else
+    {
+        await dbContext.Database.EnsureCreatedAsync();
+    }
 
     // Seed database in development (can be disabled via configuration)
     if (app.Environment.IsDevelopment() && seedDatabase)
@@ -104,18 +257,26 @@ app.UseSentryTracing();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
-        options.SwaggerEndpoint("/openapi/v1.json", "AdvancedDevSample API v1");
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "AdvancedDevSample API v1");
     });
-    app.MapScalarApiReference();
+    app.MapScalarApiReference(options =>
+    {
+        options.WithOpenApiRoutePattern("/swagger/v1/swagger.json");
+    });
 }
 
 app.UseHttpsRedirection();
+app.UseCors("Frontend");
 
-app.UseAuthorization();
+// Keep exception handling early so auth/rate-limit failures are normalized.
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseMiddleware<SecurityHeadersMiddleware>();
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseRateLimiter();
 app.MapControllers();
 
 // Ensure Sentry flushes events on shutdown

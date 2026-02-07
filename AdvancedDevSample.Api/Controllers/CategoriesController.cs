@@ -1,5 +1,6 @@
 using AdvancedDevSample.Application.DTOs;
 using AdvancedDevSample.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AdvancedDevSample.Api.Controllers;
@@ -19,8 +20,10 @@ public class CategoriesController : ControllerBase
     /// Creates a new category.
     /// </summary>
     [HttpPost]
+    [Authorize]
     [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Create([FromBody] CreateCategoryRequest request)
     {
         var category = await _categoryService.CreateAsync(request);
@@ -60,8 +63,10 @@ public class CategoriesController : ControllerBase
     /// Updates a category.
     /// </summary>
     [HttpPut("{id:guid}")]
+    [Authorize]
     [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCategoryRequest request)
     {
         var category = await _categoryService.UpdateAsync(id, request);
@@ -72,8 +77,11 @@ public class CategoriesController : ControllerBase
     /// Deletes a category.
     /// </summary>
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Delete(Guid id)
     {
         await _categoryService.DeleteAsync(id);

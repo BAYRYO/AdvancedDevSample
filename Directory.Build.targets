@@ -1,0 +1,10 @@
+<Project>
+  <ItemGroup>
+    <Compile Update="**/obj/**/*.cs">
+      <GeneratedCode>true</GeneratedCode>
+    </Compile>
+    <Compile Update="AdvancedDevSample.Infrastructure/Persistence/Migrations/**/*.cs">
+      <GeneratedCode>true</GeneratedCode>
+    </Compile>
+  </ItemGroup>
+</Project>

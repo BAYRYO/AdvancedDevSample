@@ -1,0 +1,41 @@
+using AdvancedDevSample.Application.Interfaces;
+
+namespace AdvancedDevSample.Infrastructure.Persistence;
+
+public class EfTransactionManager : ITransactionManager
+{
+    private readonly AppDbContext _dbContext;
+
+    public EfTransactionManager(AppDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+
+    public async Task ExecuteInTransactionAsync(Func<Task> action, CancellationToken cancellationToken = default)
+    {
+        if (_dbContext.Database.CurrentTransaction != null)
+        {
+            await action();
+            return;
+        }
+
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await action();
+        await transaction.CommitAsync(cancellationToken);
+    }
+
+    public async Task<T> ExecuteInTransactionAsync<T>(
+        Func<Task<T>> action,
+        CancellationToken cancellationToken = default)
+    {
+        if (_dbContext.Database.CurrentTransaction != null)
+        {
+            return await action();
+        }
+
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        var result = await action();
+        await transaction.CommitAsync(cancellationToken);
+        return result;
+    }
+}

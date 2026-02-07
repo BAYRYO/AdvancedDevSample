@@ -1,0 +1,197 @@
+@page "/categories"
+@attribute [Authorize]
+@inject ApiClient ApiClient
+
+<PageTitle>Categories</PageTitle>
+
+<h1>Categories</h1>
+
+@if (!string.IsNullOrWhiteSpace(_errorMessage))
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
+
+<div class="card mb-4">
+    <div class="card-header">Create Category</div>
+    <div class="card-body">
+        <EditForm Model="_createModel" OnValidSubmit="CreateCategoryAsync" class="row g-2">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="col-md-4">
+                <InputText class="form-control" @bind-Value="_createModel.Name" placeholder="Name" />
+            </div>
+            <div class="col-md-6">
+                <InputText class="form-control" @bind-Value="_createModel.Description" placeholder="Description" />
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-success w-100" type="submit">Create</button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table table-striped table-sm">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var category in _categories)
+            {
+                <tr>
+                    <td>@category.Name</td>
+                    <td>@category.Description</td>
+                    <td>@(category.IsActive ? "Active" : "Inactive")</td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => BeginEdit(category)">Edit</button>
+                            <AuthorizeView Roles="Admin">
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteCategoryAsync(category.Id)">Delete</button>
+                            </AuthorizeView>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (_editingCategoryId.HasValue)
+{
+    <div class="card mt-4">
+        <div class="card-header">Edit Category</div>
+        <div class="card-body">
+            <EditForm Model="_updateModel" OnValidSubmit="UpdateCategoryAsync" class="row g-2">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="col-md-4">
+                    <InputText class="form-control" @bind-Value="_updateModel.Name" />
+                </div>
+                <div class="col-md-4">
+                    <InputText class="form-control" @bind-Value="_updateModel.Description" />
+                </div>
+                <div class="col-md-2 d-flex align-items-center">
+                    <InputCheckbox class="form-check-input me-2" @bind-Value="_updateModel.IsActive" /> Active
+                </div>
+                <div class="col-md-2 d-flex gap-2">
+                    <button class="btn btn-primary" type="submit">Save</button>
+                    <button class="btn btn-outline-secondary" type="button" @onclick="CancelEdit">Cancel</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<CategoryResponse> _categories = Array.Empty<CategoryResponse>();
+    private CreateCategoryFormModel _createModel = new();
+    private UpdateCategoryFormModel _updateModel = new();
+    private Guid? _editingCategoryId;
+    private bool _loading = true;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _errorMessage = null;
+
+        try
+        {
+            _categories = await ApiClient.GetCategoriesAsync();
+        }
+        catch (ApiException ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task CreateCategoryAsync()
+    {
+        _errorMessage = null;
+
+        try
+        {
+            await ApiClient.CreateCategoryAsync(_createModel.ToRequest());
+            _createModel = new CreateCategoryFormModel();
+            await LoadAsync();
+        }
+        catch (ApiException ex)
+        {
+            _errorMessage = ex.Message;
+        }
+    }
+
+    private void BeginEdit(CategoryResponse category)
+    {
+        _editingCategoryId = category.Id;
+        _updateModel = new UpdateCategoryFormModel
+        {
+            Name = category.Name,
+            Description = category.Description,
+            IsActive = category.IsActive
+        };
+    }
+
+    private void CancelEdit()
+    {
+        _editingCategoryId = null;
+        _updateModel = new UpdateCategoryFormModel();
+    }
+
+    private async Task UpdateCategoryAsync()
+    {
+        if (!_editingCategoryId.HasValue)
+        {
+            return;
+        }
+
+        _errorMessage = null;
+
+        try
+        {
+            await ApiClient.UpdateCategoryAsync(_editingCategoryId.Value, _updateModel.ToRequest());
+            CancelEdit();
+            await LoadAsync();
+        }
+        catch (ApiException ex)
+        {
+            _errorMessage = ex.Message;
+        }
+    }
+
+    private async Task DeleteCategoryAsync(Guid categoryId)
+    {
+        _errorMessage = null;
+
+        try
+        {
+            await ApiClient.DeleteCategoryAsync(categoryId);
+            await LoadAsync();
+        }
+        catch (ApiException ex)
+        {
+            _errorMessage = ex.Message;
+        }
+    }
+}

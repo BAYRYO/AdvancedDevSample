@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+          cache: true
+          cache-dependency-path: |
+            **/*.csproj
+            **/packages.lock.json
+            global.json
+
+      - name: Restore
+        run: dotnet restore AdvancedDevSample.slnx
+
+      - name: Build
+        run: dotnet build AdvancedDevSample.slnx -c Release -nologo --no-restore
+
+      - name: Test
+        run: dotnet test AdvancedDevSample.slnx -c Release -nologo --no-build
+
+      - name: Publish API
+        run: dotnet publish AdvancedDevSample.Api/AdvancedDevSample.Api.csproj -c Release -nologo --no-build -o artifacts/api
+
+      - name: Publish Frontend
+        run: dotnet publish AdvancedDevSample.Frontend/AdvancedDevSample.Frontend.csproj -c Release -nologo --no-build -o artifacts/frontend
+
+      - name: Package artifacts
+        shell: bash
+        run: |
+          tar -czf advanceddevsample-api-${GITHUB_REF_NAME}.tar.gz -C artifacts api
+          tar -czf advanceddevsample-frontend-${GITHUB_REF_NAME}.tar.gz -C artifacts frontend
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            advanceddevsample-api-${{ github.ref_name }}.tar.gz
+            advanceddevsample-frontend-${{ github.ref_name }}.tar.gz
+          generate_release_notes: true

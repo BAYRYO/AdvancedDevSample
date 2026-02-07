@@ -1,0 +1,67 @@
+@page "/account/register"
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Register</PageTitle>
+
+<h1>Create account</h1>
+
+@if (!string.IsNullOrWhiteSpace(_errorMessage))
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
+
+<EditForm Model="_model" OnValidSubmit="OnSubmitAsync" class="row g-3">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="col-md-6">
+        <label class="form-label">First name</label>
+        <InputText class="form-control" @bind-Value="_model.FirstName" />
+    </div>
+
+    <div class="col-md-6">
+        <label class="form-label">Last name</label>
+        <InputText class="form-control" @bind-Value="_model.LastName" />
+    </div>
+
+    <div class="col-12">
+        <label class="form-label">Email</label>
+        <InputText class="form-control" @bind-Value="_model.Email" />
+    </div>
+
+    <div class="col-12">
+        <label class="form-label">Password</label>
+        <InputText class="form-control" type="password" @bind-Value="_model.Password" />
+    </div>
+
+    <div class="col-12">
+        <button class="btn btn-success" type="submit" disabled="@_submitting">@(_submitting ? "Creating..." : "Create account")</button>
+    </div>
+</EditForm>
+
+@code {
+    private readonly RegisterFormModel _model = new();
+    private bool _submitting;
+    private string? _errorMessage;
+
+    private async Task OnSubmitAsync()
+    {
+        _errorMessage = null;
+        _submitting = true;
+
+        try
+        {
+            await AuthService.RegisterAsync(new RegisterRequest(_model.Email, _model.Password, _model.FirstName, _model.LastName));
+            Navigation.NavigateTo("/");
+        }
+        catch (ApiException ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+}

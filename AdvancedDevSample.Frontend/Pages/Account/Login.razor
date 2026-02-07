@@ -1,0 +1,57 @@
+@page "/account/login"
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Sign in</PageTitle>
+
+<h1>Sign in</h1>
+
+@if (!string.IsNullOrWhiteSpace(_errorMessage))
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
+
+<EditForm Model="_model" OnValidSubmit="OnSubmitAsync" class="row g-3">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="col-12">
+        <label class="form-label">Email</label>
+        <InputText class="form-control" @bind-Value="_model.Email" />
+    </div>
+
+    <div class="col-12">
+        <label class="form-label">Password</label>
+        <InputText class="form-control" type="password" @bind-Value="_model.Password" />
+    </div>
+
+    <div class="col-12">
+        <button class="btn btn-primary" type="submit" disabled="@_submitting">@(_submitting ? "Signing in..." : "Sign in")</button>
+    </div>
+</EditForm>
+
+@code {
+    private readonly LoginFormModel _model = new();
+    private bool _submitting;
+    private string? _errorMessage;
+
+    private async Task OnSubmitAsync()
+    {
+        _errorMessage = null;
+        _submitting = true;
+
+        try
+        {
+            await AuthService.LoginAsync(new LoginRequest(_model.Email, _model.Password));
+            Navigation.NavigateTo("/");
+        }
+        catch (ApiException ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+}

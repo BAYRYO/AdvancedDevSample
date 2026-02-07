@@ -7,6 +7,7 @@ API REST de gestion de produits et catégories, développée avec une architectu
 ```
 AdvancedDevSample/
 ├── AdvancedDevSample.Api/           # Couche présentation (Controllers, Middlewares)
+├── AdvancedDevSample.Frontend/      # Frontend Blazor WebAssembly
 ├── AdvancedDevSample.Application/   # Couche application (Services, DTOs)
 ├── AdvancedDevSample.Domain/        # Couche domaine (Entities, Value Objects, Interfaces)
 ├── AdvancedDevSample.Infrastructure/# Couche infrastructure (EF Core, Repositories)
@@ -28,6 +29,9 @@ cp .env.example .env
 2. Configurer les variables d'environnement dans `.env` :
 ```env
 SENTRY_DSN=https://your-dsn@sentry.io/project-id
+JWT_SECRET=replace-with-a-secure-secret-min-32-chars
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=change-me-now
 ```
 
 ## Lancement
@@ -40,11 +44,20 @@ dotnet restore
 
 # Lancer l'API
 dotnet run --project AdvancedDevSample.Api
+
+# Lancer le frontend Blazor (dans un autre terminal)
+dotnet run --project AdvancedDevSample.Frontend
 ```
 
 L'API sera disponible sur :
 - HTTP: http://localhost:5069
 - HTTPS: https://localhost:7119
+
+Le frontend sera disponible sur :
+- HTTP: http://localhost:5173
+- HTTPS: https://localhost:7173
+
+Le frontend est configuré pour appeler l'API en HTTPS par défaut (`https://localhost:7119`).
 
 ### Documentation API
 
@@ -61,6 +74,33 @@ dotnet test
 # Avec couverture de code
 dotnet test --collect:"XPlat Code Coverage"
 ```
+
+## Qualite de code
+
+Le projet fournit une pipeline de qualite locale equivalente a la CI :
+
+```bash
+# Linux / macOS
+./eng/quality/quality.sh
+
+# PowerShell
+pwsh ./eng/quality/quality.ps1
+```
+
+Controles appliques :
+- Build complet de la solution
+- Tests + collecte de couverture (format Cobertura)
+- Seuils de couverture : global >= 55%, Infrastructure >= 30%
+- Verification de formatage (`dotnet format --verify-no-changes`)
+- Verification de derive de modele EF (`dotnet ef migrations has-pending-model-changes`)
+- Generation des artefacts publies API + Frontend (sans deploiement)
+
+## Workflows GitHub Actions
+
+- `quality.yml` : qualite applicative (build, tests, couverture, formatage, controle migrations, artefacts)
+- `security.yml` : revue des dependances en PR, analyse statique CodeQL, scan de secrets (Gitleaks)
+- `release.yml` : publication de release GitHub sur tag `v*` avec artefacts versionnes
+- `dependabot.yml` : mise a jour hebdomadaire des dependances NuGet et GitHub Actions
 
 ## Endpoints API
 
@@ -93,6 +133,7 @@ dotnet test --collect:"XPlat Code Coverage"
 ## Base de données
 
 L'application utilise SQLite. La base est créée automatiquement au premier lancement et seedée avec des données de test en mode développement.
+Le seeding de l'utilisateur administrateur nécessite `ADMIN_EMAIL` et `ADMIN_PASSWORD`.
 
 Pour désactiver le seeding :
 ```json
@@ -101,6 +142,10 @@ Pour désactiver le seeding :
   "SeedDatabase": false
 }
 ```
+
+Par défaut, l'application utilise un démarrage orienté migrations (`UseMigrations: true`).
+En développement, s'il n'y a aucune migration EF disponible, elle bascule sur `EnsureCreated()`.
+En dehors du développement, l'absence de migrations provoque une erreur de démarrage.
 
 ## Monitoring
 

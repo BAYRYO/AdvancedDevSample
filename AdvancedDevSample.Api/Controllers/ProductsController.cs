@@ -1,5 +1,6 @@
 using AdvancedDevSample.Application.DTOs;
 using AdvancedDevSample.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AdvancedDevSample.Api.Controllers;
@@ -19,8 +20,10 @@ public class ProductsController : ControllerBase
     /// Creates a new product.
     /// </summary>
     [HttpPost]
+    [Authorize]
     [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Create([FromBody] CreateProductRequest request)
     {
         var product = await _productService.CreateAsync(request);
@@ -58,8 +61,10 @@ public class ProductsController : ControllerBase
     /// Updates a product.
     /// </summary>
     [HttpPut("{id:guid}")]
+    [Authorize]
     [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductRequest request)
     {
         var product = await _productService.UpdateAsync(id, request);
@@ -70,12 +75,14 @@ public class ProductsController : ControllerBase
     /// Changes the price of a product. (Backward compatible endpoint)
     /// </summary>
     [HttpPut("{id:guid}/price")]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public IActionResult ChangePrice(Guid id, [FromBody] ChangePriceRequest request)
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> ChangePrice(Guid id, [FromBody] ChangePriceRequest request)
     {
-        _productService.ChangePrice(id, request);
+        await _productService.ChangePriceAsync(id, request);
         return NoContent();
     }
 
@@ -83,8 +90,11 @@ public class ProductsController : ControllerBase
     /// Deletes a product.
     /// </summary>
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Delete(Guid id)
     {
         await _productService.DeleteAsync(id);
@@ -95,9 +105,11 @@ public class ProductsController : ControllerBase
     /// Applies a discount to a product.
     /// </summary>
     [HttpPost("{id:guid}/discount")]
+    [Authorize]
     [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> ApplyDiscount(Guid id, [FromBody] ApplyDiscountRequest request)
     {
         var product = await _productService.ApplyDiscountAsync(id, request);
@@ -108,8 +120,10 @@ public class ProductsController : ControllerBase
     /// Removes the discount from a product.
     /// </summary>
     [HttpDelete("{id:guid}/discount")]
+    [Authorize]
     [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> RemoveDiscount(Guid id)
     {
         var product = await _productService.RemoveDiscountAsync(id);
@@ -132,8 +146,10 @@ public class ProductsController : ControllerBase
     /// Activates a product.
     /// </summary>
     [HttpPost("{id:guid}/activate")]
+    [Authorize]
     [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Activate(Guid id)
     {
         var product = await _productService.ActivateAsync(id);
@@ -144,8 +160,10 @@ public class ProductsController : ControllerBase
     /// Deactivates a product.
     /// </summary>
     [HttpPost("{id:guid}/deactivate")]
+    [Authorize]
     [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Deactivate(Guid id)
     {
         var product = await _productService.DeactivateAsync(id);

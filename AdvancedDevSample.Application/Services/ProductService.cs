@@ -1,5 +1,6 @@
 using System.Net;
 using AdvancedDevSample.Application.DTOs;
+using AdvancedDevSample.Application.Interfaces;
 using AdvancedDevSample.Domain.Entities;
 using AdvancedDevSample.Domain.Exceptions;
 using AdvancedDevSample.Domain.Interfaces;
@@ -12,25 +13,41 @@ public class ProductService
     private readonly IProductRepository _productRepository;
     private readonly ICategoryRepository _categoryRepository;
     private readonly IPriceHistoryRepository _priceHistoryRepository;
+    private readonly ITransactionManager _transactionManager;
 
     public ProductService(
         IProductRepository productRepository,
         ICategoryRepository categoryRepository,
-        IPriceHistoryRepository priceHistoryRepository)
+        IPriceHistoryRepository priceHistoryRepository,
+        ITransactionManager transactionManager)
     {
         _productRepository = productRepository;
         _categoryRepository = categoryRepository;
         _priceHistoryRepository = priceHistoryRepository;
+        _transactionManager = transactionManager;
     }
 
-    // Keep existing sync method for backward compatibility
-    public void ChangePrice(Guid id, ChangePriceRequest request)
+    // Backward compatible endpoint with async implementation.
+    public async Task ChangePriceAsync(Guid id, ChangePriceRequest request)
     {
-        var product = _productRepository.GetById(id)
-            ?? throw new ApplicationServiceException("Produit introuvable", HttpStatusCode.NotFound);
+        await _transactionManager.ExecuteInTransactionAsync(async () =>
+        {
+            var product = await _productRepository.GetByIdAsync(id)
+                ?? throw new ApplicationServiceException("Produit introuvable", HttpStatusCode.NotFound);
 
-        product.ChangePrice(request.NewPrice);
-        _productRepository.Save(product);
+            var oldPrice = product.Price;
+            product.ChangePrice(request.NewPrice);
+
+            var priceHistory = new PriceHistory(
+                productId: product.Id,
+                oldPrice: oldPrice,
+                newPrice: request.NewPrice,
+                discountPercentage: null,
+                reason: "Mise a jour du prix");
+
+            await _priceHistoryRepository.SaveAsync(priceHistory);
+            await _productRepository.SaveAsync(product);
+        });
     }
 
     // New async methods
@@ -103,71 +120,80 @@ public class ProductService
 
     public async Task<ProductResponse> UpdateAsync(Guid id, UpdateProductRequest request)
     {
-        var product = await _productRepository.GetByIdAsync(id)
-            ?? throw new ProductNotFoundException(id);
+        Product? product = null;
 
-        if (request.Name != null)
+        await _transactionManager.ExecuteInTransactionAsync(async () =>
         {
-            product.UpdateName(request.Name);
-        }
+            product = await _productRepository.GetByIdAsync(id)
+                ?? throw new ProductNotFoundException(id);
 
-        if (request.Description != null)
-        {
-            product.UpdateDescription(request.Description);
-        }
-
-        if (request.Price.HasValue)
-        {
-            var oldPrice = product.Price;
-            product.ChangePrice(request.Price.Value);
-
-            var priceHistory = new PriceHistory(
-                productId: product.Id,
-                oldPrice: oldPrice,
-                newPrice: request.Price.Value,
-                discountPercentage: null,
-                reason: "Mise a jour du prix");
-            await _priceHistoryRepository.SaveAsync(priceHistory);
-        }
-
-        if (request.Stock.HasValue)
-        {
-            var currentStock = product.Stock.Quantity;
-            var diff = request.Stock.Value - currentStock;
-            if (diff > 0)
+            if (request.Name != null)
             {
-                product.AddStock(diff);
+                product.UpdateName(request.Name);
             }
-            else if (diff < 0)
-            {
-                product.RemoveStock(-diff);
-            }
-        }
 
-        if (request.CategoryId.HasValue)
-        {
-            if (!await _categoryRepository.ExistsAsync(request.CategoryId.Value))
+            if (request.Description != null)
             {
-                throw new CategoryNotFoundException(request.CategoryId.Value);
+                product.UpdateDescription(request.Description);
             }
-            product.UpdateCategory(request.CategoryId);
-        }
 
-        if (request.IsActive.HasValue)
-        {
-            if (request.IsActive.Value)
+            if (request.Price.HasValue)
             {
-                product.Activate();
+                var oldPrice = product.Price;
+                product.ChangePrice(request.Price.Value);
+
+                var priceHistory = new PriceHistory(
+                    productId: product.Id,
+                    oldPrice: oldPrice,
+                    newPrice: request.Price.Value,
+                    discountPercentage: null,
+                    reason: "Mise a jour du prix");
+                await _priceHistoryRepository.SaveAsync(priceHistory);
             }
-            else
+
+            if (request.Stock.HasValue)
             {
-                product.Deactivate();
+                var currentStock = product.Stock.Quantity;
+                var diff = request.Stock.Value - currentStock;
+                if (diff > 0)
+                {
+                    product.AddStock(diff);
+                }
+                else if (diff < 0)
+                {
+                    product.RemoveStock(-diff);
+                }
             }
-        }
 
-        await _productRepository.SaveAsync(product);
+            if (request.ClearCategory)
+            {
+                product.UpdateCategory(null);
+            }
+            else if (request.CategoryId.HasValue)
+            {
+                if (!await _categoryRepository.ExistsAsync(request.CategoryId.Value))
+                {
+                    throw new CategoryNotFoundException(request.CategoryId.Value);
+                }
+                product.UpdateCategory(request.CategoryId);
+            }
 
-        return await GetProductResponseAsync(product);
+            if (request.IsActive.HasValue)
+            {
+                if (request.IsActive.Value)
+                {
+                    product.Activate();
+                }
+                else
+                {
+                    product.Deactivate();
+                }
+            }
+
+            await _productRepository.SaveAsync(product);
+        });
+
+        return await GetProductResponseAsync(product!);
     }
 
     public async Task DeleteAsync(Guid id)
@@ -180,39 +206,16 @@ public class ProductService
 
     public async Task<ProductResponse> ApplyDiscountAsync(Guid id, ApplyDiscountRequest request)
     {
-        var product = await _productRepository.GetByIdAsync(id)
-            ?? throw new ProductNotFoundException(id);
+        Product? product = null;
 
-        var oldEffectivePrice = product.GetEffectivePrice();
-
-        product.ApplyDiscount(request.Percentage, request.Reason);
-
-        var newEffectivePrice = product.GetEffectivePrice();
-
-        var priceHistory = new PriceHistory(
-            productId: product.Id,
-            oldPrice: oldEffectivePrice,
-            newPrice: newEffectivePrice,
-            discountPercentage: request.Percentage,
-            reason: request.Reason ?? "Application d'une reduction");
-        await _priceHistoryRepository.SaveAsync(priceHistory);
-
-        await _productRepository.SaveAsync(product);
-
-        return await GetProductResponseAsync(product);
-    }
-
-    public async Task<ProductResponse> RemoveDiscountAsync(Guid id)
-    {
-        var product = await _productRepository.GetByIdAsync(id)
-            ?? throw new ProductNotFoundException(id);
-
-        if (product.CurrentDiscount.HasValue)
+        await _transactionManager.ExecuteInTransactionAsync(async () =>
         {
-            var oldEffectivePrice = product.GetEffectivePrice();
-            var discountPct = product.CurrentDiscount.Value.Percentage;
+            product = await _productRepository.GetByIdAsync(id)
+                ?? throw new ProductNotFoundException(id);
 
-            product.RemoveDiscount();
+            var oldEffectivePrice = product.GetEffectivePrice();
+
+            product.ApplyDiscount(request.Percentage, request.Reason);
 
             var newEffectivePrice = product.GetEffectivePrice();
 
@@ -220,14 +223,46 @@ public class ProductService
                 productId: product.Id,
                 oldPrice: oldEffectivePrice,
                 newPrice: newEffectivePrice,
-                discountPercentage: 0,
-                reason: "Suppression de la reduction");
+                discountPercentage: request.Percentage,
+                reason: request.Reason ?? "Application d'une reduction");
             await _priceHistoryRepository.SaveAsync(priceHistory);
 
             await _productRepository.SaveAsync(product);
-        }
+        });
 
-        return await GetProductResponseAsync(product);
+        return await GetProductResponseAsync(product!);
+    }
+
+    public async Task<ProductResponse> RemoveDiscountAsync(Guid id)
+    {
+        Product? product = null;
+
+        await _transactionManager.ExecuteInTransactionAsync(async () =>
+        {
+            product = await _productRepository.GetByIdAsync(id)
+                ?? throw new ProductNotFoundException(id);
+
+            if (product.CurrentDiscount.HasValue)
+            {
+                var oldEffectivePrice = product.GetEffectivePrice();
+
+                product.RemoveDiscount();
+
+                var newEffectivePrice = product.GetEffectivePrice();
+
+                var priceHistory = new PriceHistory(
+                    productId: product.Id,
+                    oldPrice: oldEffectivePrice,
+                    newPrice: newEffectivePrice,
+                    discountPercentage: 0,
+                    reason: "Suppression de la reduction");
+                await _priceHistoryRepository.SaveAsync(priceHistory);
+
+                await _productRepository.SaveAsync(product);
+            }
+        });
+
+        return await GetProductResponseAsync(product!);
     }
 
     public async Task<IReadOnlyList<PriceHistoryResponse>> GetPriceHistoryAsync(Guid id)

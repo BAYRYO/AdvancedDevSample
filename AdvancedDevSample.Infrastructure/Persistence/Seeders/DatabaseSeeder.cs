@@ -47,6 +47,7 @@ public class DatabaseSeeder
     {
         return new ISeeder[]
         {
+            new AdminUserSeeder(),
             new CategorySeeder(),
             new ProductSeeder(),
             new PriceHistorySeeder()

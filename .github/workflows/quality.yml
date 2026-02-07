@@ -1,0 +1,95 @@
+name: Quality
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+          cache: true
+          cache-dependency-path: |
+            **/*.csproj
+            **/packages.lock.json
+            global.json
+
+      - name: Restore
+        run: dotnet restore AdvancedDevSample.slnx
+
+      - name: Build
+        run: dotnet build AdvancedDevSample.slnx -c Release -nologo --no-restore
+
+      - name: Test with coverage
+        run: dotnet test AdvancedDevSample.slnx -c Release -nologo --no-build --collect:"XPlat Code Coverage" --results-directory TestResults
+
+      - name: Locate coverage report
+        id: coverage
+        shell: bash
+        run: |
+          file="$(find TestResults -name coverage.cobertura.xml | sort | tail -n 1)"
+          if [[ -z "$file" ]]; then
+            echo "Coverage report not found." >&2
+            exit 1
+          fi
+          echo "file=$file" >> "$GITHUB_OUTPUT"
+
+      - name: Enforce coverage thresholds
+        shell: pwsh
+        run: |
+          ./eng/quality/check-coverage.ps1 `
+            -CoverageFile "${{ steps.coverage.outputs.file }}" `
+            -GlobalLineThreshold 55 `
+            -InfrastructureLineThreshold 30
+
+      - name: Verify formatting
+        run: dotnet format AdvancedDevSample.slnx --verify-no-changes --severity error --verbosity minimal
+
+      - name: Install dotnet-ef
+        shell: bash
+        run: |
+          dotnet tool install --global dotnet-ef --version 10.*
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+      - name: Validate EF migrations are up to date
+        run: |
+          dotnet ef migrations has-pending-model-changes \
+            --project AdvancedDevSample.Infrastructure/AdvancedDevSample.Infrastructure.csproj \
+            --startup-project AdvancedDevSample.Api/AdvancedDevSample.Api.csproj \
+            --context AppDbContext \
+            --no-build
+
+      - name: Publish API artifact
+        run: dotnet publish AdvancedDevSample.Api/AdvancedDevSample.Api.csproj -c Release -nologo --no-build -o artifacts/api
+
+      - name: Publish Frontend artifact
+        run: dotnet publish AdvancedDevSample.Frontend/AdvancedDevSample.Frontend.csproj -c Release -nologo --no-build -o artifacts/frontend
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-cobertura
+          path: ${{ steps.coverage.outputs.file }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-build-artifacts
+          path: artifacts

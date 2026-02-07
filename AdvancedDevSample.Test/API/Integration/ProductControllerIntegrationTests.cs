@@ -1,14 +1,17 @@
-using AdvancedDevSample.Application.DTOs;
-using AdvancedDevSample.Domain.Entities;
-using AdvancedDevSample.Domain.ValueObjects;
 using System.Net;
 using System.Net.Http.Json;
+using AdvancedDevSample.Application.DTOs;
+using AdvancedDevSample.Domain.Entities;
+using AdvancedDevSample.Domain.Enums;
+using AdvancedDevSample.Domain.ValueObjects;
 
 namespace AdvancedDevSample.Test.API.Integration;
 
 public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly HttpClient _client;
+    private readonly HttpClient _authenticatedClient;
+    private readonly HttpClient _adminClient;
     private readonly InMemoryProductRepository _repo;
     private readonly InMemoryCategoryRepository _categoryRepo;
     private readonly InMemoryPriceHistoryRepository _priceHistoryRepo;
@@ -16,6 +19,8 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
     public ProductControllerIntegrationTests(CustomWebApplicationFactory factory)
     {
         _client = factory.CreateClient();
+        _authenticatedClient = factory.CreateAuthenticatedClient(UserRole.User);
+        _adminClient = factory.CreateAuthenticatedClient(UserRole.Admin);
         _repo = factory.ProductRepository;
         _categoryRepo = factory.CategoryRepository;
         _priceHistoryRepo = factory.PriceHistoryRepository;
@@ -33,7 +38,7 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
 
         var request = new ChangePriceRequest(20);
 
-        var response = await _client.PutAsJsonAsync(
+        var response = await _authenticatedClient.PutAsJsonAsync(
             $"/api/products/{product.Id}/price",
             request
         );
@@ -46,12 +51,33 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
     }
 
     [Fact]
+    public async Task ChangePrice_Should_Record_PriceHistory()
+    {
+        var product = new Product(10);
+        _repo.Seed(product);
+
+        var request = new ChangePriceRequest(20);
+
+        var response = await _authenticatedClient.PutAsJsonAsync(
+            $"/api/products/{product.Id}/price",
+            request
+        );
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+        var history = await _priceHistoryRepo.GetByProductIdAsync(product.Id);
+        var entry = Assert.Single(history);
+        Assert.Equal(10m, entry.OldPrice);
+        Assert.Equal(20m, entry.NewPrice);
+    }
+
+    [Fact]
     public async Task ChangePrice_Should_Return_NotFound_When_Product_Does_Not_Exist()
     {
         var nonExistentId = Guid.NewGuid();
         var request = new ChangePriceRequest(20);
 
-        var response = await _client.PutAsJsonAsync(
+        var response = await _authenticatedClient.PutAsJsonAsync(
             $"/api/products/{nonExistentId}/price",
             request
         );
@@ -67,7 +93,7 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
 
         var request = new ChangePriceRequest(-5);
 
-        var response = await _client.PutAsJsonAsync(
+        var response = await _authenticatedClient.PutAsJsonAsync(
             $"/api/products/{product.Id}/price",
             request
         );
@@ -85,7 +111,7 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
             Stock: 10,
             Description: "A test product");
 
-        var response = await _client.PostAsJsonAsync("/api/products", request);
+        var response = await _authenticatedClient.PostAsJsonAsync("/api/products", request);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
@@ -108,7 +134,7 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
             Sku: "DUPE-001",
             Price: 99.99m);
 
-        var response = await _client.PostAsJsonAsync("/api/products", request);
+        var response = await _authenticatedClient.PostAsJsonAsync("/api/products", request);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -160,7 +186,7 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
         var product = new Product("To Delete", 50m, new Sku("DEL-001"));
         _repo.Seed(product);
 
-        var response = await _client.DeleteAsync($"/api/products/{product.Id}");
+        var response = await _adminClient.DeleteAsync($"/api/products/{product.Id}");
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         Assert.Null(_repo.GetById(product.Id));
@@ -174,7 +200,7 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
 
         var request = new ApplyDiscountRequest(25m, "Summer sale");
 
-        var response = await _client.PostAsJsonAsync($"/api/products/{product.Id}/discount", request);
+        var response = await _authenticatedClient.PostAsJsonAsync($"/api/products/{product.Id}/discount", request);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -191,7 +217,7 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
         product.ApplyDiscount(25m);
         _repo.Seed(product);
 
-        var response = await _client.DeleteAsync($"/api/products/{product.Id}/discount");
+        var response = await _authenticatedClient.DeleteAsync($"/api/products/{product.Id}/discount");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -233,7 +259,7 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
         product.Deactivate();
         _repo.Seed(product);
 
-        var response = await _client.PostAsync($"/api/products/{product.Id}/activate", null);
+        var response = await _authenticatedClient.PostAsync($"/api/products/{product.Id}/activate", null);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -248,12 +274,37 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
         var product = new Product("Active Product", 50m, new Sku("DEACT-001"));
         _repo.Seed(product);
 
-        var response = await _client.PostAsync($"/api/products/{product.Id}/deactivate", null);
+        var response = await _authenticatedClient.PostAsync($"/api/products/{product.Id}/deactivate", null);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<ProductResponse>();
         Assert.NotNull(result);
         Assert.False(result.IsActive);
+    }
+
+    [Fact]
+    public async Task Update_Should_Clear_Category_When_ClearCategory_True()
+    {
+        var category = new Category("Electronics", "Devices");
+        await _categoryRepo.SaveAsync(category);
+
+        var product = new Product("Categorized Product", 99m, new Sku("CLR-CAT-001"), categoryId: category.Id);
+        _repo.Seed(product);
+
+        var response = await _authenticatedClient.PutAsJsonAsync(
+            $"/api/products/{product.Id}",
+            new { clearCategory = true }
+        );
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var result = await response.Content.ReadFromJsonAsync<ProductResponse>();
+        Assert.NotNull(result);
+        Assert.Null(result.CategoryId);
+
+        var updated = _repo.GetById(product.Id);
+        Assert.NotNull(updated);
+        Assert.Null(updated.CategoryId);
     }
 }

@@ -6,4 +6,5 @@ public record UpdateProductRequest(
     decimal? Price = null,
     int? Stock = null,
     Guid? CategoryId = null,
+    bool ClearCategory = false,
     bool? IsActive = null);
