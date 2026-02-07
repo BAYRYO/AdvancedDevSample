@@ -27,9 +27,20 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetAllUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        if (page < 1) page = 1;
-        if (pageSize < 1) pageSize = 1;
-        if (pageSize > 100) pageSize = 100;
+        if (page < 1)
+        {
+            page = 1;
+        }
+
+        if (pageSize < 1)
+        {
+            pageSize = 1;
+        }
+
+        if (pageSize > 100)
+        {
+            pageSize = 100;
+        }
 
         var result = await _userService.GetAllUsersAsync(page, pageSize);
         return Ok(result);

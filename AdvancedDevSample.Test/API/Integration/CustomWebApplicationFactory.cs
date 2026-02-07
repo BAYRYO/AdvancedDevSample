@@ -19,6 +19,9 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     private const string TestJwtSecret = "test-jwt-secret-key-for-integration-tests-minimum-32-characters";
     private const string TestIssuer = "AdvancedDevSample";
     private const string TestAudience = "AdvancedDevSample";
+    private readonly string _testDbPath = Path.Combine(
+        Path.GetTempPath(),
+        $"advanceddevsample-tests-{Guid.NewGuid():N}.db");
 
     public InMemoryProductRepository ProductRepository { get; } = new();
     public InMemoryCategoryRepository CategoryRepository { get; } = new();
@@ -39,7 +42,8 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["SeedDatabase"] = "false",
-                ["UseMigrations"] = "false"
+                ["UseMigrations"] = "false",
+                ["ConnectionStrings:DefaultConnection"] = $"Data Source={_testDbPath}"
             });
         });
 
@@ -90,5 +94,24 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+
+        if (!disposing || !File.Exists(_testDbPath))
+        {
+            return;
+        }
+
+        try
+        {
+            File.Delete(_testDbPath);
+        }
+        catch
+        {
+            // Ignore cleanup failures in tests.
+        }
     }
 }
