@@ -11,6 +11,7 @@ using AdvancedDevSample.Infrastructure.Repositories;
 using AdvancedDevSample.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
@@ -223,7 +224,7 @@ using (var scope = app.Services.CreateScope())
         {
             app.Logger.LogWarning(
                 "UseMigrations is enabled but no EF migrations were found. Falling back to EnsureCreated().");
-            await dbContext.Database.EnsureCreatedAsync();
+            await EnsureCreatedWithSqliteRaceToleranceAsync(dbContext, app.Logger);
         }
         else
         {
@@ -234,7 +235,7 @@ using (var scope = app.Services.CreateScope())
     }
     else
     {
-        await dbContext.Database.EnsureCreatedAsync();
+        await EnsureCreatedWithSqliteRaceToleranceAsync(dbContext, app.Logger);
     }
 
     // Seed database in development (can be disabled via configuration)
@@ -277,6 +278,20 @@ app.Lifetime.ApplicationStopping.Register(() =>
 {
     SentrySdk.Flush(TimeSpan.FromSeconds(2));
 });
+
+static async Task EnsureCreatedWithSqliteRaceToleranceAsync(AppDbContext dbContext, ILogger logger)
+{
+    try
+    {
+        await dbContext.Database.EnsureCreatedAsync();
+    }
+    catch (SqliteException ex) when (
+        ex.SqliteErrorCode == 1 &&
+        ex.Message.Contains("already exists", StringComparison.OrdinalIgnoreCase))
+    {
+        logger.LogDebug("Ignoring SQLite EnsureCreated race condition: {Message}", ex.Message);
+    }
+}
 
 app.Run();
 
