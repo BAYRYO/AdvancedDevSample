@@ -74,6 +74,7 @@ jobs:
             --project AdvancedDevSample.Infrastructure/AdvancedDevSample.Infrastructure.csproj \
             --startup-project AdvancedDevSample.Api/AdvancedDevSample.Api.csproj \
             --context AppDbContext \
+            --configuration Release \
             --no-build
 
       - name: Publish API artifact
