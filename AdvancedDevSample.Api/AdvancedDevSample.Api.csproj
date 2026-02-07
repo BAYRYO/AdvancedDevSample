@@ -16,7 +16,7 @@
     </PackageReference>
     <PackageReference Include="Scalar.AspNetCore" Version="2.12.32" />
     <PackageReference Include="Sentry.AspNetCore" Version="6.0.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.2" />
   </ItemGroup>
 
   <ItemGroup>
