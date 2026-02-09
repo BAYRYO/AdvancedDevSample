@@ -46,16 +46,19 @@ extra_css:
 
 nav:
   - Accueil: index.md
-  - Demarrage: getting-started.md
-  - Configuration: configuration.md
-  - Architecture: architecture.md
-  - API: api.md
-  - Frontend: frontend.md
-  - Base de donnees: database.md
-  - Securite: security.md
-  - Tests et qualite: quality.md
-  - CI/CD: cicd.md
-  - Exploitation: operations.md
-  - Troubleshooting: troubleshooting.md
-  - Contribution: contributing.md
-  - Deploiement docs: docs-deployment.md
+  - Guide:
+      - Demarrage: getting-started.md
+      - Contribution: contributing.md
+  - Technique:
+      - Configuration: configuration.md
+      - Architecture: architecture.md
+      - API: api.md
+      - Frontend: frontend.md
+      - Base de donnees: database.md
+      - Securite: security.md
+      - Tests et qualite: quality.md
+  - Operations:
+      - CI/CD: cicd.md
+      - Exploitation: operations.md
+      - Troubleshooting: troubleshooting.md
+      - Deploiement docs: docs-deployment.md
