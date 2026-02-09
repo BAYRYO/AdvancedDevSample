@@ -1,20 +1,44 @@
 # AdvancedDevSample
 
-Bienvenue dans la documentation du projet `AdvancedDevSample`.
+Bienvenue dans la documentation technique de `AdvancedDevSample`.
 
-Cette documentation couvre :
+## Objectif du projet
 
-- le demarrage rapide local
-- la structure technique (Clean Architecture / DDD)
-- les endpoints API principaux
-- la qualite logicielle et la strategie de tests
-- le deploiement de la documentation sur GitHub Pages
+`AdvancedDevSample` est une base de reference pour construire une application .NET modulaire avec:
 
-## A qui s'adresse ce projet ?
+- separation stricte des responsabilites (Clean Architecture)
+- domaine metier explicite (DDD)
+- API REST securisee (JWT)
+- frontend Blazor WebAssembly
+- qualite logicielle automatisee (tests, couverture, format, checks CI)
 
-- Etudiants et developpeurs voulant pratiquer une architecture .NET modulaire
-- Equipes souhaitant un exemple concret API + Frontend Blazor + tests
+## Stack technique
 
-## Navigation
+- **.NET 10**
+- **ASP.NET Core** (API)
+- **Blazor WebAssembly** (Frontend)
+- **Entity Framework Core 10** + **SQLite**
+- **Sentry** (observabilite)
+- **xUnit** (tests)
+- **MkDocs Material** (documentation)
 
-Utilisez le menu en haut pour acceder aux sections detaillees.
+## Ce que couvre cette documentation
+
+- installation locale et prerequis
+- configuration complete (env, appsettings, CORS, JWT)
+- architecture technique et flux de donnees
+- contrat API detaille (auth, produits, categories, utilisateurs)
+- frontend (auth state, refresh token, appels API)
+- base de donnees, migrations et seeding
+- securite (headers, rate limiting, roles)
+- tests, qualite, CI/CD
+- exploitation et troubleshooting
+- contribution projet
+
+## Lecture recommandee
+
+1. `getting-started.md`
+2. `configuration.md`
+3. `architecture.md`
+4. `api.md`
+5. `quality.md`

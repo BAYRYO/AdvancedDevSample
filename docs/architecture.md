@@ -1,26 +1,94 @@
 # Architecture
 
-Le projet suit une approche Clean Architecture avec separation des responsabilites.
+Le projet suit une architecture en couches avec dependances orientees vers le coeur metier.
 
-## Couches
+## Vue d'ensemble
 
-- `AdvancedDevSample.Api`: presentation (controllers, middlewares)
-- `AdvancedDevSample.Application`: orchestration metier, DTOs, services
-- `AdvancedDevSample.Domain`: coeur metier (entites, value objects, contrats)
-- `AdvancedDevSample.Infrastructure`: persistance EF Core, implementations techniques
-- `AdvancedDevSample.Frontend`: interface utilisateur Blazor WebAssembly
-- `AdvancedDevSample.Test`: tests unitaires et integration
+```text
+[Frontend Blazor WASM]
+        |
+        v
+[API ASP.NET Core]
+        |
+        v
+[Application Services]
+        |
+        v
+[Domain (Entities, VOs, Interfaces)]
+        ^
+        |
+[Infrastructure (EF Core, Repositories, Transactions)]
+```
 
-## Principes appliques
+## Projets et responsabilites
 
-- Le domaine ne depend d'aucune couche externe
-- L'application depend du domaine, pas de l'infrastructure concrete
-- L'infrastructure implemente les interfaces du domaine/application
-- L'API compose les dependances et expose les endpoints HTTP
+- `AdvancedDevSample.Api`
+  - configuration DI
+  - middleware (exceptions, security headers)
+  - authentication/authorization/rate limiting
+  - controllers HTTP
 
-## Flux type (API)
+- `AdvancedDevSample.Application`
+  - orchestration de cas d'usage
+  - DTOs d'entree/sortie
+  - validations applicatives (ex: robustesse mot de passe)
+  - interfaces transverses (`IJwtService`, `IPasswordHasher`, `ITransactionManager`)
 
-1. Un controller recoit une requete HTTP.
-2. Le service d'application valide et applique le cas d'usage.
-3. Les interfaces de repository sont resolues vers EF Core en infrastructure.
-4. La reponse est retournee au client via DTOs.
+- `AdvancedDevSampleDomain`
+  - entites metier (`Product`, `Category`, `User`, `RefreshToken`, `AuditLog`)
+  - value objects (`Sku`, `Stock`, `Price`, `Discount`)
+  - exceptions metier
+  - contrats repositories
+
+- `AdvancedDevSample.Infrastructure`
+  - `AppDbContext` EF Core
+  - mapping domaine <-> persistence
+  - repositories EF
+  - service JWT + hash password
+  - seeders de donnees
+
+- `AdvancedDevSample.Frontend`
+  - pages UI Blazor
+  - client API typed
+  - etat d'authentification navigateur
+
+- `AdvancedDevSample.Test`
+  - tests domaine/application
+  - tests integration API/middlewares
+  - tests frontend
+
+## Flux type: creation de produit
+
+1. `POST /api/products` recu par `ProductsController`
+2. `ProductService.CreateAsync()` valide SKU et categorie
+3. creation de l'entite `Product`
+4. sauvegarde via `IProductRepository` (implementation EF)
+5. retour d'un `ProductResponse`
+
+## Flux type: login + refresh token
+
+1. `POST /api/auth/login`
+2. `AuthService` valide credentials et etat actif utilisateur
+3. generation JWT (`IJwtService`) + refresh token stocke en hash
+4. frontend stocke session (token + refresh token)
+5. expiration proche => appel `POST /api/auth/refresh`
+6. ancien refresh token revoque, nouveau token emis
+
+## Transactions
+
+- les operations multi-etapes sensibles (prix, discount, updates complexes) utilisent `ITransactionManager`
+- implementation `EfTransactionManager` en infrastructure
+
+## Strategie d'erreurs
+
+- exceptions domaine/app/infrastructure capturees par `ExceptionHandlingMiddleware`
+- mapping vers statuts HTTP coherents (`400/401/404/409/500`)
+- format JSON standardise:
+  - metier: `{ "title": "...", "detail": "..." }`
+  - technique: `{ "error": "Erreur technique" }`
+
+## Decouplage et testabilite
+
+- les services d'application dependent d'interfaces
+- l'API ne depend pas des details EF
+- tests integration incluent des repositories memoire et SQLite selon scenario

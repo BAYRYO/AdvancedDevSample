@@ -1,201 +1,110 @@
 # AdvancedDevSample
 
-API REST de gestion de produits et catégories, développée avec une architecture Clean Architecture / DDD.
+Exemple complet d'application .NET 10 basee sur Clean Architecture / DDD :
 
-## Architecture
+- API ASP.NET Core avec JWT, rate limiting, middlewares de securite, seeding, Swagger/Scalar
+- Frontend Blazor WebAssembly
+- Persistance EF Core SQLite (migrations + seeders)
+- Suite de tests unitaires/integration/frontend
+- Pipeline qualite/securite/release/docs sur GitHub Actions
 
-```
-AdvancedDevSample/
-├── AdvancedDevSample.Api/           # Couche présentation (Controllers, Middlewares)
-├── AdvancedDevSample.Frontend/      # Frontend Blazor WebAssembly
-├── AdvancedDevSample.Application/   # Couche application (Services, DTOs)
-├── AdvancedDevSample.Domain/        # Couche domaine (Entities, Value Objects, Interfaces)
-├── AdvancedDevSample.Infrastructure/# Couche infrastructure (EF Core, Repositories)
-└── AdvancedDevSample.Test/          # Tests (Unit, Integration)
-```
+## Documentation complete
 
-## Prérequis
+La documentation detaillee est disponible dans `docs/` et publiee via MkDocs.
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- SQLite (inclus, aucune installation requise)
+- **Version publiee**: `https://bayryo.github.io/AdvancedDevSample/`
+- **Accueil docs locale**: `docs/index.md`
 
-## Configuration
+## Demarrage rapide
 
-1. Copier le fichier d'environnement :
+### 1) Prerequis
+
+- .NET SDK 10.x
+- Git
+- Python 3.11+ (uniquement pour MkDocs)
+
+### 2) Variables d'environnement
+
+Copier le template et adapter les secrets:
 
 ```bash
 cp .env.example .env
 ```
 
-2. Configurer les variables d'environnement dans `.env` :
+Variables principales:
 
-```env
-SENTRY_DSN=https://your-dsn@sentry.io/project-id
-JWT_SECRET=replace-with-a-secure-secret-min-32-chars
-ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=change-me-now
-```
+- `JWT_SECRET` (obligatoire, minimum 32 caracteres)
+- `SENTRY_DSN` (optionnel)
+- `ADMIN_EMAIL` + `ADMIN_PASSWORD` (pour seeding admin en dev)
 
-## Lancement
-
-### Développement
+### 3) Lancer en local
 
 ```bash
-# Restaurer les dépendances
-dotnet restore
-
-# Lancer l'API
+dotnet restore AdvancedDevSample.slnx
 dotnet run --project AdvancedDevSample.Api
-
-# Lancer le frontend Blazor (dans un autre terminal)
 dotnet run --project AdvancedDevSample.Frontend
 ```
 
-L'API sera disponible sur :
+URLs de developpement:
 
-- HTTP: `http://localhost:5069`
-- HTTPS: `https://localhost:7119`
+- API HTTP: `http://localhost:5069`
+- API HTTPS: `https://localhost:7119`
+- Frontend HTTP: `http://localhost:5173`
+- Frontend HTTPS: `https://localhost:7173`
 
-Le frontend sera disponible sur :
+API docs runtime (en `Development`):
 
-- HTTP: `http://localhost:5173`
-- HTTPS: `https://localhost:7173`
+- Swagger UI: `http://localhost:5069/swagger`
+- Scalar: `http://localhost:5069/scalar/v1`
 
-Le frontend est configuré pour appeler l'API en HTTPS par défaut (`https://localhost:7119`).
+## Tests et qualite
 
-### Documentation API
+```bash
+# Tous les tests
+dotnet test AdvancedDevSample.slnx
 
-En mode développement, la documentation est accessible via :
+# Couverture
+dotnet test AdvancedDevSample.slnx --collect:"XPlat Code Coverage"
+```
 
-- **Swagger UI**: `http://localhost:5069/swagger`
-- **Scalar**: `http://localhost:5069/scalar/v1`
+Pipeline qualite locale (equivalent CI):
 
-### Documentation du projet (MkDocs)
+```bash
+./eng/quality/quality.sh
+# ou
+pwsh ./eng/quality/quality.ps1
+```
 
-Une documentation versionnee du projet est disponible via MkDocs.
-
-- **Source docs**: `docs/`
-- **Configuration**: `mkdocs.yml`
-- **Publication GitHub Pages**: `https://bayryo.github.io/AdvancedDevSample/`
-
-Lancer la documentation en local :
+## MkDocs en local
 
 ```bash
 python -m pip install -r docs/requirements.txt
 mkdocs serve
 ```
 
-## Tests
-
-```bash
-# Exécuter tous les tests
-dotnet test
-
-# Avec couverture de code
-dotnet test --collect:"XPlat Code Coverage"
-```
-
-## Qualite de code
-
-Le projet fournit une pipeline de qualite locale equivalente a la CI :
-
-```bash
-# Linux / macOS
-./eng/quality/quality.sh
-
-# PowerShell
-pwsh ./eng/quality/quality.ps1
-```
-
-Controles appliques :
-
-- Build complet de la solution
-- Tests + collecte de couverture (format Cobertura)
-- Seuils de couverture : global >= 55%, Infrastructure >= 30%
-- Verification de formatage (`dotnet format --verify-no-changes`)
-- Verification de derive de modele EF (`dotnet ef migrations has-pending-model-changes`)
-- Generation des artefacts publies API + Frontend (sans deploiement)
+Puis ouvrir `http://127.0.0.1:8000`.
 
 ## Workflows GitHub Actions
 
-- `quality.yml` : qualite applicative (build, tests, couverture, formatage, controle migrations, artefacts)
-- `security.yml` : revue des dependances en PR, analyse statique CodeQL, scan de secrets (Gitleaks)
-- `release.yml` : publication de release GitHub sur tag `v*` avec artefacts versionnes
-- `docs.yml` : construction et deploiement automatique de la documentation MkDocs sur GitHub Pages
-- `dependabot.yml` : mise a jour hebdomadaire des dependances NuGet et GitHub Actions
+- `quality.yml`: build/test/couverture/format/migrations/SonarQube
+- `security.yml`: dependency review, CodeQL, Gitleaks
+- `release.yml`: build + artefacts sur tags `v*`
+- `docs.yml`: build/deploiement GitHub Pages
 
-### SonarQube Quality Gate (GitHub Actions)
+## Structure du repository
 
-[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=BAYRYO_AdvancedDevSample)](https://sonarcloud.io/summary/new_code?id=BAYRYO_AdvancedDevSample)
-
-Le workflow `quality.yml` execute une analyse SonarQube et bloque la pipeline si la Quality Gate est en echec.
-
-Configurer dans GitHub (Settings > Secrets and variables > Actions) :
-
-- Variable `SONAR_HOST_URL` (SonarQube Cloud: `https://sonarcloud.io`)
-- Variable `SONAR_PROJECT_KEY`
-- Variable `SONAR_ORGANIZATION`
-- Secret `SONAR_TOKEN` (token utilisateur ou token projet SonarQube)
-
-## Endpoints API
-
-### Produits (`/api/products`)
-
-| Méthode | Endpoint | Description |
-| -------- | ---------- | ------------- |
-| `POST` | `/api/products` | Créer un produit |
-| `GET` | `/api/products` | Rechercher des produits (avec filtres) |
-| `GET` | `/api/products/{id}` | Obtenir un produit par ID |
-| `PUT` | `/api/products/{id}` | Mettre à jour un produit |
-| `DELETE` | `/api/products/{id}` | Supprimer un produit |
-| `PUT` | `/api/products/{id}/price` | Modifier le prix |
-| `POST` | `/api/products/{id}/discount` | Appliquer une réduction |
-| `DELETE` | `/api/products/{id}/discount` | Supprimer la réduction |
-| `GET` | `/api/products/{id}/price-history` | Historique des prix |
-| `POST` | `/api/products/{id}/activate` | Activer le produit |
-| `POST` | `/api/products/{id}/deactivate` | Désactiver le produit |
-
-### Catégories (`/api/categories`)
-
-| Méthode | Endpoint | Description |
-| -------- | ---------- | ------------- |
-| `POST` | `/api/categories` | Créer une catégorie |
-| `GET` | `/api/categories` | Lister les catégories |
-| `GET` | `/api/categories/{id}` | Obtenir une catégorie par ID |
-| `PUT` | `/api/categories/{id}` | Mettre à jour une catégorie |
-| `DELETE` | `/api/categories/{id}` | Supprimer une catégorie |
-
-## Base de données
-
-L'application utilise SQLite. La base est créée automatiquement au premier lancement et seedée avec des données de test en mode développement.
-Le seeding de l'utilisateur administrateur nécessite `ADMIN_EMAIL` et `ADMIN_PASSWORD`.
-
-Pour désactiver le seeding :
-
-```json
-// appsettings.Development.json
-{
-  "SeedDatabase": false
-}
+```text
+AdvancedDevSample/
+├── AdvancedDevSample.Api/             # API ASP.NET Core
+├── AdvancedDevSample.Application/     # Cas d'usage, DTOs, interfaces applicatives
+├── AdvancedDevSampleDomain/           # Entites, value objects, interfaces domaine
+├── AdvancedDevSample.Infrastructure/  # EF Core, repositories, persistence, seeders
+├── AdvancedDevSample.Frontend/        # Blazor WebAssembly
+├── AdvancedDevSample.Test/            # Tests unitaires/integration/frontend
+├── docs/                              # Documentation MkDocs
+└── eng/quality/                       # Scripts qualite locale
 ```
 
-Par défaut, l'application utilise un démarrage orienté migrations (`UseMigrations: true`).
-En développement, s'il n'y a aucune migration EF disponible, elle bascule sur `EnsureCreated()`.
-En dehors du développement, l'absence de migrations provoque une erreur de démarrage.
+## Licence
 
-## Monitoring
-
-L'application intègre [Sentry](https://sentry.io) pour :
-
-- Capture des erreurs et exceptions
-- Tracing des performances
-- Breadcrumbs pour le debugging
-
-## Stack technique
-
-- **.NET 10** - Framework
-- **Entity Framework Core 10** - ORM
-- **SQLite** - Base de données
-- **Sentry** - Monitoring
-- **xUnit** - Tests
-- **Bogus** - Génération de données de test
+Projet a finalite pedagogique. Adaptez la licence selon vos besoins.

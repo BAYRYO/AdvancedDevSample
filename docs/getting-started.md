@@ -4,13 +4,46 @@
 
 - .NET SDK 10.x
 - Git
-- Python 3.11+ (uniquement pour construire la documentation en local)
+- Python 3.11+ (uniquement pour la doc MkDocs)
 
-## Lancer le projet en local
+Verifier rapidement:
 
 ```bash
+dotnet --version
+git --version
+python --version
+```
+
+## Installation
+
+```bash
+git clone <url-du-repo>
+cd AdvancedDevSample
 dotnet restore AdvancedDevSample.slnx
+```
+
+## Configuration minimale
+
+Copier le template:
+
+```bash
+cp .env.example .env
+```
+
+Variables essentielles:
+
+- `JWT_SECRET` (obligatoire; >= 32 caracteres)
+- `ADMIN_EMAIL` + `ADMIN_PASSWORD` (recommande en dev pour creer un admin)
+
+## Lancer l'API et le frontend
+
+Dans 2 terminaux:
+
+```bash
 dotnet run --project AdvancedDevSample.Api
+```
+
+```bash
 dotnet run --project AdvancedDevSample.Frontend
 ```
 
@@ -21,16 +54,38 @@ dotnet run --project AdvancedDevSample.Frontend
 - Frontend HTTP: `http://localhost:5173`
 - Frontend HTTPS: `https://localhost:7173`
 
-## Documentation API runtime
+Le frontend pointe par defaut vers `https://localhost:7119` (`AdvancedDevSample.Frontend/wwwroot/appsettings.json`).
 
-- Swagger UI: `http://localhost:5069/swagger`
+## Documentation API runtime (dev)
+
+- Swagger: `http://localhost:5069/swagger`
 - Scalar: `http://localhost:5069/scalar/v1`
 
-## Construire la documentation (MkDocs)
+## Base de donnees au premier demarrage
+
+Au lancement de l'API:
+
+- application des migrations EF si disponibles
+- fallback `EnsureCreated()` en `Development` si aucune migration
+- seeding automatique si `SeedDatabase=true` (dev)
+
+## Executer les tests
+
+```bash
+dotnet test AdvancedDevSample.slnx
+```
+
+Avec couverture:
+
+```bash
+dotnet test AdvancedDevSample.slnx --collect:"XPlat Code Coverage"
+```
+
+## Lancer la documentation localement
 
 ```bash
 python -m pip install -r docs/requirements.txt
 mkdocs serve
 ```
 
-Puis ouvrez `http://127.0.0.1:8000`.
+Ouvrir `http://127.0.0.1:8000`.
