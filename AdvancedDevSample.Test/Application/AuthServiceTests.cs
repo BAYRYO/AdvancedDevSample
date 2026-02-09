@@ -202,6 +202,95 @@ public class AuthServiceTests
 
     #endregion
 
+    #region RefreshTokenAsync Tests
+
+    [Fact]
+    public async Task RefreshTokenAsync_WithValidRefreshToken_ReturnsNewTokensAndRevokesOldToken()
+    {
+        // Arrange
+        var user = new User(
+            email: "refresh@example.com",
+            passwordHash: "hashed_password",
+            firstName: "Refresh",
+            lastName: "User");
+        await _userRepository.SaveAsync(user);
+
+        var existingRefreshToken = new RefreshToken(user.Id);
+        var plainTextRefreshToken = existingRefreshToken.GetPlainTextTokenOrThrow();
+        await _refreshTokenRepository.SaveAsync(existingRefreshToken);
+
+        var request = new RefreshTokenRequest(RefreshToken: plainTextRefreshToken);
+
+        // Act
+        var response = await _authService.RefreshTokenAsync(request);
+
+        // Assert
+        Assert.NotNull(response);
+        Assert.NotEmpty(response.Token);
+        Assert.NotEmpty(response.RefreshToken);
+        Assert.NotEqual(plainTextRefreshToken, response.RefreshToken);
+        Assert.True(existingRefreshToken.IsRevoked);
+    }
+
+    [Fact]
+    public async Task RefreshTokenAsync_WithUnknownToken_ThrowsInvalidCredentialsException()
+    {
+        // Arrange
+        var request = new RefreshTokenRequest(RefreshToken: "invalid_token");
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidCredentialsException>(() =>
+            _authService.RefreshTokenAsync(request));
+    }
+
+    [Fact]
+    public async Task RefreshTokenAsync_WithRevokedToken_ThrowsInvalidCredentialsException()
+    {
+        // Arrange
+        var user = new User(
+            email: "revoked@example.com",
+            passwordHash: "hashed_password",
+            firstName: "Revoked",
+            lastName: "User");
+        await _userRepository.SaveAsync(user);
+
+        var refreshToken = new RefreshToken(user.Id);
+        var plainTextRefreshToken = refreshToken.GetPlainTextTokenOrThrow();
+        refreshToken.Revoke();
+        await _refreshTokenRepository.SaveAsync(refreshToken);
+
+        var request = new RefreshTokenRequest(RefreshToken: plainTextRefreshToken);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidCredentialsException>(() =>
+            _authService.RefreshTokenAsync(request));
+    }
+
+    [Fact]
+    public async Task RefreshTokenAsync_WithInactiveUser_ThrowsInvalidCredentialsException()
+    {
+        // Arrange
+        var user = new User(
+            email: "inactive-refresh@example.com",
+            passwordHash: "hashed_password",
+            firstName: "Inactive",
+            lastName: "User");
+        user.Deactivate();
+        await _userRepository.SaveAsync(user);
+
+        var refreshToken = new RefreshToken(user.Id);
+        var plainTextRefreshToken = refreshToken.GetPlainTextTokenOrThrow();
+        await _refreshTokenRepository.SaveAsync(refreshToken);
+
+        var request = new RefreshTokenRequest(RefreshToken: plainTextRefreshToken);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidCredentialsException>(() =>
+            _authService.RefreshTokenAsync(request));
+    }
+
+    #endregion
+
     #region GetCurrentUserAsync Tests
 
     [Fact]

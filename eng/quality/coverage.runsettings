@@ -6,6 +6,7 @@
         <Configuration>
           <Format>cobertura,opencover</Format>
           <Exclude>[AdvancedDevSample.Frontend]*</Exclude>
+          <ExcludeByFile>**/Migrations/*.cs</ExcludeByFile>
         </Configuration>
       </DataCollector>
     </DataCollectors>
