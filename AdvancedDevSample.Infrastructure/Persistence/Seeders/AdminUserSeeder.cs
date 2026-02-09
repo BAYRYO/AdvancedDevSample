@@ -24,14 +24,13 @@ public class AdminUserSeeder : ISeeder
             return;
         }
 
-        // Require explicit credentials for admin seeding.
+        // Skip admin creation when credentials are not configured.
         var email = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
         var password = Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
 
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
         {
-            throw new InvalidOperationException(
-                "Admin seeding requires ADMIN_EMAIL and ADMIN_PASSWORD environment variables.");
+            return;
         }
         var firstName = "Admin";
         var lastName = "User";

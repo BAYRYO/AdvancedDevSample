@@ -61,4 +61,15 @@ public class PasswordValidatorTests
         Assert.False(isValid);
         Assert.Contains($"Password must be at most {PasswordValidator.MaxLength} characters long.", errors);
     }
+
+    [Fact]
+    public void IsValid_WithOnlyLowercaseLetters_ReturnsAllMissingComplexityErrors()
+    {
+        bool isValid = PasswordValidator.IsValid("onlylowercase", out IReadOnlyList<string> errors);
+
+        Assert.False(isValid);
+        Assert.Contains("Password must contain at least one uppercase letter.", errors);
+        Assert.Contains("Password must contain at least one digit.", errors);
+        Assert.Contains("Password must contain at least one special character.", errors);
+    }
 }

@@ -92,17 +92,6 @@ jobs:
           fi
           echo "file=$file" >> "$GITHUB_OUTPUT"
 
-      - name: Locate OpenCover coverage report
-        id: coverage_opencover
-        shell: bash
-        run: |
-          file="$(find TestResults -name coverage.opencover.xml -printf '%T@ %p\n' | sort -n | tail -n 1 | cut -d' ' -f2-)"
-          if [[ -z "$file" ]]; then
-            echo "OpenCover coverage report not found." >&2
-            exit 1
-          fi
-          echo "file=$file" >> "$GITHUB_OUTPUT"
-
       - name: Enforce coverage thresholds
         shell: pwsh
         run: |
@@ -133,21 +122,3 @@ jobs:
             --context AppDbContext \
             --configuration Release \
             --no-build
-
-      - name: Publish API artifact
-        run: dotnet publish AdvancedDevSample.Api/AdvancedDevSample.Api.csproj -c Release -nologo --no-build -o artifacts/api
-
-      - name: Publish Frontend artifact
-        run: dotnet publish AdvancedDevSample.Frontend/AdvancedDevSample.Frontend.csproj -c Release -nologo --no-build -o artifacts/frontend
-
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: coverage-cobertura
-          path: ${{ steps.coverage_cobertura.outputs.file }}
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v6
-        with:
-          name: app-build-artifacts
-          path: artifacts

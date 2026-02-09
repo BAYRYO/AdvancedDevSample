@@ -151,6 +151,55 @@ public class ProductServiceTests
     }
 
     [Fact]
+    public async Task RemoveDiscountAsync_WithDiscount_RemovesDiscountAndWritesHistory()
+    {
+        ProductService service = CreateService();
+        var product = new Product("With Discount", 80m, new Sku("DISC-1"));
+        product.ApplyDiscount(25m, "promo");
+        _productRepository.Seed(product);
+
+        ProductResponse response = await service.RemoveDiscountAsync(product.Id);
+
+        Assert.Null(response.DiscountPercentage);
+        Assert.Equal(80m, response.EffectivePrice);
+
+        IReadOnlyList<PriceHistory> history = await _priceHistoryRepository.GetByProductIdAsync(product.Id);
+        Assert.Single(history);
+        Assert.Equal(60m, history[0].OldPrice);
+        Assert.Equal(80m, history[0].NewPrice);
+        Assert.Equal(0m, history[0].DiscountPercentage);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WhenStockIsUnchanged_DoesNotCreatePriceHistory()
+    {
+        ProductService service = CreateService();
+        var product = new Product("Stock", 100m, new Sku("STK-1"), stock: 5);
+        _productRepository.Seed(product);
+
+        ProductResponse response = await service.UpdateAsync(product.Id, new UpdateProductRequest(Stock: 5, IsActive: true));
+
+        Assert.Equal(5, response.Stock);
+        Assert.True(response.IsActive);
+
+        IReadOnlyList<PriceHistory> history = await _priceHistoryRepository.GetByProductIdAsync(product.Id);
+        Assert.Empty(history);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WithExistingProduct_DeletesSuccessfully()
+    {
+        ProductService service = CreateService();
+        var product = new Product("Delete Me", 10m, new Sku("DEL-1"));
+        _productRepository.Seed(product);
+
+        await service.DeleteAsync(product.Id);
+
+        Product? deleted = await _productRepository.GetByIdAsync(product.Id);
+        Assert.Null(deleted);
+    }
+
+    [Fact]
     public async Task ChangePriceAsync_WithUnknownProduct_ThrowsApplicationServiceExceptionNotFound()
     {
         ProductService service = CreateService();

@@ -6,7 +6,6 @@ using AdvancedDevSample.Infrastructure.Persistence.Seeders;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace AdvancedDevSample.Test.Infrastructure.Persistence;
 
@@ -71,7 +70,7 @@ public class SeedingAndFactoryTests
     }
 
     [Fact]
-    public async Task DatabaseSeeder_Should_Throw_When_Admin_Environment_Is_Missing()
+    public async Task DatabaseSeeder_Should_Continue_When_Admin_Environment_Is_Missing()
     {
         var previousEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
         var previousPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
@@ -82,10 +81,15 @@ public class SeedingAndFactoryTests
         try
         {
             await using var provider = BuildSeederServiceProvider();
-            var logger = provider.GetRequiredService<ILogger<DatabaseSeeder>>();
-            var seeder = new DatabaseSeeder(provider, logger);
+            await provider.SeedDatabaseAsync();
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() => seeder.SeedAsync());
+            using var scope = provider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            Assert.Equal(0, await context.Users.CountAsync(u => u.Role == (int)UserRole.Admin));
+            Assert.True(await context.Categories.CountAsync() >= 5);
+            Assert.True(await context.Products.CountAsync() >= 5);
+            Assert.True(await context.PriceHistories.CountAsync() > 0);
         }
         finally
         {

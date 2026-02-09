@@ -258,4 +258,33 @@ public class ProductTest
         Assert.NotEqual(Guid.Empty, product.Id);
         Assert.Equal(89.1m, product.GetEffectivePrice());
     }
+
+    [Fact]
+    public void Reconstitution_Constructor_WithoutDiscount_Keeps_EffectivePrice_Equal_To_Price()
+    {
+        var explicitId = Guid.NewGuid();
+        var createdAt = DateTime.UtcNow.AddDays(-2);
+        var updatedAt = DateTime.UtcNow.AddDays(-1);
+
+        var product = new Product(new Product.ReconstitutionData
+        {
+            Id = explicitId,
+            Name = "No Discount",
+            Price = 42m,
+            Sku = new Sku("RECON-002"),
+            Stock = 1,
+            Description = null,
+            CategoryId = null,
+            DiscountPercentage = null,
+            IsActive = true,
+            CreatedAt = createdAt,
+            UpdatedAt = updatedAt
+        });
+
+        Assert.Equal(explicitId, product.Id);
+        Assert.Null(product.CurrentDiscount);
+        Assert.Equal(42m, product.GetEffectivePrice());
+        Assert.Equal(createdAt, product.CreatedAt);
+        Assert.Equal(updatedAt, product.UpdatedAt);
+    }
 }
