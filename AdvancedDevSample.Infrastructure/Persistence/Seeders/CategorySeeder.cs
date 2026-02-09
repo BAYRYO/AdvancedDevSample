@@ -6,6 +6,37 @@ namespace AdvancedDevSample.Infrastructure.Persistence.Seeders;
 
 public class CategorySeeder : ISeeder
 {
+    private const int RandomCategoryCount = 5;
+
+    private static readonly (Guid Id, string Name, string Description)[] PredefinedCategoryData =
+    [
+        (
+            Guid.Parse("11111111-1111-1111-1111-111111111111"),
+            "Electronique",
+            "Appareils electroniques et gadgets"
+        ),
+        (
+            Guid.Parse("22222222-2222-2222-2222-222222222222"),
+            "Vetements",
+            "Mode et habillement"
+        ),
+        (
+            Guid.Parse("33333333-3333-3333-3333-333333333333"),
+            "Alimentation",
+            "Produits alimentaires et boissons"
+        ),
+        (
+            Guid.Parse("44444444-4444-4444-4444-444444444444"),
+            "Maison",
+            "Decoration et amenagement interieur"
+        ),
+        (
+            Guid.Parse("55555555-5555-5555-5555-555555555555"),
+            "Sport",
+            "Equipements et accessoires sportifs"
+        )
+    ];
+
     public int Order => 1;
 
     public async Task SeedAsync(AppDbContext context, CancellationToken cancellationToken = default)
@@ -16,7 +47,7 @@ public class CategorySeeder : ISeeder
         }
 
         var categories = GetPredefinedCategories()
-            .Concat(GenerateRandomCategories(5))
+            .Concat(GenerateRandomCategories(RandomCategoryCount))
             .ToList();
 
         await context.Categories.AddRangeAsync(categories, cancellationToken);
@@ -27,54 +58,15 @@ public class CategorySeeder : ISeeder
     {
         var now = DateTime.UtcNow;
 
-        return new List<CategoryEntity>
+        return PredefinedCategoryData.Select(category => new CategoryEntity
         {
-            new()
-            {
-                Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
-                Name = "Electronique",
-                Description = "Appareils electroniques et gadgets",
-                IsActive = true,
-                CreatedAt = now,
-                UpdatedAt = now
-            },
-            new()
-            {
-                Id = Guid.Parse("22222222-2222-2222-2222-222222222222"),
-                Name = "Vetements",
-                Description = "Mode et habillement",
-                IsActive = true,
-                CreatedAt = now,
-                UpdatedAt = now
-            },
-            new()
-            {
-                Id = Guid.Parse("33333333-3333-3333-3333-333333333333"),
-                Name = "Alimentation",
-                Description = "Produits alimentaires et boissons",
-                IsActive = true,
-                CreatedAt = now,
-                UpdatedAt = now
-            },
-            new()
-            {
-                Id = Guid.Parse("44444444-4444-4444-4444-444444444444"),
-                Name = "Maison",
-                Description = "Decoration et amenagement interieur",
-                IsActive = true,
-                CreatedAt = now,
-                UpdatedAt = now
-            },
-            new()
-            {
-                Id = Guid.Parse("55555555-5555-5555-5555-555555555555"),
-                Name = "Sport",
-                Description = "Equipements et accessoires sportifs",
-                IsActive = true,
-                CreatedAt = now,
-                UpdatedAt = now
-            }
-        };
+            Id = category.Id,
+            Name = category.Name,
+            Description = category.Description,
+            IsActive = true,
+            CreatedAt = now,
+            UpdatedAt = now
+        });
     }
 
     private static IEnumerable<CategoryEntity> GenerateRandomCategories(int count)

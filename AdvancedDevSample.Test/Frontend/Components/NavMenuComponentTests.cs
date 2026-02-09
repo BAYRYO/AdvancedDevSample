@@ -7,6 +7,23 @@ namespace AdvancedDevSample.Test.Frontend.Components;
 public class NavMenuComponentTests : TestContext
 {
     [Fact]
+    public void NavMenu_WhenTogglerClicked_TogglesCollapseClass()
+    {
+        var authContext = this.AddTestAuthorization();
+        authContext.SetNotAuthorized();
+
+        var component = RenderComponent<NavMenu>();
+
+        var navContainer = component.Find("div.nav-scrollable");
+        Assert.Contains("collapse", navContainer.GetAttribute("class"), StringComparison.Ordinal);
+
+        component.Find("button.navbar-toggler").Click();
+
+        navContainer = component.Find("div.nav-scrollable");
+        Assert.DoesNotContain("collapse", navContainer.GetAttribute("class"), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void NavMenu_WhenUserIsAnonymous_ShowsSignInAndRegisterLinks()
     {
         var authContext = this.AddTestAuthorization();

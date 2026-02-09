@@ -1,6 +1,6 @@
 param(
     [string]$CoverageFile,
-    [double]$GlobalLineThreshold = 55,
+    [double]$GlobalLineThreshold = 80,
     [double]$InfrastructureLineThreshold = 30
 )
 
