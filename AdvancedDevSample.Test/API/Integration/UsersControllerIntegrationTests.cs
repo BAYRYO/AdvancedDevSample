@@ -23,7 +23,7 @@ public class UsersControllerIntegrationTests : IClassFixture<CustomWebApplicatio
     public async Task GetAllUsers_WithoutToken_Returns401Unauthorized()
     {
         // Act
-        var response = await _anonymousClient.GetAsync("/api/users");
+        HttpResponseMessage response = await _anonymousClient.GetAsync("/api/users");
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -33,10 +33,10 @@ public class UsersControllerIntegrationTests : IClassFixture<CustomWebApplicatio
     public async Task GetAllUsers_WithNonAdminToken_Returns403Forbidden()
     {
         // Arrange
-        var userClient = _factory.CreateAuthenticatedClient(UserRole.User);
+        HttpClient userClient = _factory.CreateAuthenticatedClient(UserRole.User);
 
         // Act
-        var response = await userClient.GetAsync("/api/users");
+        HttpResponseMessage response = await userClient.GetAsync("/api/users");
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -46,17 +46,17 @@ public class UsersControllerIntegrationTests : IClassFixture<CustomWebApplicatio
     public async Task GetAllUsers_WithAdminToken_ClampsPaginationValues()
     {
         // Arrange
-        var adminClient = _factory.CreateAuthenticatedClient(UserRole.Admin);
+        HttpClient adminClient = _factory.CreateAuthenticatedClient(UserRole.Admin);
         await _factory.UserRepository.SaveAsync(CreateUser("beta@example.com", "Beta", "User"));
         await _factory.UserRepository.SaveAsync(CreateUser("alpha@example.com", "Alpha", "User"));
 
         // Act
-        var response = await adminClient.GetAsync("/api/users?page=0&pageSize=500");
+        HttpResponseMessage response = await adminClient.GetAsync("/api/users?page=0&pageSize=500");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var payload = await response.Content.ReadFromJsonAsync<PagedResult<UserResponse>>();
+        PagedResult<UserResponse>? payload = await response.Content.ReadFromJsonAsync<PagedResult<UserResponse>>();
         Assert.NotNull(payload);
         Assert.Equal(1, payload.Page);
         Assert.Equal(100, payload.PageSize);
@@ -69,10 +69,10 @@ public class UsersControllerIntegrationTests : IClassFixture<CustomWebApplicatio
     public async Task GetUserById_WithMissingUser_Returns404NotFound()
     {
         // Arrange
-        var adminClient = _factory.CreateAuthenticatedClient(UserRole.Admin);
+        HttpClient adminClient = _factory.CreateAuthenticatedClient(UserRole.Admin);
 
         // Act
-        var response = await adminClient.GetAsync($"/api/users/{Guid.NewGuid()}");
+        HttpResponseMessage response = await adminClient.GetAsync($"/api/users/{Guid.NewGuid()}");
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -82,19 +82,19 @@ public class UsersControllerIntegrationTests : IClassFixture<CustomWebApplicatio
     public async Task UpdateUserRole_WithAdminToken_UpdatesRole()
     {
         // Arrange
-        var adminClient = _factory.CreateAuthenticatedClient(UserRole.Admin);
-        var user = CreateUser("role-change@example.com", "Role", "Change");
+        HttpClient adminClient = _factory.CreateAuthenticatedClient(UserRole.Admin);
+        User user = CreateUser("role-change@example.com", "Role", "Change");
         await _factory.UserRepository.SaveAsync(user);
 
         // Act
-        var response = await adminClient.PutAsJsonAsync(
+        HttpResponseMessage response = await adminClient.PutAsJsonAsync(
             $"/api/users/{user.Id}/role",
             new UpdateUserRoleRequest(Role: "Admin"));
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var payload = await response.Content.ReadFromJsonAsync<UserResponse>();
+        UserResponse? payload = await response.Content.ReadFromJsonAsync<UserResponse>();
         Assert.NotNull(payload);
         Assert.Equal("Admin", payload.Role);
     }
@@ -103,17 +103,17 @@ public class UsersControllerIntegrationTests : IClassFixture<CustomWebApplicatio
     public async Task DeactivateUser_WithAdminToken_DeactivatesUser()
     {
         // Arrange
-        var adminClient = _factory.CreateAuthenticatedClient(UserRole.Admin);
-        var user = CreateUser("deactivate-api@example.com", "Deactivate", "Api");
+        HttpClient adminClient = _factory.CreateAuthenticatedClient(UserRole.Admin);
+        User user = CreateUser("deactivate-api@example.com", "Deactivate", "Api");
         await _factory.UserRepository.SaveAsync(user);
 
         // Act
-        var response = await adminClient.DeleteAsync($"/api/users/{user.Id}");
+        HttpResponseMessage response = await adminClient.DeleteAsync($"/api/users/{user.Id}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var payload = await response.Content.ReadFromJsonAsync<UserResponse>();
+        UserResponse? payload = await response.Content.ReadFromJsonAsync<UserResponse>();
         Assert.NotNull(payload);
         Assert.False(payload.IsActive);
     }

@@ -28,7 +28,7 @@ public class UserServiceTests
         await _userRepository.SaveAsync(secondUser);
 
         // Act
-        var result = await _userService.GetAllUsersAsync(page: 1, pageSize: 1);
+        PagedResult<UserResponse> result = await _userService.GetAllUsersAsync(page: 1, pageSize: 1);
 
         // Assert
         Assert.Single(result.Items);
@@ -49,7 +49,7 @@ public class UserServiceTests
         await _userRepository.SaveAsync(user);
 
         // Act
-        var result = await _userService.GetUserByIdAsync(user.Id);
+        UserResponse? result = await _userService.GetUserByIdAsync(user.Id);
 
         // Assert
         Assert.NotNull(result);
@@ -61,7 +61,7 @@ public class UserServiceTests
     public async Task GetUserByIdAsync_WithUnknownUser_ReturnsNull()
     {
         // Act
-        var result = await _userService.GetUserByIdAsync(Guid.NewGuid());
+        UserResponse? result = await _userService.GetUserByIdAsync(Guid.NewGuid());
 
         // Assert
         Assert.Null(result);
@@ -77,12 +77,12 @@ public class UserServiceTests
         var request = new UpdateUserRoleRequest(Role: "Admin");
 
         // Act
-        var result = await _userService.UpdateUserRoleAsync(user.Id, request);
+        UserResponse result = await _userService.UpdateUserRoleAsync(user.Id, request);
 
         // Assert
         Assert.Equal("Admin", result.Role);
 
-        var persistedUser = await _userRepository.GetByIdAsync(user.Id);
+        User? persistedUser = await _userRepository.GetByIdAsync(user.Id);
         Assert.NotNull(persistedUser);
         Assert.Equal(UserRole.Admin, persistedUser.Role);
     }
@@ -120,12 +120,12 @@ public class UserServiceTests
         await _userRepository.SaveAsync(user);
 
         // Act
-        var result = await _userService.DeactivateUserAsync(user.Id);
+        UserResponse result = await _userService.DeactivateUserAsync(user.Id);
 
         // Assert
         Assert.False(result.IsActive);
 
-        var persistedUser = await _userRepository.GetByIdAsync(user.Id);
+        User? persistedUser = await _userRepository.GetByIdAsync(user.Id);
         Assert.NotNull(persistedUser);
         Assert.False(persistedUser.IsActive);
     }
@@ -140,25 +140,25 @@ public class UserServiceTests
 
     private sealed class FakeUserRepository : IUserRepository
     {
-        private readonly Dictionary<Guid, User> _users = new();
+        private readonly Dictionary<Guid, User> _users = [];
 
         public Task<User?> GetByIdAsync(Guid id)
         {
-            _users.TryGetValue(id, out var user);
+            _users.TryGetValue(id, out User? user);
             return Task.FromResult(user);
         }
 
         public Task<User?> GetByEmailAsync(string email)
         {
-            var normalizedEmail = email.Trim().ToLowerInvariant();
-            var user = _users.Values.FirstOrDefault(u => u.Email == normalizedEmail);
+            string normalizedEmail = email.Trim().ToLowerInvariant();
+            User? user = _users.Values.FirstOrDefault(u => u.Email == normalizedEmail);
             return Task.FromResult(user);
         }
 
         public Task<bool> ExistsByEmailAsync(string email)
         {
-            var normalizedEmail = email.Trim().ToLowerInvariant();
-            var exists = _users.Values.Any(u => u.Email == normalizedEmail);
+            string normalizedEmail = email.Trim().ToLowerInvariant();
+            bool exists = _users.Values.Any(u => u.Email == normalizedEmail);
             return Task.FromResult(exists);
         }
 
@@ -170,7 +170,7 @@ public class UserServiceTests
 
         public Task<IEnumerable<User>> GetAllAsync(int page = 1, int pageSize = 20)
         {
-            var users = _users.Values
+            IEnumerable<User> users = _users.Values
                 .OrderBy(u => u.Email)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize);
@@ -178,9 +178,6 @@ public class UserServiceTests
             return Task.FromResult(users.AsEnumerable());
         }
 
-        public Task<int> GetCountAsync()
-        {
-            return Task.FromResult(_users.Count);
-        }
+        public Task<int> GetCountAsync() => Task.FromResult(_users.Count);
     }
 }

@@ -17,7 +17,7 @@ public class EfRefreshTokenRepository : IRefreshTokenRepository
 
     public async Task<RefreshToken?> GetByTokenAsync(string token)
     {
-        var tokenHash = RefreshToken.HashToken(token);
+        string tokenHash = RefreshToken.HashToken(token);
         var entity = await _context.RefreshTokens
             .FirstOrDefaultAsync(r => r.Token == tokenHash);
 

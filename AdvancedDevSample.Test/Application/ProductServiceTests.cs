@@ -28,10 +28,10 @@ public class ProductServiceTests
     [Fact]
     public async Task CreateAsync_WithDuplicateSku_ThrowsDuplicateSkuException()
     {
-        var service = CreateService();
+        ProductService service = CreateService();
         _productRepository.Seed(new Product("Existing", 10m, new Sku("DUPL-001")));
 
-        var request = new CreateProductRequest(
+        CreateProductRequest request = new CreateProductRequest(
             Name: "Duplicate",
             Sku: "DUPL-001",
             Price: 20m);
@@ -42,9 +42,9 @@ public class ProductServiceTests
     [Fact]
     public async Task CreateAsync_WithUnknownCategory_ThrowsCategoryNotFoundException()
     {
-        var service = CreateService();
+        ProductService service = CreateService();
 
-        var request = new CreateProductRequest(
+        CreateProductRequest request = new CreateProductRequest(
             Name: "New",
             Sku: "CAT-404",
             Price: 20m,
@@ -56,11 +56,11 @@ public class ProductServiceTests
     [Fact]
     public async Task SearchAsync_ClampsInvalidPagingValues()
     {
-        var service = CreateService();
+        ProductService service = CreateService();
         _productRepository.Seed(new Product("Alpha", 10m, new Sku("A-001")));
         _productRepository.Seed(new Product("Beta", 20m, new Sku("B-001")));
 
-        var response = await service.SearchAsync(new ProductSearchRequest { Page = 0, PageSize = 500 });
+        PagedResponse<ProductResponse> response = await service.SearchAsync(new ProductSearchRequest { Page = 0, PageSize = 500 });
 
         Assert.Equal(1, response.Page);
         Assert.Equal(100, response.PageSize);
@@ -72,13 +72,13 @@ public class ProductServiceTests
     [Fact]
     public async Task UpdateAsync_WithPriceStockCategoryAndActivation_UpdatesAllFields()
     {
-        var service = CreateService();
-        var oldCategory = new Category("Old", "Old category");
-        var newCategory = new Category("New", "New category");
+        ProductService service = CreateService();
+        Category oldCategory = new Category("Old", "Old category");
+        Category newCategory = new Category("New", "New category");
         await _categoryRepository.SaveAsync(oldCategory);
         await _categoryRepository.SaveAsync(newCategory);
 
-        var product = new Product(
+        Product product = new Product(
             name: "Phone",
             price: 100m,
             sku: new Sku("PHN-001"),
@@ -87,7 +87,7 @@ public class ProductServiceTests
             categoryId: oldCategory.Id);
         _productRepository.Seed(product);
 
-        var updated = await service.UpdateAsync(product.Id, new UpdateProductRequest(
+        ProductResponse updated = await service.UpdateAsync(product.Id, new UpdateProductRequest(
             Name: "Phone 2",
             Description: "New desc",
             Price: 120m,
@@ -102,7 +102,7 @@ public class ProductServiceTests
         Assert.Equal(newCategory.Id, updated.CategoryId);
         Assert.False(updated.IsActive);
 
-        var history = await _priceHistoryRepository.GetByProductIdAsync(product.Id);
+        IReadOnlyList<PriceHistory> history = await _priceHistoryRepository.GetByProductIdAsync(product.Id);
         Assert.Single(history);
         Assert.Equal(100m, history[0].OldPrice);
         Assert.Equal(120m, history[0].NewPrice);
@@ -111,14 +111,14 @@ public class ProductServiceTests
     [Fact]
     public async Task UpdateAsync_WithClearCategory_RemovesCategory()
     {
-        var service = CreateService();
-        var category = new Category("Tech", "Tech category");
+        ProductService service = CreateService();
+        Category category = new Category("Tech", "Tech category");
         await _categoryRepository.SaveAsync(category);
 
-        var product = new Product("Laptop", 999m, new Sku("LAP-001"), categoryId: category.Id);
+        Product product = new Product("Laptop", 999m, new Sku("LAP-001"), categoryId: category.Id);
         _productRepository.Seed(product);
 
-        var updated = await service.UpdateAsync(product.Id, new UpdateProductRequest(ClearCategory: true));
+        ProductResponse updated = await service.UpdateAsync(product.Id, new UpdateProductRequest(ClearCategory: true));
 
         Assert.Null(updated.CategoryId);
     }
@@ -126,8 +126,8 @@ public class ProductServiceTests
     [Fact]
     public async Task UpdateAsync_WithUnknownCategory_ThrowsCategoryNotFoundException()
     {
-        var service = CreateService();
-        var product = new Product("Laptop", 999m, new Sku("LAP-002"));
+        ProductService service = CreateService();
+        Product product = new Product("Laptop", 999m, new Sku("LAP-002"));
         _productRepository.Seed(product);
 
         await Assert.ThrowsAsync<CategoryNotFoundException>(() =>
@@ -137,25 +137,25 @@ public class ProductServiceTests
     [Fact]
     public async Task RemoveDiscountAsync_WithoutDiscount_ReturnsProductAndDoesNotWriteHistory()
     {
-        var service = CreateService();
-        var product = new Product("No Discount", 50m, new Sku("NO-DISC-1"));
+        ProductService service = CreateService();
+        Product product = new Product("No Discount", 50m, new Sku("NO-DISC-1"));
         _productRepository.Seed(product);
 
-        var response = await service.RemoveDiscountAsync(product.Id);
+        ProductResponse response = await service.RemoveDiscountAsync(product.Id);
 
         Assert.Equal(50m, response.EffectivePrice);
         Assert.Null(response.DiscountPercentage);
 
-        var history = await _priceHistoryRepository.GetByProductIdAsync(product.Id);
+        IReadOnlyList<PriceHistory> history = await _priceHistoryRepository.GetByProductIdAsync(product.Id);
         Assert.Empty(history);
     }
 
     [Fact]
     public async Task ChangePriceAsync_WithUnknownProduct_ThrowsApplicationServiceExceptionNotFound()
     {
-        var service = CreateService();
+        ProductService service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ApplicationServiceException>(() =>
+        ApplicationServiceException exception = await Assert.ThrowsAsync<ApplicationServiceException>(() =>
             service.ChangePriceAsync(Guid.NewGuid(), new ChangePriceRequest(10m)));
 
         Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
@@ -164,21 +164,15 @@ public class ProductServiceTests
     [Fact]
     public async Task DeleteAsync_WithUnknownProduct_ThrowsProductNotFoundException()
     {
-        var service = CreateService();
+        ProductService service = CreateService();
 
         await Assert.ThrowsAsync<ProductNotFoundException>(() => service.DeleteAsync(Guid.NewGuid()));
     }
 
     private sealed class FakeTransactionManager : ITransactionManager
     {
-        public Task ExecuteInTransactionAsync(Func<Task> action, CancellationToken cancellationToken = default)
-        {
-            return action();
-        }
+        public Task ExecuteInTransactionAsync(Func<Task> action, CancellationToken cancellationToken = default) => action();
 
-        public Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> action, CancellationToken cancellationToken = default)
-        {
-            return action();
-        }
+        public Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> action, CancellationToken cancellationToken = default) => action();
     }
 }

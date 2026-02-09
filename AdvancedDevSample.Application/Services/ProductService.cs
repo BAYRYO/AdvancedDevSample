@@ -91,8 +91,8 @@ public class ProductService
 
     public async Task<PagedResponse<ProductResponse>> SearchAsync(ProductSearchRequest request)
     {
-        var page = request.Page < 1 ? 1 : request.Page;
-        var pageSize = Math.Clamp(request.PageSize, 1, 100);
+        int page = request.Page < 1 ? 1 : request.Page;
+        int pageSize = Math.Clamp(request.PageSize, 1, 100);
 
         var criteria = new ProductSearchCriteria(
             Name: request.Name,
@@ -111,7 +111,7 @@ public class ProductService
             responses.Add(await GetProductResponseAsync(product));
         }
 
-        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
         return new PagedResponse<ProductResponse>(
             Items: responses,

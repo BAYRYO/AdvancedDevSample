@@ -9,7 +9,7 @@ public class RefreshTokenTests
     {
         var refreshToken = new RefreshToken(Guid.NewGuid());
 
-        var plainText = refreshToken.GetPlainTextTokenOrThrow();
+        string plainText = refreshToken.GetPlainTextTokenOrThrow();
 
         Assert.True(refreshToken.Matches(plainText));
         Assert.False(refreshToken.Matches("invalid-token"));

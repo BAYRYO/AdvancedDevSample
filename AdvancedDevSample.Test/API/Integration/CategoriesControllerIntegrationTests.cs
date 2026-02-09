@@ -27,16 +27,16 @@ public class CategoriesControllerIntegrationTests : IClassFixture<CustomWebAppli
     {
         var request = new CreateCategoryRequest("Electronics", "Devices");
 
-        var response = await _authenticatedClient.PostAsJsonAsync("/api/categories", request);
+        HttpResponseMessage response = await _authenticatedClient.PostAsJsonAsync("/api/categories", request);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
-        var result = await response.Content.ReadFromJsonAsync<CategoryResponse>();
+        CategoryResponse? result = await response.Content.ReadFromJsonAsync<CategoryResponse>();
         Assert.NotNull(result);
         Assert.Equal("Electronics", result.Name);
         Assert.Equal("Devices", result.Description);
 
-        var saved = await _repo.GetByIdAsync(result.Id);
+        Category? saved = await _repo.GetByIdAsync(result.Id);
         Assert.NotNull(saved);
     }
 
@@ -45,7 +45,7 @@ public class CategoriesControllerIntegrationTests : IClassFixture<CustomWebAppli
     {
         var request = new CreateCategoryRequest("Electronics", "Devices");
 
-        var response = await _client.PostAsJsonAsync("/api/categories", request);
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/categories", request);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -56,11 +56,11 @@ public class CategoriesControllerIntegrationTests : IClassFixture<CustomWebAppli
         var category = new Category("Books", "Reading");
         _repo.Seed(category);
 
-        var response = await _client.GetAsync($"/api/categories/{category.Id}");
+        HttpResponseMessage response = await _client.GetAsync($"/api/categories/{category.Id}");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var result = await response.Content.ReadFromJsonAsync<CategoryResponse>();
+        CategoryResponse? result = await response.Content.ReadFromJsonAsync<CategoryResponse>();
         Assert.NotNull(result);
         Assert.Equal(category.Id, result.Id);
         Assert.Equal("Books", result.Name);
@@ -69,7 +69,7 @@ public class CategoriesControllerIntegrationTests : IClassFixture<CustomWebAppli
     [Fact]
     public async Task GetById_Should_Return_NotFound_When_Category_Does_Not_Exist()
     {
-        var response = await _client.GetAsync($"/api/categories/{Guid.NewGuid()}");
+        HttpResponseMessage response = await _client.GetAsync($"/api/categories/{Guid.NewGuid()}");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
@@ -83,13 +83,13 @@ public class CategoriesControllerIntegrationTests : IClassFixture<CustomWebAppli
         _repo.Seed(active);
         _repo.Seed(inactive);
 
-        var response = await _client.GetAsync("/api/categories?activeOnly=true");
+        HttpResponseMessage response = await _client.GetAsync("/api/categories?activeOnly=true");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var result = await response.Content.ReadFromJsonAsync<List<CategoryResponse>>();
+        List<CategoryResponse>? result = await response.Content.ReadFromJsonAsync<List<CategoryResponse>>();
         Assert.NotNull(result);
-        var onlyCategory = Assert.Single(result);
+        CategoryResponse onlyCategory = Assert.Single(result);
         Assert.Equal(active.Id, onlyCategory.Id);
         Assert.True(onlyCategory.IsActive);
     }
@@ -105,17 +105,17 @@ public class CategoriesControllerIntegrationTests : IClassFixture<CustomWebAppli
             Description: "New Description",
             IsActive: false);
 
-        var response = await _authenticatedClient.PutAsJsonAsync($"/api/categories/{category.Id}", request);
+        HttpResponseMessage response = await _authenticatedClient.PutAsJsonAsync($"/api/categories/{category.Id}", request);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var result = await response.Content.ReadFromJsonAsync<CategoryResponse>();
+        CategoryResponse? result = await response.Content.ReadFromJsonAsync<CategoryResponse>();
         Assert.NotNull(result);
         Assert.Equal("New Name", result.Name);
         Assert.Equal("New Description", result.Description);
         Assert.False(result.IsActive);
 
-        var saved = await _repo.GetByIdAsync(category.Id);
+        Category? saved = await _repo.GetByIdAsync(category.Id);
         Assert.NotNull(saved);
         Assert.Equal("New Name", saved.Name);
         Assert.False(saved.IsActive);
@@ -126,7 +126,7 @@ public class CategoriesControllerIntegrationTests : IClassFixture<CustomWebAppli
     {
         var request = new UpdateCategoryRequest(Name: "New Name");
 
-        var response = await _authenticatedClient.PutAsJsonAsync($"/api/categories/{Guid.NewGuid()}", request);
+        HttpResponseMessage response = await _authenticatedClient.PutAsJsonAsync($"/api/categories/{Guid.NewGuid()}", request);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -137,7 +137,7 @@ public class CategoriesControllerIntegrationTests : IClassFixture<CustomWebAppli
         var category = new Category("To Delete", "Temp");
         _repo.Seed(category);
 
-        var response = await _adminClient.DeleteAsync($"/api/categories/{category.Id}");
+        HttpResponseMessage response = await _adminClient.DeleteAsync($"/api/categories/{category.Id}");
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         Assert.Null(await _repo.GetByIdAsync(category.Id));
@@ -146,7 +146,7 @@ public class CategoriesControllerIntegrationTests : IClassFixture<CustomWebAppli
     [Fact]
     public async Task Delete_Should_Return_BadRequest_When_Category_Does_Not_Exist()
     {
-        var response = await _adminClient.DeleteAsync($"/api/categories/{Guid.NewGuid()}");
+        HttpResponseMessage response = await _adminClient.DeleteAsync($"/api/categories/{Guid.NewGuid()}");
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }

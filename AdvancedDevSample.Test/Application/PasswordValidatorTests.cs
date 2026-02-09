@@ -8,7 +8,7 @@ public class PasswordValidatorTests
     [Fact]
     public void Validate_WithStrongPassword_DoesNotThrow()
     {
-        var exception = Record.Exception(() => PasswordValidator.Validate("StrongPass123!"));
+        Exception? exception = Record.Exception(() => PasswordValidator.Validate("StrongPass123!"));
 
         Assert.Null(exception);
     }
@@ -16,7 +16,7 @@ public class PasswordValidatorTests
     [Fact]
     public void Validate_WithMissingPassword_ThrowsWeakPasswordException()
     {
-        var exception = Assert.Throws<WeakPasswordException>(() => PasswordValidator.Validate(" "));
+        WeakPasswordException exception = Assert.Throws<WeakPasswordException>(() => PasswordValidator.Validate(" "));
 
         Assert.Contains("Password is required.", exception.ValidationErrors);
     }
@@ -24,7 +24,7 @@ public class PasswordValidatorTests
     [Fact]
     public void Validate_WithWeakPassword_ThrowsAllRelevantErrors()
     {
-        var exception = Assert.Throws<WeakPasswordException>(() => PasswordValidator.Validate("abc"));
+        WeakPasswordException exception = Assert.Throws<WeakPasswordException>(() => PasswordValidator.Validate("abc"));
 
         Assert.Contains($"Password must be at least {PasswordValidator.MinLength} characters long.", exception.ValidationErrors);
         Assert.Contains("Password must contain at least one uppercase letter.", exception.ValidationErrors);
@@ -35,7 +35,7 @@ public class PasswordValidatorTests
     [Fact]
     public void IsValid_WithStrongPassword_ReturnsTrueAndNoErrors()
     {
-        var isValid = PasswordValidator.IsValid("ValidPass123!", out var errors);
+        bool isValid = PasswordValidator.IsValid("ValidPass123!", out IReadOnlyList<string> errors);
 
         Assert.True(isValid);
         Assert.Empty(errors);
@@ -44,7 +44,7 @@ public class PasswordValidatorTests
     [Fact]
     public void IsValid_WithEmptyPassword_ReturnsFalseWithRequiredError()
     {
-        var isValid = PasswordValidator.IsValid("", out var errors);
+        bool isValid = PasswordValidator.IsValid("", out IReadOnlyList<string> errors);
 
         Assert.False(isValid);
         Assert.Single(errors);
@@ -54,9 +54,9 @@ public class PasswordValidatorTests
     [Fact]
     public void IsValid_WithTooLongPassword_ReturnsFalseWithMaxLengthError()
     {
-        var longPassword = new string('A', PasswordValidator.MaxLength + 1) + "1!a";
+        string longPassword = new string('A', PasswordValidator.MaxLength + 1) + "1!a";
 
-        var isValid = PasswordValidator.IsValid(longPassword, out var errors);
+        bool isValid = PasswordValidator.IsValid(longPassword, out IReadOnlyList<string> errors);
 
         Assert.False(isValid);
         Assert.Contains($"Password must be at most {PasswordValidator.MaxLength} characters long.", errors);

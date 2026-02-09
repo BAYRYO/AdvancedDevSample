@@ -183,7 +183,7 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
     [Fact]
     public async Task Search_Should_Return_BadRequest_When_Page_Is_Invalid()
     {
-        var response = await _client.GetAsync("/api/products?page=0&pageSize=20");
+        HttpResponseMessage response = await _client.GetAsync("/api/products?page=0&pageSize=20");
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -191,7 +191,7 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
     [Fact]
     public async Task Search_Should_Return_BadRequest_When_PageSize_Is_Invalid()
     {
-        var response = await _client.GetAsync("/api/products?page=1&pageSize=0");
+        HttpResponseMessage response = await _client.GetAsync("/api/products?page=1&pageSize=0");
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }

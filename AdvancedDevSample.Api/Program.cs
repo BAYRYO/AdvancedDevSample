@@ -175,8 +175,8 @@ static void ConfigureRateLimiting(IServiceCollection services)
 
 static void ConfigureCors(IServiceCollection services, IConfiguration configuration)
 {
-    var configuredOrigins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
-    var allowedOrigins = configuredOrigins.Length == 0
+    string[] configuredOrigins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+    string[] allowedOrigins = configuredOrigins.Length == 0
         ? ["http://localhost:5173", "https://localhost:7173"]
         : configuredOrigins;
 
@@ -233,11 +233,11 @@ static void LogSentryInitialization(WebApplication app)
 
 static async Task InitializeDatabaseAsync(WebApplication app)
 {
-    var seedDatabase = app.Configuration.GetValue<bool>("SeedDatabase", true);
-    var useMigrations = app.Configuration.GetValue<bool>("UseMigrations", true);
+    bool seedDatabase = app.Configuration.GetValue<bool>("SeedDatabase", true);
+    bool useMigrations = app.Configuration.GetValue<bool>("UseMigrations", true);
 
-    using var scope = app.Services.CreateScope();
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    using IServiceScope scope = app.Services.CreateScope();
+    AppDbContext dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
     if (useMigrations && dbContext.Database.IsRelational())
     {

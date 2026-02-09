@@ -9,12 +9,12 @@ public class NavMenuComponentTests : TestContext
     [Fact]
     public void NavMenu_WhenTogglerClicked_TogglesCollapseClass()
     {
-        var authContext = this.AddTestAuthorization();
+        TestAuthorizationContext authContext = this.AddTestAuthorization();
         authContext.SetNotAuthorized();
 
-        var component = RenderComponent<NavMenu>();
+        IRenderedComponent<NavMenu> component = RenderComponent<NavMenu>();
 
-        var navContainer = component.Find("div.nav-scrollable");
+        AngleSharp.Dom.IElement navContainer = component.Find("div.nav-scrollable");
         Assert.Contains("collapse", navContainer.GetAttribute("class"), StringComparison.Ordinal);
 
         component.Find("button.navbar-toggler").Click();
@@ -26,10 +26,10 @@ public class NavMenuComponentTests : TestContext
     [Fact]
     public void NavMenu_WhenUserIsAnonymous_ShowsSignInAndRegisterLinks()
     {
-        var authContext = this.AddTestAuthorization();
+        TestAuthorizationContext authContext = this.AddTestAuthorization();
         authContext.SetNotAuthorized();
 
-        var component = RenderComponent<NavMenu>();
+        IRenderedComponent<NavMenu> component = RenderComponent<NavMenu>();
 
         component.Find("a[href='account/login']");
         component.Find("a[href='account/register']");
@@ -39,10 +39,10 @@ public class NavMenuComponentTests : TestContext
     [Fact]
     public void NavMenu_WhenUserIsAuthenticated_ShowsProtectedLinksWithoutAdminLink()
     {
-        var authContext = this.AddTestAuthorization();
+        TestAuthorizationContext authContext = this.AddTestAuthorization();
         authContext.SetAuthorized("user@example.com");
 
-        var component = RenderComponent<NavMenu>();
+        IRenderedComponent<NavMenu> component = RenderComponent<NavMenu>();
 
         component.Find("a[href='products']");
         component.Find("a[href='categories']");
@@ -53,11 +53,11 @@ public class NavMenuComponentTests : TestContext
     [Fact]
     public void NavMenu_WhenUserIsAdmin_ShowsAdminLink()
     {
-        var authContext = this.AddTestAuthorization();
+        TestAuthorizationContext authContext = this.AddTestAuthorization();
         authContext.SetAuthorized("admin@example.com");
         authContext.SetRoles("Admin");
 
-        var component = RenderComponent<NavMenu>();
+        IRenderedComponent<NavMenu> component = RenderComponent<NavMenu>();
 
         component.Find("a[href='users']");
         Assert.Contains("Users (Admin)", component.Markup, StringComparison.Ordinal);

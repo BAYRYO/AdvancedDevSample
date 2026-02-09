@@ -54,10 +54,7 @@ public class RefreshToken
 
     public bool IsValid => !IsRevoked && ExpiresAt > DateTime.UtcNow;
 
-    public bool Matches(string candidateToken)
-    {
-        return TokenHash == HashToken(candidateToken);
-    }
+    public bool Matches(string candidateToken) => TokenHash == HashToken(candidateToken);
 
     public string GetPlainTextTokenOrThrow()
     {
@@ -74,8 +71,8 @@ public class RefreshToken
 
     public static string HashToken(string token)
     {
-        var bytes = System.Text.Encoding.UTF8.GetBytes(token);
-        var hash = System.Security.Cryptography.SHA256.HashData(bytes);
+        byte[] bytes = System.Text.Encoding.UTF8.GetBytes(token);
+        byte[] hash = System.Security.Cryptography.SHA256.HashData(bytes);
         return Convert.ToHexString(hash);
     }
 

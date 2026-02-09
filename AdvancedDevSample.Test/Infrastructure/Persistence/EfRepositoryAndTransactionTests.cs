@@ -128,10 +128,10 @@ public class EfRepositoryAndTransactionTests
         var token = new RefreshToken(user.Id, expirationDays: 3);
         await tokenRepository.SaveAsync(token);
 
-        var persistedToken = await harness.Context.RefreshTokens.SingleAsync(t => t.Id == token.Id);
+        RefreshTokenEntity persistedToken = await harness.Context.RefreshTokens.SingleAsync(t => t.Id == token.Id);
         Assert.NotEqual(token.GetPlainTextTokenOrThrow(), persistedToken.Token);
 
-        var found = await tokenRepository.GetByTokenAsync(token.GetPlainTextTokenOrThrow());
+        RefreshToken? found = await tokenRepository.GetByTokenAsync(token.GetPlainTextTokenOrThrow());
         Assert.NotNull(found);
         Assert.Equal(token.Id, found.Id);
 
@@ -142,7 +142,7 @@ public class EfRepositoryAndTransactionTests
         await tokenRepository.SaveAsync(token);
         await tokenRepository.RevokeAllForUserAsync(user.Id);
 
-        var reloaded = await tokenRepository.GetByTokenAsync(token.GetPlainTextTokenOrThrow());
+        RefreshToken? reloaded = await tokenRepository.GetByTokenAsync(token.GetPlainTextTokenOrThrow());
         Assert.NotNull(reloaded);
         Assert.True(reloaded.IsRevoked);
     }

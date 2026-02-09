@@ -216,13 +216,13 @@ public class AuthServiceTests
         await _userRepository.SaveAsync(user);
 
         var existingRefreshToken = new RefreshToken(user.Id);
-        var plainTextRefreshToken = existingRefreshToken.GetPlainTextTokenOrThrow();
+        string plainTextRefreshToken = existingRefreshToken.GetPlainTextTokenOrThrow();
         await _refreshTokenRepository.SaveAsync(existingRefreshToken);
 
         var request = new RefreshTokenRequest(RefreshToken: plainTextRefreshToken);
 
         // Act
-        var response = await _authService.RefreshTokenAsync(request);
+        AuthResponseWithRefreshToken response = await _authService.RefreshTokenAsync(request);
 
         // Assert
         Assert.NotNull(response);
@@ -255,7 +255,7 @@ public class AuthServiceTests
         await _userRepository.SaveAsync(user);
 
         var refreshToken = new RefreshToken(user.Id);
-        var plainTextRefreshToken = refreshToken.GetPlainTextTokenOrThrow();
+        string plainTextRefreshToken = refreshToken.GetPlainTextTokenOrThrow();
         refreshToken.Revoke();
         await _refreshTokenRepository.SaveAsync(refreshToken);
 
@@ -279,7 +279,7 @@ public class AuthServiceTests
         await _userRepository.SaveAsync(user);
 
         var refreshToken = new RefreshToken(user.Id);
-        var plainTextRefreshToken = refreshToken.GetPlainTextTokenOrThrow();
+        string plainTextRefreshToken = refreshToken.GetPlainTextTokenOrThrow();
         await _refreshTokenRepository.SaveAsync(refreshToken);
 
         var request = new RefreshTokenRequest(RefreshToken: plainTextRefreshToken);
@@ -397,7 +397,7 @@ public class AuthServiceTests
 
         public Task<RefreshToken?> GetByTokenAsync(string token)
         {
-            var refreshToken = _tokens.Values.FirstOrDefault(t => t.Matches(token));
+            RefreshToken? refreshToken = _tokens.Values.FirstOrDefault(t => t.Matches(token));
             return Task.FromResult(refreshToken);
         }
 
