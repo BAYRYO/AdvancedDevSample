@@ -4,20 +4,13 @@ Le projet suit une architecture en couches avec dependances orientees vers le co
 
 ## Vue d'ensemble
 
-```text
-[Frontend Blazor WASM]
-        |
-        v
-[API ASP.NET Core]
-        |
-        v
-[Application Services]
-        |
-        v
-[Domain (Entities, VOs, Interfaces)]
-        ^
-        |
-[Infrastructure (EF Core, Repositories, Transactions)]
+```mermaid
+graph TD
+  A[Frontend Blazor WASM] -->|HTTP| B[API ASP.NET Core]
+  B --> C[Application Services]
+  C --> D[Domain<br/>Entities, VOs, Interfaces]
+  E[Infrastructure<br/>EF Core, Repositories] -.->|implements| D
+  C -.->|uses| E
 ```
 
 ## Projets et responsabilites
