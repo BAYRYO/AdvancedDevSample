@@ -1,5 +1,10 @@
 # AdvancedDevSample
 
+[![Quality](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/quality.yml/badge.svg)](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/quality.yml)
+[![Security](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/security.yml/badge.svg)](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/security.yml)
+[![Docs](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/docs.yml/badge.svg)](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/docs.yml)
+[![Release](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/release.yml/badge.svg)](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/release.yml)
+
 Construire un logiciel propre, securise et livrable.
 
 `AdvancedDevSample` est un projet de reference full-stack .NET 10 concu pour montrer a quoi ressemble une architecture orientee production dans la pratique :
