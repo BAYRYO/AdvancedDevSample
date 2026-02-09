@@ -15,14 +15,14 @@ public class ProgramConfigurationTests
     {
         var services = new ServiceCollection();
         IConfiguration configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>())
+            .AddInMemoryCollection([])
             .Build();
 
         InvokeProgramMethod("ConfigureCors", services, configuration);
 
-        using var provider = services.BuildServiceProvider();
-        var corsPolicyProvider = provider.GetRequiredService<ICorsPolicyProvider>();
-        var policy = await corsPolicyProvider.GetPolicyAsync(new DefaultHttpContext(), "Frontend");
+        using ServiceProvider provider = services.BuildServiceProvider();
+        ICorsPolicyProvider corsPolicyProvider = provider.GetRequiredService<ICorsPolicyProvider>();
+        CorsPolicy? policy = await corsPolicyProvider.GetPolicyAsync(new DefaultHttpContext(), "Frontend");
 
         Assert.NotNull(policy);
         Assert.Contains("http://localhost:5173", policy!.Origins);
@@ -43,9 +43,9 @@ public class ProgramConfigurationTests
 
         InvokeProgramMethod("ConfigureCors", services, configuration);
 
-        using var provider = services.BuildServiceProvider();
-        var corsPolicyProvider = provider.GetRequiredService<ICorsPolicyProvider>();
-        var policy = await corsPolicyProvider.GetPolicyAsync(new DefaultHttpContext(), "Frontend");
+        using ServiceProvider provider = services.BuildServiceProvider();
+        ICorsPolicyProvider corsPolicyProvider = provider.GetRequiredService<ICorsPolicyProvider>();
+        CorsPolicy? policy = await corsPolicyProvider.GetPolicyAsync(new DefaultHttpContext(), "Frontend");
 
         Assert.NotNull(policy);
         Assert.Equal(2, policy!.Origins.Count);
@@ -60,15 +60,15 @@ public class ProgramConfigurationTests
 
         InvokeProgramMethod("ConfigureRateLimiting", services);
 
-        using var provider = services.BuildServiceProvider();
-        var options = provider.GetRequiredService<IOptions<RateLimiterOptions>>().Value;
+        using ServiceProvider provider = services.BuildServiceProvider();
+        RateLimiterOptions options = provider.GetRequiredService<IOptions<RateLimiterOptions>>().Value;
 
         Assert.Equal(StatusCodes.Status429TooManyRequests, options.RejectionStatusCode);
     }
 
     private static object? InvokeProgramMethod(string methodName, params object[] args)
     {
-        var method = typeof(Program)
+        MethodInfo? method = typeof(Program)
             .GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
             .SingleOrDefault(m => m.Name.Contains($"g__{methodName}|", StringComparison.Ordinal));
         Assert.NotNull(method);

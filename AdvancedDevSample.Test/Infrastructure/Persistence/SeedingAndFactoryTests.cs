@@ -83,13 +83,13 @@ public class SeedingAndFactoryTests
             await using var provider = BuildSeederServiceProvider();
             await provider.SeedDatabaseAsync();
 
-            using var scope = provider.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            using IServiceScope scope = provider.CreateScope();
+            AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
             Assert.Equal(0, await context.Users.CountAsync(u => u.Role == (int)UserRole.Admin));
             Assert.True(await context.Categories.CountAsync() >= 5);
             Assert.True(await context.Products.CountAsync() >= 5);
-            Assert.True(await context.PriceHistories.CountAsync() > 0);
+            Assert.True(await context.PriceHistories.AnyAsync());
         }
         finally
         {

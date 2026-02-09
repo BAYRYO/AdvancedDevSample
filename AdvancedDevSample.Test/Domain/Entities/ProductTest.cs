@@ -263,8 +263,8 @@ public class ProductTest
     public void Reconstitution_Constructor_WithoutDiscount_Keeps_EffectivePrice_Equal_To_Price()
     {
         var explicitId = Guid.NewGuid();
-        var createdAt = DateTime.UtcNow.AddDays(-2);
-        var updatedAt = DateTime.UtcNow.AddDays(-1);
+        DateTime createdAt = DateTime.UtcNow.AddDays(-2);
+        DateTime updatedAt = DateTime.UtcNow.AddDays(-1);
 
         var product = new Product(new Product.ReconstitutionData
         {

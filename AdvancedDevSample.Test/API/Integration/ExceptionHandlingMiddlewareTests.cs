@@ -15,12 +15,12 @@ public class ExceptionHandlingMiddlewareTests
             _ => throw new ApplicationServiceException("resource missing", System.Net.HttpStatusCode.NotFound),
             NullLogger<ExceptionHandlingMiddleware>.Instance);
 
-        var context = CreateHttpContext();
+        DefaultHttpContext context = CreateHttpContext();
 
         await middleware.Invoke(context);
 
         Assert.Equal(StatusCodes.Status404NotFound, context.Response.StatusCode);
-        var payload = await ReadJsonAsync(context);
+        JsonElement payload = await ReadJsonAsync(context);
         Assert.Equal("Ressource introuvable", payload.GetProperty("title").GetString());
         Assert.Equal("resource missing", payload.GetProperty("detail").GetString());
     }
@@ -32,19 +32,19 @@ public class ExceptionHandlingMiddlewareTests
             _ => throw new InfrastructureException("db exploded"),
             NullLogger<ExceptionHandlingMiddleware>.Instance);
 
-        var context = CreateHttpContext();
+        DefaultHttpContext context = CreateHttpContext();
 
         await middleware.Invoke(context);
 
         Assert.Equal(StatusCodes.Status500InternalServerError, context.Response.StatusCode);
-        var payload = await ReadJsonAsync(context);
+        JsonElement payload = await ReadJsonAsync(context);
         Assert.Equal("Erreur technique", payload.GetProperty("error").GetString());
         Assert.False(payload.TryGetProperty("detail", out _));
     }
 
     private static DefaultHttpContext CreateHttpContext()
     {
-        var context = new DefaultHttpContext();
+        DefaultHttpContext context = new DefaultHttpContext();
         context.Request.Method = HttpMethods.Get;
         context.Request.Path = "/api/test";
         context.Response.Body = new MemoryStream();
@@ -54,7 +54,7 @@ public class ExceptionHandlingMiddlewareTests
     private static async Task<JsonElement> ReadJsonAsync(HttpContext context)
     {
         context.Response.Body.Position = 0;
-        using var json = await JsonDocument.ParseAsync(context.Response.Body);
+        using JsonDocument json = await JsonDocument.ParseAsync(context.Response.Body);
         return json.RootElement.Clone();
     }
 }

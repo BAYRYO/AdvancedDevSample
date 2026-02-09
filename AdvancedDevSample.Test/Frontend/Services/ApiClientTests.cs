@@ -48,7 +48,7 @@ public class ApiClientTests
             }));
         var apiClient = new ApiClient(new HttpClient(handler) { BaseAddress = new Uri("https://example.test") });
 
-        var exception = await Assert.ThrowsAsync<ApiException>(() => apiClient.GetCurrentUserAsync());
+        ApiException exception = await Assert.ThrowsAsync<ApiException>(() => apiClient.GetCurrentUserAsync());
 
         Assert.Equal("The API returned an empty response.", exception.Message);
         Assert.Equal((int)HttpStatusCode.OK, exception.StatusCode);
@@ -64,7 +64,7 @@ public class ApiClientTests
             }));
         var apiClient = new ApiClient(new HttpClient(handler) { BaseAddress = new Uri("https://example.test") });
 
-        var exception = await Assert.ThrowsAsync<ApiException>(() => apiClient.DeleteProductAsync(Guid.NewGuid()));
+        ApiException exception = await Assert.ThrowsAsync<ApiException>(() => apiClient.DeleteProductAsync(Guid.NewGuid()));
 
         Assert.Equal("Request failed with status 400.", exception.Message);
         Assert.Equal((int)HttpStatusCode.BadRequest, exception.StatusCode);
@@ -80,7 +80,7 @@ public class ApiClientTests
             }));
         var apiClient = new ApiClient(new HttpClient(handler) { BaseAddress = new Uri("https://example.test") });
 
-        var exception = await Assert.ThrowsAsync<ApiException>(() => apiClient.GetCurrentUserAsync());
+        ApiException exception = await Assert.ThrowsAsync<ApiException>(() => apiClient.GetCurrentUserAsync());
 
         Assert.Equal("upstream down", exception.Message);
         Assert.Equal((int)HttpStatusCode.BadGateway, exception.StatusCode);
