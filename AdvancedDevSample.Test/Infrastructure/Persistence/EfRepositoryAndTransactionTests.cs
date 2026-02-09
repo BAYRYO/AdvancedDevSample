@@ -201,7 +201,7 @@ public class EfRepositoryAndTransactionTests
         var latestForUserA = Assert.Single(userARecent);
         Assert.Equal(middle.Id, latestForUserA.Id);
 
-        var globalRecent = [.. await repository.GetRecentAsync(limit: 2)];
+        List<AuditLog> globalRecent = [.. await repository.GetRecentAsync(limit: 2)];
         Assert.Equal(2, globalRecent.Count);
         Assert.Equal(newest.Id, globalRecent[0].Id);
         Assert.Equal(middle.Id, globalRecent[1].Id);
