@@ -60,7 +60,7 @@ public class InMemoryProductRepository : IProductRepository
         }
 
         int totalCount = query.Count();
-        var items =
+        List<Product> items =
         [
             .. query
                 .OrderBy(p => p.Name)
