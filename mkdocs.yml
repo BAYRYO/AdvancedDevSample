@@ -21,9 +21,6 @@ theme:
     - scheme: studio
       primary: teal
       accent: lime
-      toggle:
-        icon: material/palette
-        name: Direction 1 - Studio
 
 markdown_extensions:
   - admonition
