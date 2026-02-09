@@ -27,8 +27,16 @@ La documentation detaillee est disponible dans `docs/` et publiee via MkDocs.
 
 Copier le template et adapter les secrets:
 
+Linux/macOS:
+
 ```bash
 cp .env.example .env
+```
+
+PowerShell:
+
+```powershell
+Copy-Item .env.example .env
 ```
 
 Variables principales:
@@ -78,8 +86,8 @@ pwsh ./eng/quality/quality.ps1
 ## MkDocs en local
 
 ```bash
-python -m pip install -r docs/requirements.txt
-mkdocs serve
+python3 -m pip install -r docs/requirements.txt
+python3 -m mkdocs serve
 ```
 
 Puis ouvrir `http://127.0.0.1:8000`.

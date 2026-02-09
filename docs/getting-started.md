@@ -26,8 +26,16 @@ dotnet restore AdvancedDevSample.slnx
 
 Copier le template:
 
+Linux/macOS:
+
 ```bash
 cp .env.example .env
+```
+
+PowerShell:
+
+```powershell
+Copy-Item .env.example .env
 ```
 
 Variables essentielles:
@@ -84,8 +92,14 @@ dotnet test AdvancedDevSample.slnx --collect:"XPlat Code Coverage"
 ## Lancer la documentation localement
 
 ```bash
-python -m pip install -r docs/requirements.txt
-mkdocs serve
+python3 -m pip install -r docs/requirements.txt
+python3 -m mkdocs serve
 ```
 
 Ouvrir `http://127.0.0.1:8000`.
+
+## Voir aussi
+
+- [Configuration](configuration.md)
+- [API](api.md)
+- [Troubleshooting](troubleshooting.md)

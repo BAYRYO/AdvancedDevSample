@@ -44,6 +44,7 @@ Middleware `SecurityHeadersMiddleware`:
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`
 - `Referrer-Policy: no-referrer`
+- `X-Permitted-Cross-Domain-Policies: none`
 - `Permissions-Policy: camera=(), microphone=(), geolocation=()`
 - `Cross-Origin-Opener-Policy: same-origin`
 - `Cross-Origin-Resource-Policy: same-origin`
@@ -69,3 +70,9 @@ Politique `Frontend`:
 - utiliser un `JWT_SECRET` long et aleatoire
 - durcir CORS en production (origines exactes)
 - activer et surveiller Sentry en environnements non-dev
+
+## Voir aussi
+
+- [Configuration](configuration.md)
+- [API](api.md)
+- [Exploitation](operations.md)

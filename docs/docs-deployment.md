@@ -35,9 +35,9 @@ Pour `BAYRYO/AdvancedDevSample`:
 ## Verification locale avant push
 
 ```bash
-python -m pip install -r docs/requirements.txt
-mkdocs build --strict
-mkdocs serve
+python3 -m pip install -r docs/requirements.txt
+python3 -m mkdocs build --strict
+python3 -m mkdocs serve
 ```
 
 Corriger toutes les erreurs de build strict avant merge.

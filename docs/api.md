@@ -21,7 +21,7 @@ Base URL locale:
 
 ## Endpoints d'authentification
 
-## Sequence cle: login + refresh token
+### Sequence cle: login + refresh token
 
 ```mermaid
 sequenceDiagram
@@ -172,6 +172,52 @@ Filtre disponible:
 | `PUT` | `/api/users/{id}/role` | Changer role (`User`/`Admin`) |
 | `DELETE` | `/api/users/{id}` | Desactivation (soft delete) |
 
+## Statuts HTTP par endpoint (resume)
+
+### Auth
+
+| Endpoint | `200` | `201` | `400` | `401` | `409` | `429` |
+| --- | --- | --- | --- | --- | --- | --- |
+| `POST /api/auth/register` |  | Oui | Oui |  | Oui |  |
+| `POST /api/auth/login` | Oui |  |  | Oui |  | Oui |
+| `POST /api/auth/refresh` | Oui |  |  | Oui |  |  |
+| `GET /api/auth/me` | Oui |  |  | Oui |  |  |
+
+### Produits
+
+| Endpoint | `200` | `201` | `204` | `400` | `401` | `403` | `404` |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `POST /api/products` |  | Oui |  | Oui | Oui |  |  |
+| `GET /api/products` | Oui |  |  |  |  |  |  |
+| `GET /api/products/{id}` | Oui |  |  |  |  |  | Oui |
+| `PUT /api/products/{id}` | Oui |  |  | Oui | Oui |  | Oui |
+| `DELETE /api/products/{id}` |  |  | Oui |  | Oui | Oui | Oui |
+| `PUT /api/products/{id}/price` |  |  | Oui | Oui | Oui |  | Oui |
+| `POST /api/products/{id}/discount` | Oui |  |  | Oui | Oui |  | Oui |
+| `DELETE /api/products/{id}/discount` | Oui |  |  |  | Oui |  | Oui |
+| `GET /api/products/{id}/price-history` | Oui |  |  |  |  |  | Oui |
+| `POST /api/products/{id}/activate` | Oui |  |  |  | Oui |  | Oui |
+| `POST /api/products/{id}/deactivate` | Oui |  |  |  | Oui |  | Oui |
+
+### Categories
+
+| Endpoint | `200` | `201` | `204` | `400` | `401` | `403` | `404` |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `POST /api/categories` |  | Oui |  | Oui | Oui |  |  |
+| `GET /api/categories` | Oui |  |  |  |  |  |  |
+| `GET /api/categories/{id}` | Oui |  |  |  |  |  | Oui |
+| `PUT /api/categories/{id}` | Oui |  |  | Oui | Oui |  | Oui |
+| `DELETE /api/categories/{id}` |  |  | Oui |  | Oui | Oui | Oui |
+
+### Utilisateurs (admin)
+
+| Endpoint | `200` | `400` | `401` | `403` | `404` |
+| --- | --- | --- | --- | --- | --- |
+| `GET /api/users?page=1&pageSize=20` | Oui |  | Oui | Oui |  |
+| `GET /api/users/{id}` | Oui |  | Oui | Oui | Oui |
+| `PUT /api/users/{id}/role` | Oui | Oui | Oui | Oui | Oui |
+| `DELETE /api/users/{id}` | Oui |  | Oui | Oui | Oui |
+
 ## DTOs principaux
 
 - produit creation: `name`, `sku`, `price`, `stock`, `description`, `categoryId`
@@ -198,9 +244,38 @@ Exemple technique (`500`):
 }
 ```
 
+## Exemple de reponse paginee
+
+Exemple `GET /api/products?page=1&pageSize=20`:
+
+```json
+{
+  "items": [
+    {
+      "id": "f3f4f4e2-2f76-4f45-ae56-8fd657f2af5e",
+      "name": "Keyboard",
+      "sku": "KEYBOARD-001",
+      "price": 99.99,
+      "stock": 25,
+      "isActive": true
+    }
+  ],
+  "page": 1,
+  "pageSize": 20,
+  "totalItems": 1,
+  "totalPages": 1
+}
+```
+
 ## Exploration interactive
 
 En environnement `Development`:
 
 - Swagger UI: `/swagger`
 - Scalar: `/scalar/v1`
+
+## Voir aussi
+
+- [Securite](security.md)
+- [Frontend](frontend.md)
+- [Troubleshooting](troubleshooting.md)

@@ -76,8 +76,8 @@ Cause frequente:
 Correction:
 
 ```bash
-python -m pip install -r docs/requirements.txt
-mkdocs build --strict
+python3 -m pip install -r docs/requirements.txt
+python3 -m mkdocs build --strict
 ```
 
 Corriger les erreurs indiquees.

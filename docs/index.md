@@ -37,8 +37,15 @@ Bienvenue dans la documentation technique de `AdvancedDevSample`.
 
 ## Lecture recommandee
 
-1. `getting-started.md`
-2. `configuration.md`
-3. `architecture.md`
-4. `api.md`
-5. `quality.md`
+1. [Demarrage](getting-started.md)
+2. [Configuration](configuration.md)
+3. [Architecture](architecture.md)
+4. [API](api.md)
+5. [Tests et qualite](quality.md)
+
+## Parcours par profil
+
+- Nouveau developpeur: [Demarrage](getting-started.md) -> [Configuration](configuration.md) -> [Troubleshooting](troubleshooting.md)
+- Developpeur backend: [Architecture](architecture.md) -> [API](api.md) -> [Base de donnees](database.md)
+- Developpeur frontend: [Frontend](frontend.md) -> [API](api.md) -> [Securite](security.md)
+- Mainteneur projet: [Tests et qualite](quality.md) -> [CI/CD](cicd.md) -> [Exploitation](operations.md)
