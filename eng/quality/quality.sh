@@ -14,7 +14,7 @@ cd "${REPO_ROOT}"
 
 dotnet restore "${SOLUTION}"
 dotnet build "${SOLUTION}" -nologo
-dotnet test "${SOLUTION}" -nologo --collect:"XPlat Code Coverage" --results-directory "${RUN_RESULTS_DIR}"
+dotnet test "${SOLUTION}" -nologo --collect:"XPlat Code Coverage" --settings "${REPO_ROOT}/eng/quality/coverage.runsettings" --results-directory "${RUN_RESULTS_DIR}"
 
 COVERAGE_FILE="$(find "${RUN_RESULTS_DIR}" -name 'coverage.cobertura.xml' -printf '%T@ %p\n' | sort -n | tail -n 1 | cut -d' ' -f2-)"
 if [[ -z "${COVERAGE_FILE}" ]]; then

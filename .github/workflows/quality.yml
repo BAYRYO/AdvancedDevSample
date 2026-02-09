@@ -74,13 +74,13 @@ jobs:
         run: dotnet build AdvancedDevSample.slnx -c Release -nologo --no-restore
 
       - name: Test with coverage
-        run: dotnet test AdvancedDevSample.slnx -c Release -nologo --no-build --collect:"XPlat Code Coverage" --logger "trx;LogFileName=test-results.trx" --results-directory TestResults -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format="cobertura,opencover"
+        run: dotnet test AdvancedDevSample.slnx -c Release -nologo --no-build --collect:"XPlat Code Coverage" --settings eng/quality/coverage.runsettings --logger "trx;LogFileName=test-results.trx" --results-directory TestResults
 
       - name: Locate Cobertura coverage report
         id: coverage_cobertura
         shell: bash
         run: |
-          file="$(find TestResults -name coverage.cobertura.xml | sort | tail -n 1)"
+          file="$(find TestResults -name coverage.cobertura.xml -printf '%T@ %p\n' | sort -n | tail -n 1 | cut -d' ' -f2-)"
           if [[ -z "$file" ]]; then
             echo "Cobertura coverage report not found." >&2
             exit 1
@@ -91,7 +91,7 @@ jobs:
         id: coverage_opencover
         shell: bash
         run: |
-          file="$(find TestResults -name coverage.opencover.xml | sort | tail -n 1)"
+          file="$(find TestResults -name coverage.opencover.xml -printf '%T@ %p\n' | sort -n | tail -n 1 | cut -d' ' -f2-)"
           if [[ -z "$file" ]]; then
             echo "OpenCover coverage report not found." >&2
             exit 1

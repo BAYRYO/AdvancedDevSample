@@ -14,7 +14,7 @@ Push-Location $repoRoot
 try {
     dotnet restore $solution
     dotnet build $solution -nologo
-    dotnet test $solution -nologo --collect:"XPlat Code Coverage" --results-directory $runResultsDir
+    dotnet test $solution -nologo --collect:"XPlat Code Coverage" --settings (Join-Path $repoRoot 'eng/quality/coverage.runsettings') --results-directory $runResultsDir
 
     $coverageFile = Get-ChildItem -Path $runResultsDir -Recurse -Filter 'coverage.cobertura.xml' |
         Sort-Object LastWriteTimeUtc, FullName |
