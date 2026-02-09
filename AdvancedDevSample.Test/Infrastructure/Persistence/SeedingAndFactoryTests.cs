@@ -101,8 +101,8 @@ public class SeedingAndFactoryTests
     [Fact]
     public async Task AdminUserSeeder_Should_Return_Immediately_When_Admin_Already_Exists()
     {
-        using SqliteHarness harness = CreateHarness();
-        AdminUserSeeder seeder = new AdminUserSeeder();
+        using var harness = CreateHarness();
+        var seeder = new AdminUserSeeder();
 
         harness.Context.Users.Add(new UserEntity
         {
@@ -126,19 +126,19 @@ public class SeedingAndFactoryTests
     [Fact]
     public void AppDbContextFactory_Should_Use_Default_And_Environment_Connection_String()
     {
-        AppDbContextFactory factory = new AppDbContextFactory();
+        var factory = new AppDbContextFactory();
         string? previous = Environment.GetEnvironmentVariable("DESIGNTIME_CONNECTION_STRING");
 
         try
         {
             Environment.SetEnvironmentVariable("DESIGNTIME_CONNECTION_STRING", null);
-            using AppDbContext defaultContext = factory.CreateDbContext(Array.Empty<string>());
-            string? defaultConnection = defaultContext.Database.GetConnectionString();
+            using var defaultContext = factory.CreateDbContext([]);
+            var defaultConnection = defaultContext.Database.GetConnectionString();
             Assert.NotNull(defaultConnection);
             Assert.Contains("advanceddevsample.db", defaultConnection!, StringComparison.OrdinalIgnoreCase);
 
             Environment.SetEnvironmentVariable("DESIGNTIME_CONNECTION_STRING", "Data Source=:memory:");
-            using AppDbContext envContext = factory.CreateDbContext(Array.Empty<string>());
+            using var envContext = factory.CreateDbContext([]);
             Assert.Equal("Data Source=:memory:", envContext.Database.GetConnectionString());
         }
         finally
@@ -149,12 +149,12 @@ public class SeedingAndFactoryTests
 
     private static ServiceProvider BuildSeederServiceProvider()
     {
-        ServiceCollection services = new ServiceCollection();
+        var services = new ServiceCollection();
 
         services.AddLogging();
         services.AddSingleton<DbConnection>(_ =>
         {
-            SqliteConnection connection = new SqliteConnection("DataSource=:memory:");
+            var connection = new SqliteConnection("DataSource=:memory:");
             connection.Open();
             return connection;
         });
@@ -173,14 +173,14 @@ public class SeedingAndFactoryTests
 
     private static SqliteHarness CreateHarness()
     {
-        SqliteConnection connection = new SqliteConnection("DataSource=:memory:");
+        var connection = new SqliteConnection("DataSource=:memory:");
         connection.Open();
 
         DbContextOptions<AppDbContext> options = new DbContextOptionsBuilder<AppDbContext>()
             .UseSqlite(connection)
             .Options;
 
-        AppDbContext context = new AppDbContext(options);
+        var context = new AppDbContext(options);
         context.Database.EnsureCreated();
 
         return new SqliteHarness(context, connection);

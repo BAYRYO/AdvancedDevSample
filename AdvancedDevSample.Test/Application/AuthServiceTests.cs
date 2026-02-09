@@ -413,7 +413,7 @@ public class AuthServiceTests
         public Task RevokeAllForUserAsync(Guid userId)
         {
             List<RefreshToken> userTokens = [.. _tokens.Values.Where(t => t.UserId == userId)];
-            foreach (var token in userTokens)
+            foreach (RefreshToken token in userTokens)
             {
                 token.Revoke();
             }
