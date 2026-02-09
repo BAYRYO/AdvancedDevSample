@@ -31,12 +31,12 @@ public class AuthControllerIntegrationTests : IClassFixture<CustomWebApplication
             LastName: "User");
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/register", request);
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/register", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
-        var authResponse = await response.Content.ReadFromJsonAsync<AuthResponseWithRefreshToken>();
+        AuthResponseWithRefreshToken? authResponse = await response.Content.ReadFromJsonAsync<AuthResponseWithRefreshToken>();
         Assert.NotNull(authResponse);
         Assert.NotEmpty(authResponse.Token);
         Assert.NotEmpty(authResponse.RefreshToken);
@@ -63,7 +63,7 @@ public class AuthControllerIntegrationTests : IClassFixture<CustomWebApplication
             LastName: "User");
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/register", request);
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/register", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
@@ -116,12 +116,12 @@ public class AuthControllerIntegrationTests : IClassFixture<CustomWebApplication
             Password: "Password123!");
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/login", loginRequest);
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/login", loginRequest);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var authResponse = await response.Content.ReadFromJsonAsync<AuthResponseWithRefreshToken>();
+        AuthResponseWithRefreshToken? authResponse = await response.Content.ReadFromJsonAsync<AuthResponseWithRefreshToken>();
         Assert.NotNull(authResponse);
         Assert.NotEmpty(authResponse.Token);
         Assert.NotEmpty(authResponse.RefreshToken);
@@ -137,7 +137,7 @@ public class AuthControllerIntegrationTests : IClassFixture<CustomWebApplication
             Password: "password");
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/login", request);
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/login", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -160,7 +160,7 @@ public class AuthControllerIntegrationTests : IClassFixture<CustomWebApplication
             Password: "WrongPassword123!");
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/login", loginRequest);
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/login", loginRequest);
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -190,18 +190,18 @@ public class AuthControllerIntegrationTests : IClassFixture<CustomWebApplication
         });
         await _factory.UserRepository.SaveAsync(user);
 
-        var authenticatedClient = _factory.CreateClient();
-        var token = _factory.GenerateTestToken(userId, "current@example.com", UserRole.User);
+        HttpClient authenticatedClient = _factory.CreateClient();
+        string token = _factory.GenerateTestToken(userId, "current@example.com", UserRole.User);
         authenticatedClient.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
         // Act
-        var response = await authenticatedClient.GetAsync("/api/auth/me");
+        HttpResponseMessage response = await authenticatedClient.GetAsync("/api/auth/me");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var userResponse = await response.Content.ReadFromJsonAsync<UserResponse>();
+        UserResponse? userResponse = await response.Content.ReadFromJsonAsync<UserResponse>();
         Assert.NotNull(userResponse);
         Assert.Equal("current@example.com", userResponse.Email);
         Assert.Equal("Current", userResponse.FirstName);
@@ -211,7 +211,7 @@ public class AuthControllerIntegrationTests : IClassFixture<CustomWebApplication
     public async Task GetCurrentUser_WithoutToken_Returns401Unauthorized()
     {
         // Act
-        var response = await _client.GetAsync("/api/auth/me");
+        HttpResponseMessage response = await _client.GetAsync("/api/auth/me");
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -237,13 +237,13 @@ public class AuthControllerIntegrationTests : IClassFixture<CustomWebApplication
         });
         await _factory.UserRepository.SaveAsync(user);
 
-        var authenticatedClient = _factory.CreateClient();
-        var token = _factory.GenerateTestToken(userId, "inactive@example.com", UserRole.User);
+        HttpClient authenticatedClient = _factory.CreateClient();
+        string token = _factory.GenerateTestToken(userId, "inactive@example.com", UserRole.User);
         authenticatedClient.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
         // Act
-        var response = await authenticatedClient.GetAsync("/api/auth/me");
+        HttpResponseMessage response = await authenticatedClient.GetAsync("/api/auth/me");
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);

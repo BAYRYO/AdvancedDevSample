@@ -56,7 +56,7 @@ public class CategorySeeder : ISeeder
 
     private static IEnumerable<CategoryEntity> GetPredefinedCategories()
     {
-        var now = DateTime.UtcNow;
+        DateTime now = DateTime.UtcNow;
 
         return PredefinedCategoryData.Select(category => new CategoryEntity
         {
@@ -69,9 +69,9 @@ public class CategorySeeder : ISeeder
         });
     }
 
-    private static IEnumerable<CategoryEntity> GenerateRandomCategories(int count)
+    private static List<CategoryEntity> GenerateRandomCategories(int count)
     {
-        var faker = new Faker<CategoryEntity>("fr")
+        Faker<CategoryEntity> faker = new Faker<CategoryEntity>("fr")
             .RuleFor(c => c.Id, _ => Guid.NewGuid())
             .RuleFor(c => c.Name, f => f.Commerce.Categories(1)[0])
             .RuleFor(c => c.Description, f => f.Lorem.Sentence())

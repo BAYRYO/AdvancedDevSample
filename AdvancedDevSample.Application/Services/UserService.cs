@@ -1,5 +1,6 @@
 using AdvancedDevSample.Application.DTOs.Auth;
 using AdvancedDevSample.Application.DTOs.User;
+using AdvancedDevSample.Domain.Entities;
 using AdvancedDevSample.Domain.Enums;
 using AdvancedDevSample.Domain.Exceptions;
 using AdvancedDevSample.Domain.Interfaces;
@@ -17,10 +18,10 @@ public class UserService
 
     public async Task<PagedResult<UserResponse>> GetAllUsersAsync(int page = 1, int pageSize = 20)
     {
-        var users = await _userRepository.GetAllAsync(page, pageSize);
-        var totalCount = await _userRepository.GetCountAsync();
+        IEnumerable<User> users = await _userRepository.GetAllAsync(page, pageSize);
+        int totalCount = await _userRepository.GetCountAsync();
 
-        var userResponses = users.Select(user => new UserResponse(
+        IEnumerable<UserResponse> userResponses = users.Select(user => new UserResponse(
             Id: user.Id,
             Email: user.Email,
             FirstName: user.FirstName,
@@ -32,7 +33,7 @@ public class UserService
             LastLoginAt: user.LastLoginAt));
 
         return new PagedResult<UserResponse>(
-            Items: userResponses.ToList(),
+            Items: [.. userResponses],
             TotalCount: totalCount,
             Page: page,
             PageSize: pageSize);
@@ -40,9 +41,9 @@ public class UserService
 
     public async Task<UserResponse?> GetUserByIdAsync(Guid id)
     {
-        var user = await _userRepository.GetByIdAsync(id);
+        User? user = await _userRepository.GetByIdAsync(id);
 
-        if (user == null)
+        if (user is null)
         {
             return null;
         }
@@ -61,14 +62,14 @@ public class UserService
 
     public async Task<UserResponse> UpdateUserRoleAsync(Guid userId, UpdateUserRoleRequest request)
     {
-        var user = await _userRepository.GetByIdAsync(userId);
+        User? user = await _userRepository.GetByIdAsync(userId);
 
-        if (user == null)
+        if (user is null)
         {
             throw new UserNotFoundException(userId);
         }
 
-        if (!Enum.TryParse<UserRole>(request.Role, true, out var newRole))
+        if (!Enum.TryParse<UserRole>(request.Role, true, out UserRole newRole))
         {
             throw new DomainException($"Invalid role: {request.Role}. Valid roles are: User, Admin");
         }
@@ -90,9 +91,9 @@ public class UserService
 
     public async Task<UserResponse> DeactivateUserAsync(Guid userId)
     {
-        var user = await _userRepository.GetByIdAsync(userId);
+        User? user = await _userRepository.GetByIdAsync(userId);
 
-        if (user == null)
+        if (user is null)
         {
             throw new UserNotFoundException(userId);
         }

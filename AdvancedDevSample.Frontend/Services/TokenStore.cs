@@ -23,7 +23,7 @@ public class TokenStore
             return _cached;
         }
 
-        var json = await _storage.GetItemAsync(StorageKey);
+        string json = await _storage.GetItemAsync(StorageKey);
         if (string.IsNullOrWhiteSpace(json))
         {
             return null;
@@ -44,7 +44,7 @@ public class TokenStore
     public async Task SaveAsync(StoredAuthSession session)
     {
         _cached = session;
-        var json = JsonSerializer.Serialize(session, _jsonOptions);
+        string json = JsonSerializer.Serialize(session, _jsonOptions);
         await _storage.SetItemAsync(StorageKey, json);
     }
 

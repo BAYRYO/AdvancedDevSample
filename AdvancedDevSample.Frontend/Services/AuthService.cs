@@ -21,17 +21,14 @@ public class AuthService
         _authStateProvider = authStateProvider;
     }
 
-    public async Task<StoredAuthSession?> GetSessionAsync()
-    {
-        return await _tokenStore.GetAsync();
-    }
+    public Task<StoredAuthSession?> GetSessionAsync() => _tokenStore.GetAsync();
 
     public async Task LoginAsync(LoginRequest request)
     {
-        var client = _httpClientFactory.CreateClient("ApiNoAuth");
-        var response = await client.PostAsJsonAsync("/api/auth/login", request);
-        var auth = await ReadRequiredAsync<AuthResponseWithRefreshToken>(response);
-        var session = StoredAuthSession.FromAuthResponse(auth);
+        HttpClient client = _httpClientFactory.CreateClient("ApiNoAuth");
+        HttpResponseMessage response = await client.PostAsJsonAsync("/api/auth/login", request);
+        AuthResponseWithRefreshToken auth = await ReadRequiredAsync<AuthResponseWithRefreshToken>(response);
+        StoredAuthSession session = StoredAuthSession.FromAuthResponse(auth);
 
         await _tokenStore.SaveAsync(session);
         await _authStateProvider.SetAuthenticatedUserAsync(session);
@@ -39,10 +36,10 @@ public class AuthService
 
     public async Task RegisterAsync(RegisterRequest request)
     {
-        var client = _httpClientFactory.CreateClient("ApiNoAuth");
-        var response = await client.PostAsJsonAsync("/api/auth/register", request);
-        var auth = await ReadRequiredAsync<AuthResponseWithRefreshToken>(response);
-        var session = StoredAuthSession.FromAuthResponse(auth);
+        HttpClient client = _httpClientFactory.CreateClient("ApiNoAuth");
+        HttpResponseMessage response = await client.PostAsJsonAsync("/api/auth/register", request);
+        AuthResponseWithRefreshToken auth = await ReadRequiredAsync<AuthResponseWithRefreshToken>(response);
+        StoredAuthSession session = StoredAuthSession.FromAuthResponse(auth);
 
         await _tokenStore.SaveAsync(session);
         await _authStateProvider.SetAuthenticatedUserAsync(session);
@@ -59,7 +56,7 @@ public class AuthService
         await _refreshLock.WaitAsync();
         try
         {
-            var existing = await _tokenStore.GetAsync();
+            StoredAuthSession? existing = await _tokenStore.GetAsync();
             if (existing is null || !existing.CanRefresh)
             {
                 await LogoutAsync();
@@ -71,8 +68,8 @@ public class AuthService
                 return existing;
             }
 
-            var client = _httpClientFactory.CreateClient("ApiNoAuth");
-            var response = await client.PostAsJsonAsync("/api/auth/refresh", new RefreshTokenRequest(existing.RefreshToken));
+            HttpClient client = _httpClientFactory.CreateClient("ApiNoAuth");
+            HttpResponseMessage response = await client.PostAsJsonAsync("/api/auth/refresh", new RefreshTokenRequest(existing.RefreshToken));
 
             if (!response.IsSuccessStatusCode)
             {
@@ -80,14 +77,14 @@ public class AuthService
                 return null;
             }
 
-            var auth = await response.Content.ReadFromJsonAsync<AuthResponseWithRefreshToken>();
+            AuthResponseWithRefreshToken? auth = await response.Content.ReadFromJsonAsync<AuthResponseWithRefreshToken>();
             if (auth is null)
             {
                 await LogoutAsync();
                 return null;
             }
 
-            var refreshed = StoredAuthSession.FromAuthResponse(auth);
+            StoredAuthSession refreshed = StoredAuthSession.FromAuthResponse(auth);
             await _tokenStore.SaveAsync(refreshed);
             await _authStateProvider.SetAuthenticatedUserAsync(refreshed);
             return refreshed;
@@ -102,22 +99,17 @@ public class AuthService
     {
         if (!response.IsSuccessStatusCode)
         {
-            var message = await ExtractErrorAsync(response);
+            string message = await ExtractErrorAsync(response);
             throw new ApiException(message, (int)response.StatusCode);
         }
 
-        var data = await response.Content.ReadFromJsonAsync<T>();
-        if (data is null)
-        {
-            throw new ApiException("API returned an empty response.", (int)response.StatusCode);
-        }
-
-        return data;
+        T? data = await response.Content.ReadFromJsonAsync<T>();
+        return data ?? throw new ApiException("API returned an empty response.", (int)response.StatusCode);
     }
 
     private static async Task<string> ExtractErrorAsync(HttpResponseMessage response)
     {
-        var body = await response.Content.ReadAsStringAsync();
+        string body = await response.Content.ReadAsStringAsync();
         if (string.IsNullOrWhiteSpace(body))
         {
             return $"Request failed with status {(int)response.StatusCode}.";
@@ -125,7 +117,7 @@ public class AuthService
 
         if (body.Contains("\"detail\"", StringComparison.OrdinalIgnoreCase))
         {
-            var detail = body.Split("\"detail\":", StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
+            string? detail = body.Split("\"detail\":", StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
             if (!string.IsNullOrWhiteSpace(detail))
             {
                 return body;

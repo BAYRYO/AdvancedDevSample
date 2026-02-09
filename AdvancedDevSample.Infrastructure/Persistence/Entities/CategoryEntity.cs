@@ -9,5 +9,5 @@ public class CategoryEntity
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
-    public ICollection<ProductEntity> Products { get; set; } = new List<ProductEntity>();
+    public ICollection<ProductEntity> Products { get; set; } = [];
 }

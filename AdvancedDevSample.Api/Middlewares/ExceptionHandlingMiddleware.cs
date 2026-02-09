@@ -96,7 +96,7 @@ namespace AdvancedDevSample.Api.Middlewares
             }
         }
 
-        private async Task CaptureAndRespondAsync(
+        private static async Task CaptureAndRespondAsync(
             HttpContext context,
             Exception ex,
             string errorType,
@@ -116,7 +116,7 @@ namespace AdvancedDevSample.Api.Middlewares
 
                 if (additionalTags != null)
                 {
-                    foreach (var tag in additionalTags)
+                    foreach (KeyValuePair<string, string> tag in additionalTags)
                     {
                         scope.SetTag(tag.Key, tag.Value);
                     }

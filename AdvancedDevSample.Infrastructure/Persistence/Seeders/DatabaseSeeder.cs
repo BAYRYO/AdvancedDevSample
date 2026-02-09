@@ -16,16 +16,16 @@ public class DatabaseSeeder
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
-        using var scope = _serviceProvider.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        using IServiceScope scope = _serviceProvider.CreateScope();
+        AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        var seeders = GetSeeders().OrderBy(s => s.Order).ToList();
+        ISeeder[] seeders = [.. GetSeeders().OrderBy(s => s.Order)];
 
-        _logger.LogInformation("Starting database seeding with {SeederCount} seeders", seeders.Count);
+        _logger.LogInformation("Starting database seeding with {SeederCount} seeders", seeders.Length);
 
-        foreach (var seeder in seeders)
+        foreach (ISeeder seeder in seeders)
         {
-            var seederName = seeder.GetType().Name;
+            string seederName = seeder.GetType().Name;
             _logger.LogInformation("Running seeder: {SeederName}", seederName);
 
             try
@@ -43,15 +43,15 @@ public class DatabaseSeeder
         _logger.LogInformation("Database seeding completed");
     }
 
-    private static IEnumerable<ISeeder> GetSeeders()
+    private static ISeeder[] GetSeeders()
     {
-        return new ISeeder[]
-        {
+        return
+        [
             new AdminUserSeeder(),
             new CategorySeeder(),
             new ProductSeeder(),
             new PriceHistorySeeder()
-        };
+        ];
     }
 }
 
@@ -66,8 +66,8 @@ public static class DatabaseSeederExtensions
     public static async Task SeedDatabaseAsync(this IServiceProvider serviceProvider,
         CancellationToken cancellationToken = default)
     {
-        using var scope = serviceProvider.CreateScope();
-        var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
+        using IServiceScope scope = serviceProvider.CreateScope();
+        DatabaseSeeder seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
         await seeder.SeedAsync(cancellationToken);
     }
 }

@@ -11,6 +11,7 @@ public static class PasswordValidator
     public const int MinLength = 8;
     public const int MaxLength = 128;
     private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(100);
+    private static readonly string[] RequiredPasswordErrors = ["Password is required."];
 
     /// <summary>
     /// Validates a password against security requirements.
@@ -22,7 +23,7 @@ public static class PasswordValidator
 
         if (string.IsNullOrWhiteSpace(password))
         {
-            throw new WeakPasswordException(new[] { "Password is required." });
+            throw new WeakPasswordException(RequiredPasswordErrors);
         }
 
         if (password.Length < MinLength)

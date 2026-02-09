@@ -15,7 +15,7 @@ public class ProductSeeder : ISeeder
             return;
         }
 
-        var categoryIds = await context.Categories
+        List<Guid?> categoryIds = await context.Categories
             .Where(c => c.IsActive)
             .Select(c => (Guid?)c.Id)
             .ToListAsync(cancellationToken);
@@ -25,23 +25,22 @@ public class ProductSeeder : ISeeder
             categoryIds.Add(null);
         }
 
-        var products = GetPredefinedProducts(categoryIds)
-            .Concat(GenerateRandomProducts(20, categoryIds))
-            .ToList();
+        List<ProductEntity> products = GetPredefinedProducts(categoryIds);
+        products.AddRange(GenerateRandomProducts(20, categoryIds));
 
         await context.Products.AddRangeAsync(products, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    private static IEnumerable<ProductEntity> GetPredefinedProducts(List<Guid?> categoryIds)
+    private static List<ProductEntity> GetPredefinedProducts(List<Guid?> categoryIds)
     {
-        var now = DateTime.UtcNow;
+        DateTime now = DateTime.UtcNow;
         Guid? electronicsId = Guid.Parse("11111111-1111-1111-1111-111111111111");
         Guid? clothingId = Guid.Parse("22222222-2222-2222-2222-222222222222");
         Guid? foodId = Guid.Parse("33333333-3333-3333-3333-333333333333");
 
-        return new List<ProductEntity>
-        {
+        return
+        [
             new()
             {
                 Id = Guid.NewGuid(),
@@ -112,14 +111,14 @@ public class ProductSeeder : ISeeder
                 CreatedAt = now.AddMonths(-6),
                 UpdatedAt = now.AddMonths(-3)
             }
-        };
+        ];
     }
 
-    private static IEnumerable<ProductEntity> GenerateRandomProducts(int count, List<Guid?> categoryIds)
+    private static List<ProductEntity> GenerateRandomProducts(int count, List<Guid?> categoryIds)
     {
-        var skuIndex = 1000;
+        int skuIndex = 1000;
 
-        var faker = new Faker<ProductEntity>("fr")
+        Faker<ProductEntity> faker = new Faker<ProductEntity>("fr")
             .RuleFor(p => p.Id, _ => Guid.NewGuid())
             .RuleFor(p => p.Name, f => f.Commerce.ProductName())
             .RuleFor(p => p.Description, f => f.Commerce.ProductDescription())

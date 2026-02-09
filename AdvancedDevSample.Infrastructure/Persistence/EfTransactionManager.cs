@@ -1,4 +1,5 @@
 using AdvancedDevSample.Application.Interfaces;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace AdvancedDevSample.Infrastructure.Persistence;
 
@@ -19,7 +20,7 @@ public class EfTransactionManager : ITransactionManager
             return;
         }
 
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await using IDbContextTransaction transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         await action();
         await transaction.CommitAsync(cancellationToken);
     }
@@ -33,8 +34,8 @@ public class EfTransactionManager : ITransactionManager
             return await action();
         }
 
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-        var result = await action();
+        await using IDbContextTransaction transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        T result = await action();
         await transaction.CommitAsync(cancellationToken);
         return result;
     }

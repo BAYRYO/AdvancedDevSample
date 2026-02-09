@@ -17,14 +17,14 @@ public class EfAuditLogRepository : IAuditLogRepository
 
     public async Task SaveAsync(AuditLog auditLog)
     {
-        var entity = ToEntity(auditLog);
+        AuditLogEntity entity = ToEntity(auditLog);
         _context.AuditLogs.Add(entity);
         await _context.SaveChangesAsync();
     }
 
     public async Task<IEnumerable<AuditLog>> GetByUserIdAsync(Guid userId, int limit = 50)
     {
-        var entities = await _context.AuditLogs
+        List<AuditLogEntity> entities = await _context.AuditLogs
             .Where(a => a.UserId == userId)
             .OrderByDescending(a => a.CreatedAt)
             .Take(limit)
@@ -35,7 +35,7 @@ public class EfAuditLogRepository : IAuditLogRepository
 
     public async Task<IEnumerable<AuditLog>> GetRecentAsync(int limit = 100)
     {
-        var entities = await _context.AuditLogs
+        List<AuditLogEntity> entities = await _context.AuditLogs
             .OrderByDescending(a => a.CreatedAt)
             .Take(limit)
             .ToListAsync();

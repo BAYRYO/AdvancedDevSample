@@ -15,8 +15,8 @@ public class AdminUserSeeder : ISeeder
     public async Task SeedAsync(AppDbContext context, CancellationToken cancellationToken = default)
     {
         // Check if any admin user already exists
-        var adminRoleValue = (int)UserRole.Admin;
-        var adminExists = await context.Users
+        int adminRoleValue = (int)UserRole.Admin;
+        bool adminExists = await context.Users
             .AnyAsync(u => u.Role == adminRoleValue, cancellationToken);
 
         if (adminExists)
@@ -25,18 +25,18 @@ public class AdminUserSeeder : ISeeder
         }
 
         // Skip admin creation when credentials are not configured.
-        var email = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
-        var password = Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
+        string? email = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
+        string? password = Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
 
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
         {
             return;
         }
-        var firstName = "Admin";
-        var lastName = "User";
+        string firstName = "Admin";
+        string lastName = "User";
 
         // Hash the password using BCrypt directly (matching PasswordHasher implementation)
-        var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
+        string passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
 
         var adminUser = new UserEntity
         {

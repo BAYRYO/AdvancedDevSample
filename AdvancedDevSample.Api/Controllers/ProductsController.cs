@@ -26,7 +26,7 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Create([FromBody] CreateProductRequest request)
     {
-        var product = await _productService.CreateAsync(request);
+        ProductResponse product = await _productService.CreateAsync(request);
         return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
     }
 
@@ -38,7 +38,7 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var product = await _productService.GetByIdAsync(id);
+        ProductResponse? product = await _productService.GetByIdAsync(id);
         if (product == null)
         {
             return NotFound(new { title = "Ressource introuvable", detail = $"Le produit avec l'identifiant '{id}' est introuvable." });
@@ -53,7 +53,7 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(typeof(PagedResponse<ProductResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> Search([FromQuery] ProductSearchRequest request)
     {
-        var result = await _productService.SearchAsync(request);
+        PagedResponse<ProductResponse> result = await _productService.SearchAsync(request);
         return Ok(result);
     }
 
@@ -67,7 +67,7 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductRequest request)
     {
-        var product = await _productService.UpdateAsync(id, request);
+        ProductResponse product = await _productService.UpdateAsync(id, request);
         return Ok(product);
     }
 
@@ -112,7 +112,7 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> ApplyDiscount(Guid id, [FromBody] ApplyDiscountRequest request)
     {
-        var product = await _productService.ApplyDiscountAsync(id, request);
+        ProductResponse product = await _productService.ApplyDiscountAsync(id, request);
         return Ok(product);
     }
 
@@ -126,7 +126,7 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> RemoveDiscount(Guid id)
     {
-        var product = await _productService.RemoveDiscountAsync(id);
+        ProductResponse product = await _productService.RemoveDiscountAsync(id);
         return Ok(product);
     }
 
@@ -138,7 +138,7 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetPriceHistory(Guid id)
     {
-        var history = await _productService.GetPriceHistoryAsync(id);
+        IReadOnlyList<PriceHistoryResponse> history = await _productService.GetPriceHistoryAsync(id);
         return Ok(history);
     }
 
@@ -152,7 +152,7 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Activate(Guid id)
     {
-        var product = await _productService.ActivateAsync(id);
+        ProductResponse product = await _productService.ActivateAsync(id);
         return Ok(product);
     }
 
@@ -166,7 +166,7 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Deactivate(Guid id)
     {
-        var product = await _productService.DeactivateAsync(id);
+        ProductResponse product = await _productService.DeactivateAsync(id);
         return Ok(product);
     }
 }

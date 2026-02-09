@@ -18,7 +18,7 @@ public class FrontendAuthStateProvider : AuthenticationStateProvider
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        var session = await EnsureSessionLoadedAsync();
+        StoredAuthSession? session = await EnsureSessionLoadedAsync();
         return new AuthenticationState(CreatePrincipal(session?.User));
     }
 
@@ -30,7 +30,7 @@ public class FrontendAuthStateProvider : AuthenticationStateProvider
         }
 
         _initialized = true;
-        var session = await _tokenStore.GetAsync();
+        StoredAuthSession? session = await _tokenStore.GetAsync();
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(CreatePrincipal(session?.User))));
     }
 

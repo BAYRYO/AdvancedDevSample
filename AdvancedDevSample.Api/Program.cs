@@ -17,7 +17,7 @@ using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using Sentry;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 const string JwtIssuerAudience = "AdvancedDevSample";
 
 ConfigureSentry(builder);
@@ -33,7 +33,7 @@ ConfigureSwagger(builder.Services);
 builder.Services.AddControllers();
 builder.Services.AddDatabaseSeeder();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 LogSentryInitialization(app);
 await InitializeDatabaseAsync(app);
@@ -74,7 +74,7 @@ static void ConfigureLogging(WebApplicationBuilder builder)
 
 static void ConfigureDatabase(WebApplicationBuilder builder)
 {
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
         ?? "Data Source=advanceddevsample.db";
 
     builder.Services.AddDbContext<AppDbContext>(options =>
@@ -106,7 +106,7 @@ static void RegisterInfrastructureServices(IServiceCollection services)
 
 static void ConfigureJwt(WebApplicationBuilder builder, string issuerAudience)
 {
-    var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
+    string jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
         ?? builder.Configuration["JWT_SECRET"]
         ?? throw new InvalidOperationException("JWT_SECRET environment variable is not set. Please set a secure secret key (minimum 32 characters).");
 
@@ -147,11 +147,9 @@ static void ConfigureJwt(WebApplicationBuilder builder, string issuerAudience)
 
 static void ConfigureAuthAndAuthorization(WebApplicationBuilder builder)
 {
-    builder.Services.AddAuthorization(options =>
-    {
-        options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
-        options.AddPolicy("UserOrAdmin", policy => policy.RequireRole("User", "Admin"));
-    });
+    builder.Services.AddAuthorizationBuilder()
+        .AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"))
+        .AddPolicy("UserOrAdmin", policy => policy.RequireRole("User", "Admin"));
 }
 
 static void ConfigureRateLimiting(IServiceCollection services)
@@ -256,7 +254,7 @@ static async Task InitializeDatabaseAsync(WebApplication app)
 
 static async Task ApplyMigrationsOrFallbackAsync(WebApplication app, AppDbContext dbContext)
 {
-    var hasMigrations = dbContext.Database.GetMigrations().Any();
+    bool hasMigrations = dbContext.Database.GetMigrations().Any();
     if (hasMigrations)
     {
         await dbContext.Database.MigrateAsync();

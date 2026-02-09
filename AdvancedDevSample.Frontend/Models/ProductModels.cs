@@ -53,10 +53,7 @@ public class ProductSearchModel
     public int Page { get; set; } = 1;
     public int PageSize { get; set; } = 20;
 
-    public ProductSearchRequest ToRequest()
-    {
-        return new ProductSearchRequest(Name, MinPrice, MaxPrice, CategoryId, IsActive, Page, PageSize);
-    }
+    public ProductSearchRequest ToRequest() => new(Name, MinPrice, MaxPrice, CategoryId, IsActive, Page, PageSize);
 }
 
 public class CreateProductFormModel
@@ -78,10 +75,7 @@ public class CreateProductFormModel
 
     public Guid? CategoryId { get; set; }
 
-    public CreateProductRequest ToRequest()
-    {
-        return new CreateProductRequest(Name, Sku, Price, Stock, Description, CategoryId);
-    }
+    public CreateProductRequest ToRequest() => new(Name, Sku, Price, Stock, Description, CategoryId);
 }
 
 public class ApplyDiscountFormModel

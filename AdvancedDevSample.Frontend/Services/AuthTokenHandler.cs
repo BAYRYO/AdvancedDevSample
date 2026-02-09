@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using AdvancedDevSample.Frontend.Models;
 
 namespace AdvancedDevSample.Frontend.Services;
 
@@ -21,7 +22,7 @@ public class AuthTokenHandler : DelegatingHandler
             return await base.SendAsync(request, cancellationToken);
         }
 
-        var session = await _tokenStore.GetAsync();
+        StoredAuthSession? session = await _tokenStore.GetAsync();
         if (session is not null)
         {
             if (session.ExpiresAt <= DateTime.UtcNow.AddSeconds(30))
@@ -35,7 +36,7 @@ public class AuthTokenHandler : DelegatingHandler
             }
         }
 
-        var response = await base.SendAsync(request, cancellationToken);
+        HttpResponseMessage response = await base.SendAsync(request, cancellationToken);
 
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
@@ -52,7 +53,7 @@ public class AuthTokenHandler : DelegatingHandler
             return false;
         }
 
-        var path = uri.AbsolutePath;
+        string path = uri.AbsolutePath;
         return path.Equals("/api/auth/login", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/api/auth/register", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/api/auth/refresh", StringComparison.OrdinalIgnoreCase);

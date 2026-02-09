@@ -16,7 +16,7 @@ public class CategoryService
 
     public async Task<CategoryResponse> CreateAsync(CreateCategoryRequest request)
     {
-        var category = new Category(request.Name, request.Description);
+        Category category = new Category(request.Name, request.Description);
         await _categoryRepository.SaveAsync(category);
 
         return ToCategoryResponse(category);
@@ -24,25 +24,25 @@ public class CategoryService
 
     public async Task<CategoryResponse?> GetByIdAsync(Guid id)
     {
-        var category = await _categoryRepository.GetByIdAsync(id);
+        Category? category = await _categoryRepository.GetByIdAsync(id);
         return category == null ? null : ToCategoryResponse(category);
     }
 
     public async Task<IReadOnlyList<CategoryResponse>> GetAllAsync()
     {
-        var categories = await _categoryRepository.GetAllAsync();
-        return categories.Select(ToCategoryResponse).ToList();
+        IReadOnlyList<Category> categories = await _categoryRepository.GetAllAsync();
+        return [.. categories.Select(ToCategoryResponse)];
     }
 
     public async Task<IReadOnlyList<CategoryResponse>> GetActiveAsync()
     {
-        var categories = await _categoryRepository.GetActiveAsync();
-        return categories.Select(ToCategoryResponse).ToList();
+        IReadOnlyList<Category> categories = await _categoryRepository.GetActiveAsync();
+        return [.. categories.Select(ToCategoryResponse)];
     }
 
     public async Task<CategoryResponse> UpdateAsync(Guid id, UpdateCategoryRequest request)
     {
-        var category = await _categoryRepository.GetByIdAsync(id)
+        Category category = await _categoryRepository.GetByIdAsync(id)
             ?? throw new CategoryNotFoundException(id);
 
         if (request.Name != null)

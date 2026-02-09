@@ -42,7 +42,7 @@ public class UsersController : ControllerBase
             pageSize = 100;
         }
 
-        var result = await _userService.GetAllUsersAsync(page, pageSize);
+        PagedResult<UserResponse> result = await _userService.GetAllUsersAsync(page, pageSize);
         return Ok(result);
     }
 
@@ -56,7 +56,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetUserById(Guid id)
     {
-        var user = await _userService.GetUserByIdAsync(id);
+        UserResponse? user = await _userService.GetUserByIdAsync(id);
 
         if (user == null)
         {
@@ -77,7 +77,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateUserRole(Guid id, [FromBody] UpdateUserRoleRequest request)
     {
-        var user = await _userService.UpdateUserRoleAsync(id, request);
+        UserResponse user = await _userService.UpdateUserRoleAsync(id, request);
         return Ok(user);
     }
 
@@ -91,7 +91,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeactivateUser(Guid id)
     {
-        var user = await _userService.DeactivateUserAsync(id);
+        UserResponse user = await _userService.DeactivateUserAsync(id);
         return Ok(user);
     }
 }

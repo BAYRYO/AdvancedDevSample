@@ -32,10 +32,10 @@ public class ProductService
     {
         await _transactionManager.ExecuteInTransactionAsync(async () =>
         {
-            var product = await _productRepository.GetByIdAsync(id)
+            Product product = await _productRepository.GetByIdAsync(id)
                 ?? throw new ApplicationServiceException("Produit introuvable", HttpStatusCode.NotFound);
 
-            var oldPrice = product.Price;
+            decimal oldPrice = product.Price;
             product.ChangePrice(request.NewPrice);
 
             var priceHistory = new PriceHistory(
@@ -80,7 +80,7 @@ public class ProductService
 
     public async Task<ProductResponse?> GetByIdAsync(Guid id)
     {
-        var product = await _productRepository.GetByIdAsync(id);
+        Product? product = await _productRepository.GetByIdAsync(id);
         if (product == null)
         {
             return null;
@@ -103,10 +103,10 @@ public class ProductService
             Page: page,
             PageSize: pageSize);
 
-        var (items, totalCount) = await _productRepository.SearchAsync(criteria);
+        (IReadOnlyList<Product> items, int totalCount) = await _productRepository.SearchAsync(criteria);
 
         var responses = new List<ProductResponse>();
-        foreach (var product in items)
+        foreach (Product product in items)
         {
             responses.Add(await GetProductResponseAsync(product));
         }
@@ -159,11 +159,11 @@ public class ProductService
             product = await _productRepository.GetByIdAsync(id)
                 ?? throw new ProductNotFoundException(id);
 
-            var oldEffectivePrice = product.GetEffectivePrice();
+            decimal oldEffectivePrice = product.GetEffectivePrice();
 
             product.ApplyDiscount(request.Percentage, request.Reason);
 
-            var newEffectivePrice = product.GetEffectivePrice();
+            decimal newEffectivePrice = product.GetEffectivePrice();
 
             var priceHistory = new PriceHistory(
                 productId: product.Id,
@@ -190,11 +190,11 @@ public class ProductService
 
             if (product.CurrentDiscount.HasValue)
             {
-                var oldEffectivePrice = product.GetEffectivePrice();
+                decimal oldEffectivePrice = product.GetEffectivePrice();
 
                 product.RemoveDiscount();
 
-                var newEffectivePrice = product.GetEffectivePrice();
+                decimal newEffectivePrice = product.GetEffectivePrice();
 
                 var priceHistory = new PriceHistory(
                     productId: product.Id,
@@ -216,21 +216,21 @@ public class ProductService
         _ = await _productRepository.GetByIdAsync(id)
             ?? throw new ProductNotFoundException(id);
 
-        var history = await _priceHistoryRepository.GetByProductIdAsync(id);
+        IReadOnlyList<PriceHistory> history = await _priceHistoryRepository.GetByProductIdAsync(id);
 
-        return history.Select(h => new PriceHistoryResponse(
+        return [.. history.Select(h => new PriceHistoryResponse(
             Id: h.Id,
             ProductId: h.ProductId,
             OldPrice: h.OldPrice,
             NewPrice: h.NewPrice,
             DiscountPercentage: h.DiscountPercentage,
             ChangedAt: h.ChangedAt,
-            Reason: h.Reason)).ToList();
+            Reason: h.Reason))];
     }
 
     public async Task<ProductResponse> ActivateAsync(Guid id)
     {
-        var product = await _productRepository.GetByIdAsync(id)
+        Product product = await _productRepository.GetByIdAsync(id)
             ?? throw new ProductNotFoundException(id);
 
         product.Activate();
@@ -241,7 +241,7 @@ public class ProductService
 
     public async Task<ProductResponse> DeactivateAsync(Guid id)
     {
-        var product = await _productRepository.GetByIdAsync(id)
+        Product product = await _productRepository.GetByIdAsync(id)
             ?? throw new ProductNotFoundException(id);
 
         product.Deactivate();
@@ -255,7 +255,7 @@ public class ProductService
         string? categoryName = null;
         if (product.CategoryId.HasValue)
         {
-            var category = await _categoryRepository.GetByIdAsync(product.CategoryId.Value);
+            Category? category = await _categoryRepository.GetByIdAsync(product.CategoryId.Value);
             categoryName = category?.Name;
         }
 
@@ -295,7 +295,7 @@ public class ProductService
             return;
         }
 
-        var oldPrice = product.Price;
+        decimal oldPrice = product.Price;
         product.ChangePrice(request.Price.Value);
 
         var priceHistory = new PriceHistory(
@@ -314,8 +314,8 @@ public class ProductService
             return;
         }
 
-        var currentStock = product.Stock.Quantity;
-        var diff = request.Stock.Value - currentStock;
+        int currentStock = product.Stock.Quantity;
+        int diff = request.Stock.Value - currentStock;
         if (diff > 0)
         {
             product.AddStock(diff);

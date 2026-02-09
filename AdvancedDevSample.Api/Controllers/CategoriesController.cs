@@ -26,7 +26,7 @@ public class CategoriesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Create([FromBody] CreateCategoryRequest request)
     {
-        var category = await _categoryService.CreateAsync(request);
+        CategoryResponse category = await _categoryService.CreateAsync(request);
         return CreatedAtAction(nameof(GetById), new { id = category.Id }, category);
     }
 
@@ -38,7 +38,7 @@ public class CategoriesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var category = await _categoryService.GetByIdAsync(id);
+        CategoryResponse? category = await _categoryService.GetByIdAsync(id);
         if (category == null)
         {
             return NotFound(new { title = "Ressource introuvable", detail = $"La categorie avec l'identifiant '{id}' est introuvable." });
@@ -53,7 +53,7 @@ public class CategoriesController : ControllerBase
     [ProducesResponseType(typeof(IReadOnlyList<CategoryResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll([FromQuery] bool? activeOnly = null)
     {
-        var categories = activeOnly == true
+        IReadOnlyList<CategoryResponse> categories = activeOnly == true
             ? await _categoryService.GetActiveAsync()
             : await _categoryService.GetAllAsync();
         return Ok(categories);
@@ -69,7 +69,7 @@ public class CategoriesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCategoryRequest request)
     {
-        var category = await _categoryService.UpdateAsync(id, request);
+        CategoryResponse category = await _categoryService.UpdateAsync(id, request);
         return Ok(category);
     }
 

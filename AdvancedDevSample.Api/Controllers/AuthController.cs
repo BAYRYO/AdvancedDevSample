@@ -35,7 +35,7 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        var response = await _authService.RegisterAsync(request);
+        AuthResponseWithRefreshToken response = await _authService.RegisterAsync(request);
         await TryAuditAsync(() => _auditService.LogRegisterAsync(
             response.User.Id,
             response.User.Email,
@@ -56,7 +56,7 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var response = await _authService.LoginAsync(request);
+            AuthResponseWithRefreshToken response = await _authService.LoginAsync(request);
             await TryAuditAsync(() => _auditService.LogLoginSuccessAsync(
                 response.User.Id,
                 response.User.Email,
@@ -85,7 +85,7 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
     {
-        var response = await _authService.RefreshTokenAsync(request);
+        AuthResponseWithRefreshToken response = await _authService.RefreshTokenAsync(request);
         await TryAuditAsync(() => _auditService.LogTokenRefreshAsync(
             response.User.Id,
             response.User.Email,
@@ -103,15 +103,15 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetCurrentUser()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)
+        Claim? userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)
             ?? User.FindFirst("sub");
 
-        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
         {
             return Unauthorized();
         }
 
-        var user = await _authService.GetCurrentUserAsync(userId);
+        UserResponse? user = await _authService.GetCurrentUserAsync(userId);
 
         if (user == null)
         {
@@ -121,15 +121,9 @@ public class AuthController : ControllerBase
         return Ok(user);
     }
 
-    private string? GetClientIpAddress()
-    {
-        return HttpContext.Connection.RemoteIpAddress?.ToString();
-    }
+    private string? GetClientIpAddress() => HttpContext.Connection.RemoteIpAddress?.ToString();
 
-    private string? GetUserAgent()
-    {
-        return Request.Headers.UserAgent.ToString();
-    }
+    private string? GetUserAgent() => Request.Headers.UserAgent.ToString();
 
     private async Task TryAuditAsync(Func<Task> operation)
     {
@@ -143,4 +137,3 @@ public class AuthController : ControllerBase
         }
     }
 }
-

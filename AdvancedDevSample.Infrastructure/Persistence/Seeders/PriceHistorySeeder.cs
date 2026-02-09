@@ -41,13 +41,13 @@ public class PriceHistorySeeder : ISeeder
 
         foreach (var product in products)
         {
-            var historyCount = Random.Shared.Next(1, 5);
-            var currentPrice = product.Price;
+            int historyCount = Random.Shared.Next(1, 5);
+            decimal currentPrice = product.Price;
 
-            for (var i = 0; i < historyCount; i++)
+            for (int i = 0; i < historyCount; i++)
             {
-                var priceChange = (decimal)(Random.Shared.NextDouble() * 0.4 - 0.2);
-                var oldPrice = Math.Max(1, Math.Round(currentPrice * (1 + priceChange), 2));
+                decimal priceChange = (decimal)(Random.Shared.NextDouble() * 0.4 - 0.2);
+                decimal oldPrice = Math.Max(1, Math.Round(currentPrice * (1 + priceChange), 2));
 
                 priceHistories.Add(new PriceHistoryEntity
                 {

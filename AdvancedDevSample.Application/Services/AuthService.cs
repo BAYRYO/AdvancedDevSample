@@ -36,7 +36,7 @@ public class AuthService
             throw new UserAlreadyExistsException(request.Email);
         }
 
-        var passwordHash = _passwordHasher.Hash(request.Password);
+        string passwordHash = _passwordHasher.Hash(request.Password);
 
         var user = new User(
             email: request.Email,
@@ -46,7 +46,7 @@ public class AuthService
 
         await _userRepository.SaveAsync(user);
 
-        var (token, expiresAt) = _jwtService.GenerateToken(user);
+        (string token, DateTime expiresAt) = _jwtService.GenerateToken(user);
         var refreshToken = new RefreshToken(user.Id);
         await _refreshTokenRepository.SaveAsync(refreshToken);
 
@@ -60,14 +60,9 @@ public class AuthService
 
     public async Task<AuthResponseWithRefreshToken> LoginAsync(LoginRequest request)
     {
-        var user = await _userRepository.GetByEmailAsync(request.Email);
+        User? user = await _userRepository.GetByEmailAsync(request.Email);
 
-        if (user == null)
-        {
-            throw new InvalidCredentialsException();
-        }
-
-        if (!user.IsActive)
+        if (user is null || !user.IsActive)
         {
             throw new InvalidCredentialsException();
         }
@@ -83,7 +78,7 @@ public class AuthService
         // Revoke any existing refresh tokens for this user
         await _refreshTokenRepository.RevokeAllForUserAsync(user.Id);
 
-        var (token, expiresAt) = _jwtService.GenerateToken(user);
+        (string token, DateTime expiresAt) = _jwtService.GenerateToken(user);
         var refreshToken = new RefreshToken(user.Id);
         await _refreshTokenRepository.SaveAsync(refreshToken);
 
@@ -97,14 +92,14 @@ public class AuthService
 
     public async Task<AuthResponseWithRefreshToken> RefreshTokenAsync(RefreshTokenRequest request)
     {
-        var existingRefreshToken = await _refreshTokenRepository.GetByTokenAsync(request.RefreshToken);
+        RefreshToken? existingRefreshToken = await _refreshTokenRepository.GetByTokenAsync(request.RefreshToken);
 
         if (existingRefreshToken == null || !existingRefreshToken.IsValid)
         {
             throw new InvalidCredentialsException();
         }
 
-        var user = await _userRepository.GetByIdAsync(existingRefreshToken.UserId);
+        User? user = await _userRepository.GetByIdAsync(existingRefreshToken.UserId);
 
         if (user == null || !user.IsActive)
         {
@@ -116,7 +111,7 @@ public class AuthService
         await _refreshTokenRepository.SaveAsync(existingRefreshToken);
 
         // Generate new tokens
-        var (token, expiresAt) = _jwtService.GenerateToken(user);
+        (string token, DateTime expiresAt) = _jwtService.GenerateToken(user);
         var newRefreshToken = new RefreshToken(user.Id);
         await _refreshTokenRepository.SaveAsync(newRefreshToken);
 
@@ -130,7 +125,7 @@ public class AuthService
 
     public async Task<UserResponse?> GetCurrentUserAsync(Guid userId)
     {
-        var user = await _userRepository.GetByIdAsync(userId);
+        User? user = await _userRepository.GetByIdAsync(userId);
 
         if (user == null || !user.IsActive)
         {
