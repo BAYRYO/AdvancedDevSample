@@ -16,30 +16,35 @@ graph TD
 ## Diagramme composants
 
 ```mermaid
-graph LR
-  subgraph Client
+graph TD
+  subgraph Client[Frontend]
     UI[Blazor WebAssembly]
-    AuthState[FrontendAuthStateProvider]
+    AuthState[AuthStateProvider]
     ApiClient[ApiClient + AuthTokenHandler]
+    UI --> AuthState --> ApiClient
   end
 
-  subgraph Backend[ASP.NET Core API]
-    MW[Middlewares<br/>ExceptionHandling + SecurityHeaders]
+  subgraph Api[API ASP.NET Core]
+    MW[Middlewares]
     Ctl[Controllers]
-    App[Services Application]
-    RepoPorts[Interfaces Repositories]
-    Infra[Repositories EF + TransactionManager]
-    Db[(SQLite)]
+    MW --> Ctl
   end
 
-  UI --> AuthState
-  AuthState --> ApiClient
+  subgraph Core[Application + Domain]
+    App[Services Application]
+    Ports[Interfaces Repositories]
+    App --> Ports
+  end
+
+  subgraph Infra[Infrastructure]
+    Repos[Repositories EF + TransactionManager]
+    Db[(SQLite)]
+    Repos --> Db
+  end
+
   ApiClient -->|HTTPS JSON| MW
-  MW --> Ctl
   Ctl --> App
-  App --> RepoPorts
-  RepoPorts --> Infra
-  Infra --> Db
+  Ports --> Repos
 ```
 
 ## Projets et responsabilites
