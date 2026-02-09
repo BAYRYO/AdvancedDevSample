@@ -44,7 +44,7 @@ public class ExceptionHandlingMiddlewareTests
 
     private static DefaultHttpContext CreateHttpContext()
     {
-        DefaultHttpContext context = new DefaultHttpContext();
+        var context = new DefaultHttpContext();
         context.Request.Method = HttpMethods.Get;
         context.Request.Path = "/api/test";
         context.Response.Body = new MemoryStream();
