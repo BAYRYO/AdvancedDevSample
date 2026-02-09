@@ -191,7 +191,7 @@ public class AuthControllerIntegrationTests : IClassFixture<CustomWebApplication
         await _factory.UserRepository.SaveAsync(user);
 
         HttpClient authenticatedClient = _factory.CreateClient();
-        string token = _factory.GenerateTestToken(userId, "current@example.com", UserRole.User);
+        string token = CustomWebApplicationFactory.GenerateTestToken(userId, "current@example.com", UserRole.User);
         authenticatedClient.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
@@ -238,7 +238,7 @@ public class AuthControllerIntegrationTests : IClassFixture<CustomWebApplication
         await _factory.UserRepository.SaveAsync(user);
 
         HttpClient authenticatedClient = _factory.CreateClient();
-        string token = _factory.GenerateTestToken(userId, "inactive@example.com", UserRole.User);
+        string token = CustomWebApplicationFactory.GenerateTestToken(userId, "inactive@example.com", UserRole.User);
         authenticatedClient.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
