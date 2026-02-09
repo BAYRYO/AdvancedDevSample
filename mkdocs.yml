@@ -24,24 +24,6 @@ theme:
       toggle:
         icon: material/palette
         name: Direction 1 - Studio
-    - scheme: paper
-      primary: brown
-      accent: deep orange
-      toggle:
-        icon: material/book-open-page-variant
-        name: Direction 2 - Paper
-    - scheme: terminal
-      primary: black
-      accent: green
-      toggle:
-        icon: material/console
-        name: Direction 3 - Terminal
-    - scheme: ocean
-      primary: blue
-      accent: cyan
-      toggle:
-        icon: material/waves
-        name: Direction 4 - Ocean
 
 markdown_extensions:
   - admonition
@@ -64,7 +46,6 @@ extra_css:
 
 nav:
   - Accueil: index.md
-  - Directions visuelles: visual-directions.md
   - Demarrage: getting-started.md
   - Configuration: configuration.md
   - Architecture: architecture.md
