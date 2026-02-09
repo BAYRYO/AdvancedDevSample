@@ -1,6 +1,7 @@
 using AdvancedDevSample.Domain.Entities;
 using AdvancedDevSample.Domain.Interfaces;
 using AdvancedDevSample.Infrastructure.Persistence;
+using AdvancedDevSample.Infrastructure.Persistence.Entities;
 using AdvancedDevSample.Infrastructure.Persistence.Mappers;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,31 +18,31 @@ public class EfCategoryRepository : ICategoryRepository
 
     public async Task<Category?> GetByIdAsync(Guid id)
     {
-        var entity = await _context.Categories.FindAsync(id);
+        CategoryEntity? entity = await _context.Categories.FindAsync(id);
         return entity == null ? null : CategoryMapper.ToDomain(entity);
     }
 
     public async Task<IReadOnlyList<Category>> GetAllAsync()
     {
-        var entities = await _context.Categories
+        List<CategoryEntity> entities = await _context.Categories
             .OrderBy(c => c.Name)
             .ToListAsync();
-        return entities.Select(CategoryMapper.ToDomain).ToList();
+        return [.. entities.Select(CategoryMapper.ToDomain)];
     }
 
     public async Task<IReadOnlyList<Category>> GetActiveAsync()
     {
-        var entities = await _context.Categories
+        List<CategoryEntity> entities = await _context.Categories
             .Where(c => c.IsActive)
             .OrderBy(c => c.Name)
             .ToListAsync();
-        return entities.Select(CategoryMapper.ToDomain).ToList();
+        return [.. entities.Select(CategoryMapper.ToDomain)];
     }
 
     public async Task SaveAsync(Category category)
     {
-        var entity = CategoryMapper.ToEntity(category);
-        var existing = await _context.Categories.FindAsync(category.Id);
+        CategoryEntity entity = CategoryMapper.ToEntity(category);
+        CategoryEntity? existing = await _context.Categories.FindAsync(category.Id);
 
         if (existing == null)
         {
@@ -60,7 +61,7 @@ public class EfCategoryRepository : ICategoryRepository
 
     public async Task DeleteAsync(Guid id)
     {
-        var entity = await _context.Categories.FindAsync(id);
+        CategoryEntity? entity = await _context.Categories.FindAsync(id);
         if (entity != null)
         {
             _context.Categories.Remove(entity);
@@ -68,8 +69,5 @@ public class EfCategoryRepository : ICategoryRepository
         }
     }
 
-    public async Task<bool> ExistsAsync(Guid id)
-    {
-        return await _context.Categories.AnyAsync(c => c.Id == id);
-    }
+    public Task<bool> ExistsAsync(Guid id) => _context.Categories.AnyAsync(c => c.Id == id);
 }

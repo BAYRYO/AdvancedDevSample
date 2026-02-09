@@ -20,9 +20,9 @@ public class JwtService : IJwtService
 
     public (string Token, DateTime ExpiresAt) GenerateToken(User user)
     {
-        var expiresAt = DateTime.UtcNow.AddMinutes(_settings.ExpirationMinutes);
+        DateTime expiresAt = DateTime.UtcNow.AddMinutes(_settings.ExpirationMinutes);
 
-        var claims = new[]
+        Claim[] claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
@@ -41,7 +41,7 @@ public class JwtService : IJwtService
             expires: expiresAt,
             signingCredentials: credentials);
 
-        var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+        string tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
         return (tokenString, expiresAt);
     }

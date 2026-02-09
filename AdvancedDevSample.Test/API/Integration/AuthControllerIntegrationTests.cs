@@ -89,7 +89,7 @@ public class AuthControllerIntegrationTests : IClassFixture<CustomWebApplication
         };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/register", request);
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/register", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);

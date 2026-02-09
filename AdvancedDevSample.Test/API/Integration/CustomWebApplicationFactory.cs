@@ -49,12 +49,12 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
-            services.RemoveAll(typeof(IProductRepository));
-            services.RemoveAll(typeof(ICategoryRepository));
-            services.RemoveAll(typeof(IPriceHistoryRepository));
-            services.RemoveAll(typeof(IUserRepository));
-            services.RemoveAll(typeof(IRefreshTokenRepository));
-            services.RemoveAll(typeof(IAuditLogRepository));
+            services.RemoveAll<IProductRepository>();
+            services.RemoveAll<ICategoryRepository>();
+            services.RemoveAll<IPriceHistoryRepository>();
+            services.RemoveAll<IUserRepository>();
+            services.RemoveAll<IRefreshTokenRepository>();
+            services.RemoveAll<IAuditLogRepository>();
 
             services.AddSingleton<IProductRepository>(ProductRepository);
             services.AddSingleton<ICategoryRepository>(CategoryRepository);
@@ -67,15 +67,15 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
     public HttpClient CreateAuthenticatedClient(UserRole role = UserRole.User)
     {
-        var client = CreateClient();
-        var token = GenerateTestToken(Guid.NewGuid(), "test@example.com", role);
+        HttpClient client = CreateClient();
+        string token = GenerateTestToken(Guid.NewGuid(), "test@example.com", role);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         return client;
     }
 
-    public string GenerateTestToken(Guid userId, string email, UserRole role)
+    public static string GenerateTestToken(Guid userId, string email, UserRole role)
     {
-        var claims = new[]
+        Claim[] claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, email),

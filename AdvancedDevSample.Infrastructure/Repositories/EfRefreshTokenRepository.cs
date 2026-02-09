@@ -18,7 +18,7 @@ public class EfRefreshTokenRepository : IRefreshTokenRepository
     public async Task<RefreshToken?> GetByTokenAsync(string token)
     {
         string tokenHash = RefreshToken.HashToken(token);
-        var entity = await _context.RefreshTokens
+        RefreshTokenEntity? entity = await _context.RefreshTokens
             .FirstOrDefaultAsync(r => r.Token == tokenHash);
 
         return entity == null ? null : ToDomain(entity);
@@ -26,7 +26,7 @@ public class EfRefreshTokenRepository : IRefreshTokenRepository
 
     public async Task<IEnumerable<RefreshToken>> GetByUserIdAsync(Guid userId)
     {
-        var entities = await _context.RefreshTokens
+        List<RefreshTokenEntity> entities = await _context.RefreshTokens
             .Where(r => r.UserId == userId)
             .ToListAsync();
 
@@ -35,8 +35,8 @@ public class EfRefreshTokenRepository : IRefreshTokenRepository
 
     public async Task SaveAsync(RefreshToken refreshToken)
     {
-        var entity = ToEntity(refreshToken);
-        var existing = await _context.RefreshTokens.FindAsync(refreshToken.Id);
+        RefreshTokenEntity entity = ToEntity(refreshToken);
+        RefreshTokenEntity? existing = await _context.RefreshTokens.FindAsync(refreshToken.Id);
 
         if (existing == null)
         {
@@ -54,11 +54,11 @@ public class EfRefreshTokenRepository : IRefreshTokenRepository
 
     public async Task RevokeAllForUserAsync(Guid userId)
     {
-        var tokens = await _context.RefreshTokens
+        List<RefreshTokenEntity> tokens = await _context.RefreshTokens
             .Where(r => r.UserId == userId && !r.IsRevoked)
             .ToListAsync();
 
-        foreach (var token in tokens)
+        foreach (RefreshTokenEntity token in tokens)
         {
             token.IsRevoked = true;
             token.RevokedAt = DateTime.UtcNow;

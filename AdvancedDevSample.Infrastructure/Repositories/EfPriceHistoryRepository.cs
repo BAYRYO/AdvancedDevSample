@@ -1,6 +1,7 @@
 using AdvancedDevSample.Domain.Entities;
 using AdvancedDevSample.Domain.Interfaces;
 using AdvancedDevSample.Infrastructure.Persistence;
+using AdvancedDevSample.Infrastructure.Persistence.Entities;
 using AdvancedDevSample.Infrastructure.Persistence.Mappers;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,16 +18,16 @@ public class EfPriceHistoryRepository : IPriceHistoryRepository
 
     public async Task<IReadOnlyList<PriceHistory>> GetByProductIdAsync(Guid productId)
     {
-        var entities = await _context.PriceHistories
+        List<PriceHistoryEntity> entities = await _context.PriceHistories
             .Where(ph => ph.ProductId == productId)
             .OrderByDescending(ph => ph.ChangedAt)
             .ToListAsync();
-        return entities.Select(PriceHistoryMapper.ToDomain).ToList();
+        return [.. entities.Select(PriceHistoryMapper.ToDomain)];
     }
 
     public async Task SaveAsync(PriceHistory priceHistory)
     {
-        var entity = PriceHistoryMapper.ToEntity(priceHistory);
+        PriceHistoryEntity entity = PriceHistoryMapper.ToEntity(priceHistory);
         _context.PriceHistories.Add(entity);
         await _context.SaveChangesAsync();
     }

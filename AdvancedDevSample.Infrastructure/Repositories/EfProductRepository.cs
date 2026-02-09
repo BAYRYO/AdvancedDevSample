@@ -1,6 +1,7 @@
 using AdvancedDevSample.Domain.Entities;
 using AdvancedDevSample.Domain.Interfaces;
 using AdvancedDevSample.Infrastructure.Persistence;
+using AdvancedDevSample.Infrastructure.Persistence.Entities;
 using AdvancedDevSample.Infrastructure.Persistence.Mappers;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,14 +19,14 @@ public class EfProductRepository : IProductRepository
     // Existing sync methods for backward compatibility
     public Product? GetById(Guid id)
     {
-        var entity = _context.Products.Find(id);
+        ProductEntity? entity = _context.Products.Find(id);
         return entity == null ? null : ProductMapper.ToDomain(entity);
     }
 
     public void Save(Product product)
     {
-        var entity = ProductMapper.ToEntity(product);
-        var existing = _context.Products.Find(product.Id);
+        ProductEntity entity = ProductMapper.ToEntity(product);
+        ProductEntity? existing = _context.Products.Find(product.Id);
 
         if (existing == null)
         {
@@ -50,27 +51,27 @@ public class EfProductRepository : IProductRepository
     // New async methods
     public async Task<Product?> GetByIdAsync(Guid id)
     {
-        var entity = await _context.Products.FindAsync(id);
+        ProductEntity? entity = await _context.Products.FindAsync(id);
         return entity == null ? null : ProductMapper.ToDomain(entity);
     }
 
     public async Task<Product?> GetBySkuAsync(string sku)
     {
-        var normalizedSku = sku.ToUpperInvariant();
-        var entity = await _context.Products
+        string normalizedSku = sku.ToUpperInvariant();
+        ProductEntity? entity = await _context.Products
             .FirstOrDefaultAsync(p => p.Sku == normalizedSku);
         return entity == null ? null : ProductMapper.ToDomain(entity);
     }
 
     public async Task<IReadOnlyList<Product>> GetAllAsync()
     {
-        var entities = await _context.Products.ToListAsync();
-        return entities.Select(ProductMapper.ToDomain).ToList();
+        List<ProductEntity> entities = await _context.Products.ToListAsync();
+        return [.. entities.Select(ProductMapper.ToDomain)];
     }
 
     public async Task<(IReadOnlyList<Product> Items, int TotalCount)> SearchAsync(ProductSearchCriteria criteria)
     {
-        var query = _context.Products.AsQueryable();
+        IQueryable<ProductEntity> query = _context.Products.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(criteria.Name))
         {
@@ -97,22 +98,22 @@ public class EfProductRepository : IProductRepository
             query = query.Where(p => p.IsActive == criteria.IsActive.Value);
         }
 
-        var totalCount = await query.CountAsync();
+        int totalCount = await query.CountAsync();
 
-        var entities = await query
+        List<ProductEntity> entities = await query
             .OrderBy(p => p.Name)
             .Skip((criteria.Page - 1) * criteria.PageSize)
             .Take(criteria.PageSize)
             .ToListAsync();
 
-        var items = entities.Select(ProductMapper.ToDomain).ToList();
+        List<Product> items = [.. entities.Select(ProductMapper.ToDomain)];
         return (items, totalCount);
     }
 
     public async Task SaveAsync(Product product)
     {
-        var entity = ProductMapper.ToEntity(product);
-        var existing = await _context.Products.FindAsync(product.Id);
+        ProductEntity entity = ProductMapper.ToEntity(product);
+        ProductEntity? existing = await _context.Products.FindAsync(product.Id);
 
         if (existing == null)
         {
@@ -136,7 +137,7 @@ public class EfProductRepository : IProductRepository
 
     public async Task DeleteAsync(Guid id)
     {
-        var entity = await _context.Products.FindAsync(id);
+        ProductEntity? entity = await _context.Products.FindAsync(id);
         if (entity != null)
         {
             _context.Products.Remove(entity);
@@ -146,8 +147,8 @@ public class EfProductRepository : IProductRepository
 
     public async Task<bool> ExistsWithSkuAsync(string sku, Guid? excludeProductId = null)
     {
-        var normalizedSku = sku.ToUpperInvariant();
-        var query = _context.Products.Where(p => p.Sku == normalizedSku);
+        string normalizedSku = sku.ToUpperInvariant();
+        IQueryable<ProductEntity> query = _context.Products.Where(p => p.Sku == normalizedSku);
 
         if (excludeProductId.HasValue)
         {
