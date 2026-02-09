@@ -287,4 +287,22 @@ public class ProductTest
         Assert.Equal(createdAt, product.CreatedAt);
         Assert.Equal(updatedAt, product.UpdatedAt);
     }
+
+    [Fact]
+    public void Reconstitution_Constructor_WithNullName_DefaultsToEmptyString()
+    {
+        var product = new Product(new Product.ReconstitutionData
+        {
+            Id = Guid.NewGuid(),
+            Name = null!,
+            Price = 42m,
+            Sku = new Sku("RECON-003"),
+            Stock = 1,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow.AddDays(-1),
+            UpdatedAt = DateTime.UtcNow
+        });
+
+        Assert.Equal(string.Empty, product.Name);
+    }
 }

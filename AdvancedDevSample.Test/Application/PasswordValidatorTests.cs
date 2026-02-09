@@ -33,6 +33,14 @@ public class PasswordValidatorTests
     }
 
     [Fact]
+    public void Validate_WithoutLowercase_ThrowsLowercaseError()
+    {
+        WeakPasswordException exception = Assert.Throws<WeakPasswordException>(() => PasswordValidator.Validate("ALLUPPER123!"));
+
+        Assert.Contains("Password must contain at least one lowercase letter.", exception.ValidationErrors);
+    }
+
+    [Fact]
     public void IsValid_WithStrongPassword_ReturnsTrueAndNoErrors()
     {
         bool isValid = PasswordValidator.IsValid("ValidPass123!", out IReadOnlyList<string> errors);
@@ -71,5 +79,14 @@ public class PasswordValidatorTests
         Assert.Contains("Password must contain at least one uppercase letter.", errors);
         Assert.Contains("Password must contain at least one digit.", errors);
         Assert.Contains("Password must contain at least one special character.", errors);
+    }
+
+    [Fact]
+    public void IsValid_WithoutLowercase_ReturnsFalseWithLowercaseError()
+    {
+        bool isValid = PasswordValidator.IsValid("ALLUPPER123!", out IReadOnlyList<string> errors);
+
+        Assert.False(isValid);
+        Assert.Contains("Password must contain at least one lowercase letter.", errors);
     }
 }

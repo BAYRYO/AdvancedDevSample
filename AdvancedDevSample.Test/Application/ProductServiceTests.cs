@@ -187,6 +187,21 @@ public class ProductServiceTests
     }
 
     [Fact]
+    public async Task UpdateAsync_WhenStockIncreases_AddsStockWithoutCreatingPriceHistory()
+    {
+        ProductService service = CreateService();
+        var product = new Product("Stock Up", 100m, new Sku("STK-2"), stock: 5);
+        _productRepository.Seed(product);
+
+        ProductResponse response = await service.UpdateAsync(product.Id, new UpdateProductRequest(Stock: 8));
+
+        Assert.Equal(8, response.Stock);
+
+        IReadOnlyList<PriceHistory> history = await _priceHistoryRepository.GetByProductIdAsync(product.Id);
+        Assert.Empty(history);
+    }
+
+    [Fact]
     public async Task DeleteAsync_WithExistingProduct_DeletesSuccessfully()
     {
         ProductService service = CreateService();
