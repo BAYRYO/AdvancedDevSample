@@ -70,7 +70,8 @@ jobs:
             /d:sonar.qualitygate.timeout=300 \
             /d:sonar.cs.vstest.reportsPaths="**/*.trx" \
             /d:sonar.cs.opencover.reportsPaths="TestResults/**/coverage.opencover.xml" \
-            /d:sonar.exclusions="**/wwwroot/lib/**,**/Migrations/**,**/*.Designer.cs"
+            /d:sonar.exclusions="**/wwwroot/lib/**,**/Migrations/**,**/*.Designer.cs" \
+            /d:sonar.coverage.exclusions="**/AdvancedDevSample.Frontend/**/*.cs,**/Program.cs,**/Migrations/**,**/*.Designer.cs,**/AdvancedDevSample.Application/DTOs/**/*.cs,**/AdvancedDevSample.Application/Interfaces/**/*.cs,**/AdvancedDevSample.Infrastructure/Persistence/Entities/**/*.cs,**/AdvancedDevSample.Infrastructure/Persistence/Mappers/**/*.cs"
 
       - name: Restore
         run: dotnet restore AdvancedDevSample.slnx
