@@ -32,14 +32,14 @@ public class SecurityHeadersMiddleware
             path.StartsWith("/scalar", StringComparison.OrdinalIgnoreCase))
         {
             headers.ContentSecurityPolicy =
-                "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; " +
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' http: https:; " +
-                "font-src 'self' data:; frame-ancestors 'none'; base-uri 'self';";
+                "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; " +
+                "script-src 'self' 'unsafe-inline'; connect-src 'self'; font-src 'self' data:; " +
+                "object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';";
         }
         else
         {
             headers.ContentSecurityPolicy =
-                "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none';";
+                "default-src 'none'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none';";
         }
 
         await _next(context);
