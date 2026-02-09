@@ -326,4 +326,27 @@ public class UserTests
     }
 
     #endregion
+
+    [Fact]
+    public void Reconstitution_Constructor_WithEmptyId_GeneratesNewId()
+    {
+        // Act
+        var user = new User(new User.ReconstitutionData
+        {
+            Id = Guid.Empty,
+            Email = "reconstituted@example.com",
+            PasswordHash = "hash",
+            FirstName = "Recon",
+            LastName = "User",
+            Role = UserRole.User,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow.AddDays(-1),
+            UpdatedAt = DateTime.UtcNow,
+            LastLoginAt = null
+        });
+
+        // Assert
+        Assert.NotEqual(Guid.Empty, user.Id);
+        Assert.Equal("reconstituted@example.com", user.Email);
+    }
 }

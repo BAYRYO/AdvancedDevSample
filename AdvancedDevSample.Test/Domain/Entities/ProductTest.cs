@@ -236,4 +236,26 @@ public class ProductTest
         Assert.Equal(10m, product.Price);
         Assert.False(product.IsActive);
     }
+
+    [Fact]
+    public void Reconstitution_Constructor_WithEmptyId_GeneratesNewId()
+    {
+        var product = new Product(new Product.ReconstitutionData
+        {
+            Id = Guid.Empty,
+            Name = "Reconstituted",
+            Price = 99m,
+            Sku = new Sku("RECON-001"),
+            Stock = 3,
+            Description = "from persistence",
+            CategoryId = null,
+            DiscountPercentage = 10m,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow.AddDays(-1),
+            UpdatedAt = DateTime.UtcNow
+        });
+
+        Assert.NotEqual(Guid.Empty, product.Id);
+        Assert.Equal(89.1m, product.GetEffectivePrice());
+    }
 }
