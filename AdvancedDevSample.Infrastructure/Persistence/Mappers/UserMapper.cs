@@ -8,17 +8,19 @@ public static class UserMapper
 {
     public static User ToDomain(UserEntity entity)
     {
-        return new User(
-            id: entity.Id,
-            email: entity.Email,
-            passwordHash: entity.PasswordHash,
-            firstName: entity.FirstName,
-            lastName: entity.LastName,
-            role: (UserRole)entity.Role,
-            isActive: entity.IsActive,
-            createdAt: entity.CreatedAt,
-            updatedAt: entity.UpdatedAt,
-            lastLoginAt: entity.LastLoginAt);
+        return new User(new User.ReconstitutionData
+        {
+            Id = entity.Id,
+            Email = entity.Email,
+            PasswordHash = entity.PasswordHash,
+            FirstName = entity.FirstName,
+            LastName = entity.LastName,
+            Role = (UserRole)entity.Role,
+            IsActive = entity.IsActive,
+            CreatedAt = entity.CreatedAt,
+            UpdatedAt = entity.UpdatedAt,
+            LastLoginAt = entity.LastLoginAt
+        });
     }
 
     public static UserEntity ToEntity(User user)

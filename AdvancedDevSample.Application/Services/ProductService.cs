@@ -130,68 +130,11 @@ public class ProductService
             product = await _productRepository.GetByIdAsync(id)
                 ?? throw new ProductNotFoundException(id);
 
-            if (request.Name != null)
-            {
-                product.UpdateName(request.Name);
-            }
-
-            if (request.Description != null)
-            {
-                product.UpdateDescription(request.Description);
-            }
-
-            if (request.Price.HasValue)
-            {
-                var oldPrice = product.Price;
-                product.ChangePrice(request.Price.Value);
-
-                var priceHistory = new PriceHistory(
-                    productId: product.Id,
-                    oldPrice: oldPrice,
-                    newPrice: request.Price.Value,
-                    discountPercentage: null,
-                    reason: "Mise a jour du prix");
-                await _priceHistoryRepository.SaveAsync(priceHistory);
-            }
-
-            if (request.Stock.HasValue)
-            {
-                var currentStock = product.Stock.Quantity;
-                var diff = request.Stock.Value - currentStock;
-                if (diff > 0)
-                {
-                    product.AddStock(diff);
-                }
-                else if (diff < 0)
-                {
-                    product.RemoveStock(-diff);
-                }
-            }
-
-            if (request.ClearCategory)
-            {
-                product.UpdateCategory(null);
-            }
-            else if (request.CategoryId.HasValue)
-            {
-                if (!await _categoryRepository.ExistsAsync(request.CategoryId.Value))
-                {
-                    throw new CategoryNotFoundException(request.CategoryId.Value);
-                }
-                product.UpdateCategory(request.CategoryId);
-            }
-
-            if (request.IsActive.HasValue)
-            {
-                if (request.IsActive.Value)
-                {
-                    product.Activate();
-                }
-                else
-                {
-                    product.Deactivate();
-                }
-            }
+            UpdateBasicFields(product, request);
+            await UpdatePriceAsync(product, request);
+            UpdateStock(product, request);
+            await UpdateCategoryAsync(product, request);
+            UpdateActivation(product, request);
 
             await _productRepository.SaveAsync(product);
         });
@@ -330,5 +273,94 @@ public class ProductService
             IsActive: product.IsActive,
             CreatedAt: product.CreatedAt,
             UpdatedAt: product.UpdatedAt);
+    }
+
+    private static void UpdateBasicFields(Product product, UpdateProductRequest request)
+    {
+        if (request.Name != null)
+        {
+            product.UpdateName(request.Name);
+        }
+
+        if (request.Description != null)
+        {
+            product.UpdateDescription(request.Description);
+        }
+    }
+
+    private async Task UpdatePriceAsync(Product product, UpdateProductRequest request)
+    {
+        if (!request.Price.HasValue)
+        {
+            return;
+        }
+
+        var oldPrice = product.Price;
+        product.ChangePrice(request.Price.Value);
+
+        var priceHistory = new PriceHistory(
+            productId: product.Id,
+            oldPrice: oldPrice,
+            newPrice: request.Price.Value,
+            discountPercentage: null,
+            reason: "Mise a jour du prix");
+        await _priceHistoryRepository.SaveAsync(priceHistory);
+    }
+
+    private static void UpdateStock(Product product, UpdateProductRequest request)
+    {
+        if (!request.Stock.HasValue)
+        {
+            return;
+        }
+
+        var currentStock = product.Stock.Quantity;
+        var diff = request.Stock.Value - currentStock;
+        if (diff > 0)
+        {
+            product.AddStock(diff);
+        }
+        else if (diff < 0)
+        {
+            product.RemoveStock(-diff);
+        }
+    }
+
+    private async Task UpdateCategoryAsync(Product product, UpdateProductRequest request)
+    {
+        if (request.ClearCategory)
+        {
+            product.UpdateCategory(null);
+            return;
+        }
+
+        if (!request.CategoryId.HasValue)
+        {
+            return;
+        }
+
+        if (!await _categoryRepository.ExistsAsync(request.CategoryId.Value))
+        {
+            throw new CategoryNotFoundException(request.CategoryId.Value);
+        }
+
+        product.UpdateCategory(request.CategoryId);
+    }
+
+    private static void UpdateActivation(Product product, UpdateProductRequest request)
+    {
+        if (!request.IsActive.HasValue)
+        {
+            return;
+        }
+
+        if (request.IsActive.Value)
+        {
+            product.Activate();
+        }
+        else
+        {
+            product.Deactivate();
+        }
     }
 }

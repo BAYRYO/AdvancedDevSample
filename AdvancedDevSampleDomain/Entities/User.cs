@@ -5,6 +5,20 @@ namespace AdvancedDevSample.Domain.Entities;
 
 public class User
 {
+    public sealed class ReconstitutionData
+    {
+        public Guid Id { get; init; }
+        public string Email { get; init; } = string.Empty;
+        public string PasswordHash { get; init; } = string.Empty;
+        public string FirstName { get; init; } = string.Empty;
+        public string LastName { get; init; } = string.Empty;
+        public UserRole Role { get; init; }
+        public bool IsActive { get; init; }
+        public DateTime CreatedAt { get; init; }
+        public DateTime UpdatedAt { get; init; }
+        public DateTime? LastLoginAt { get; init; }
+    }
+
     public const int MaxEmailLength = 256;
     public const int MaxFirstNameLength = 100;
     public const int MaxLastNameLength = 100;
@@ -51,28 +65,18 @@ public class User
     }
 
     // Constructor for reconstitution from persistence
-    public User(
-        Guid id,
-        string email,
-        string passwordHash,
-        string firstName,
-        string lastName,
-        UserRole role,
-        bool isActive,
-        DateTime createdAt,
-        DateTime updatedAt,
-        DateTime? lastLoginAt)
+    public User(ReconstitutionData data)
     {
-        Id = id == Guid.Empty ? Guid.NewGuid() : id;
-        Email = email;
-        PasswordHash = passwordHash;
-        FirstName = firstName;
-        LastName = lastName;
-        Role = role;
-        IsActive = isActive;
-        CreatedAt = createdAt;
-        UpdatedAt = updatedAt;
-        LastLoginAt = lastLoginAt;
+        Id = data.Id == Guid.Empty ? Guid.NewGuid() : data.Id;
+        Email = data.Email;
+        PasswordHash = data.PasswordHash;
+        FirstName = data.FirstName;
+        LastName = data.LastName;
+        Role = data.Role;
+        IsActive = data.IsActive;
+        CreatedAt = data.CreatedAt;
+        UpdatedAt = data.UpdatedAt;
+        LastLoginAt = data.LastLoginAt;
     }
 
     public void UpdateLastLogin()

@@ -5,6 +5,19 @@ namespace AdvancedDevSample.Domain.Entities;
 /// </summary>
 public class AuditLog
 {
+    public sealed class ReconstitutionData
+    {
+        public Guid Id { get; init; }
+        public string EventType { get; init; } = string.Empty;
+        public Guid? UserId { get; init; }
+        public string? UserEmail { get; init; }
+        public string? IpAddress { get; init; }
+        public string? UserAgent { get; init; }
+        public bool IsSuccess { get; init; }
+        public string? Details { get; init; }
+        public DateTime CreatedAt { get; init; }
+    }
+
     public Guid Id { get; private set; }
     public string EventType { get; private set; }
     public Guid? UserId { get; private set; }
@@ -37,26 +50,17 @@ public class AuditLog
     }
 
     // Constructor for reconstitution from persistence
-    public AuditLog(
-        Guid id,
-        string eventType,
-        Guid? userId,
-        string? userEmail,
-        string? ipAddress,
-        string? userAgent,
-        bool isSuccess,
-        string? details,
-        DateTime createdAt)
+    public AuditLog(ReconstitutionData data)
     {
-        Id = id;
-        EventType = eventType;
-        UserId = userId;
-        UserEmail = userEmail;
-        IpAddress = ipAddress;
-        UserAgent = userAgent;
-        IsSuccess = isSuccess;
-        Details = details;
-        CreatedAt = createdAt;
+        Id = data.Id;
+        EventType = data.EventType;
+        UserId = data.UserId;
+        UserEmail = data.UserEmail;
+        IpAddress = data.IpAddress;
+        UserAgent = data.UserAgent;
+        IsSuccess = data.IsSuccess;
+        Details = data.Details;
+        CreatedAt = data.CreatedAt;
     }
 
     // Common event types

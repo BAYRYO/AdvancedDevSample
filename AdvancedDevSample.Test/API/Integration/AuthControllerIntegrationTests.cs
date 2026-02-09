@@ -175,17 +175,19 @@ public class AuthControllerIntegrationTests : IClassFixture<CustomWebApplication
     {
         // Arrange - Create authenticated client
         var userId = Guid.NewGuid();
-        var user = new User(
-            id: userId,
-            email: "current@example.com",
-            passwordHash: "hash",
-            firstName: "Current",
-            lastName: "User",
-            role: UserRole.User,
-            isActive: true,
-            createdAt: DateTime.UtcNow,
-            updatedAt: DateTime.UtcNow,
-            lastLoginAt: null);
+        var user = new User(new User.ReconstitutionData
+        {
+            Id = userId,
+            Email = "current@example.com",
+            PasswordHash = "hash",
+            FirstName = "Current",
+            LastName = "User",
+            Role = UserRole.User,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            LastLoginAt = null
+        });
         await _factory.UserRepository.SaveAsync(user);
 
         var authenticatedClient = _factory.CreateClient();
@@ -220,17 +222,19 @@ public class AuthControllerIntegrationTests : IClassFixture<CustomWebApplication
     {
         // Arrange - Create inactive user
         var userId = Guid.NewGuid();
-        var user = new User(
-            id: userId,
-            email: "inactive@example.com",
-            passwordHash: "hash",
-            firstName: "Inactive",
-            lastName: "User",
-            role: UserRole.User,
-            isActive: false,
-            createdAt: DateTime.UtcNow,
-            updatedAt: DateTime.UtcNow,
-            lastLoginAt: null);
+        var user = new User(new User.ReconstitutionData
+        {
+            Id = userId,
+            Email = "inactive@example.com",
+            PasswordHash = "hash",
+            FirstName = "Inactive",
+            LastName = "User",
+            Role = UserRole.User,
+            IsActive = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            LastLoginAt = null
+        });
         await _factory.UserRepository.SaveAsync(user);
 
         var authenticatedClient = _factory.CreateClient();

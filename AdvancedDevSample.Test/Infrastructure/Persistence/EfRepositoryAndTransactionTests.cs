@@ -156,9 +156,42 @@ public class EfRepositoryAndTransactionTests
         var userA = Guid.NewGuid();
         var userB = Guid.NewGuid();
 
-        var oldest = new AuditLog(Guid.NewGuid(), AuditLog.EventTypes.LoginSuccess, userA, "a@x.com", null, null, true, "old", DateTime.UtcNow.AddMinutes(-10));
-        var middle = new AuditLog(Guid.NewGuid(), AuditLog.EventTypes.LoginFailure, userA, "a@x.com", null, null, false, "mid", DateTime.UtcNow.AddMinutes(-5));
-        var newest = new AuditLog(Guid.NewGuid(), AuditLog.EventTypes.Register, userB, "b@x.com", null, null, true, "new", DateTime.UtcNow.AddMinutes(-1));
+        var oldest = new AuditLog(new AuditLog.ReconstitutionData
+        {
+            Id = Guid.NewGuid(),
+            EventType = AuditLog.EventTypes.LoginSuccess,
+            UserId = userA,
+            UserEmail = "a@x.com",
+            IpAddress = null,
+            UserAgent = null,
+            IsSuccess = true,
+            Details = "old",
+            CreatedAt = DateTime.UtcNow.AddMinutes(-10)
+        });
+        var middle = new AuditLog(new AuditLog.ReconstitutionData
+        {
+            Id = Guid.NewGuid(),
+            EventType = AuditLog.EventTypes.LoginFailure,
+            UserId = userA,
+            UserEmail = "a@x.com",
+            IpAddress = null,
+            UserAgent = null,
+            IsSuccess = false,
+            Details = "mid",
+            CreatedAt = DateTime.UtcNow.AddMinutes(-5)
+        });
+        var newest = new AuditLog(new AuditLog.ReconstitutionData
+        {
+            Id = Guid.NewGuid(),
+            EventType = AuditLog.EventTypes.Register,
+            UserId = userB,
+            UserEmail = "b@x.com",
+            IpAddress = null,
+            UserAgent = null,
+            IsSuccess = true,
+            Details = "new",
+            CreatedAt = DateTime.UtcNow.AddMinutes(-1)
+        });
 
         await repository.SaveAsync(oldest);
         await repository.SaveAsync(middle);

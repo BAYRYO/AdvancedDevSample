@@ -111,19 +111,20 @@ public class ProductFactory
         var createdAt = _createdAt ?? DateTime.UtcNow;
         var updatedAt = _updatedAt ?? DateTime.UtcNow;
 
-        return new Product(
-            id,
-            name,
-            price,
-            new Sku(sku),
-            stock,
-            description,
-            _categoryId,
-            _discountPercentage,
-            _isActive,
-            createdAt,
-            updatedAt
-        );
+        return new Product(new Product.ReconstitutionData
+        {
+            Id = id,
+            Name = name,
+            Price = price,
+            Sku = new Sku(sku),
+            Stock = stock,
+            Description = description,
+            CategoryId = _categoryId,
+            DiscountPercentage = _discountPercentage,
+            IsActive = _isActive,
+            CreatedAt = createdAt,
+            UpdatedAt = updatedAt
+        });
     }
 
     public List<Product> BuildMany(int count)
@@ -148,19 +149,20 @@ public class ProductFactory
             .CustomInstantiator(f =>
             {
                 var sku = $"SKU-{Interlocked.Increment(ref skuIndex):D6}";
-                return new Product(
-                    Guid.NewGuid(),
-                    f.Commerce.ProductName(),
-                    decimal.Parse(f.Commerce.Price(10, 1000)),
-                    new Sku(sku),
-                    f.Random.Int(0, 100),
-                    f.Commerce.ProductDescription(),
-                    categoryId,
-                    f.Random.Bool(0.2f) ? f.Random.Decimal(5, 30) : null,
-                    f.Random.Bool(0.9f),
-                    f.Date.Past(1),
-                    DateTime.UtcNow
-                );
+                return new Product(new Product.ReconstitutionData
+                {
+                    Id = Guid.NewGuid(),
+                    Name = f.Commerce.ProductName(),
+                    Price = decimal.Parse(f.Commerce.Price(10, 1000)),
+                    Sku = new Sku(sku),
+                    Stock = f.Random.Int(0, 100),
+                    Description = f.Commerce.ProductDescription(),
+                    CategoryId = categoryId,
+                    DiscountPercentage = f.Random.Bool(0.2f) ? f.Random.Decimal(5, 30) : null,
+                    IsActive = f.Random.Bool(0.9f),
+                    CreatedAt = f.Date.Past(1),
+                    UpdatedAt = DateTime.UtcNow
+                });
             });
     }
 }

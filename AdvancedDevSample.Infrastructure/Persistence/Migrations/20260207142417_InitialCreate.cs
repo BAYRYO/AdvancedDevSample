@@ -1,4 +1,5 @@
-﻿using System;
+﻿#pragma warning disable S1192 // Generated migration code repeats literals by design.
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -217,3 +218,4 @@ namespace AdvancedDevSample.Infrastructure.Persistence.Migrations
         }
     }
 }
+#pragma warning restore S1192

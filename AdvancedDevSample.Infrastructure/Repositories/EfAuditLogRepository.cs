@@ -45,16 +45,18 @@ public class EfAuditLogRepository : IAuditLogRepository
 
     private static AuditLog ToDomain(AuditLogEntity entity)
     {
-        return new AuditLog(
-            id: entity.Id,
-            eventType: entity.EventType,
-            userId: entity.UserId,
-            userEmail: entity.UserEmail,
-            ipAddress: entity.IpAddress,
-            userAgent: entity.UserAgent,
-            isSuccess: entity.IsSuccess,
-            details: entity.Details,
-            createdAt: entity.CreatedAt);
+        return new AuditLog(new AuditLog.ReconstitutionData
+        {
+            Id = entity.Id,
+            EventType = entity.EventType,
+            UserId = entity.UserId,
+            UserEmail = entity.UserEmail,
+            IpAddress = entity.IpAddress,
+            UserAgent = entity.UserAgent,
+            IsSuccess = entity.IsSuccess,
+            Details = entity.Details,
+            CreatedAt = entity.CreatedAt
+        });
     }
 
     private static AuditLogEntity ToEntity(AuditLog domain)

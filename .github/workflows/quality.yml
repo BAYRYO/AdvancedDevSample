@@ -47,11 +47,10 @@ jobs:
           [[ -n "${{ vars.SONAR_ORGANIZATION }}" ]] || { echo "Missing repository variable SONAR_ORGANIZATION" >&2; exit 1; }
           [[ -n "${{ secrets.SONAR_TOKEN }}" ]] || { echo "Missing repository secret SONAR_TOKEN" >&2; exit 1; }
 
-      - name: Install SonarScanner and ReportGenerator
+      - name: Install SonarScanner
         shell: bash
         run: |
           dotnet tool install --global dotnet-sonarscanner --version 10.*
-          dotnet tool install --global dotnet-reportgenerator-globaltool
           echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
 
       - name: Begin SonarQube analysis
@@ -65,7 +64,7 @@ jobs:
             /d:sonar.qualitygate.wait=true \
             /d:sonar.qualitygate.timeout=300 \
             /d:sonar.cs.vstest.reportsPaths="**/*.trx" \
-            /d:sonar.cs.opencover.reportsPaths="TestResults/SonarQube/OpenCover.xml" \
+            /d:sonar.cs.opencover.reportsPaths="TestResults/**/coverage.opencover.xml" \
             /d:sonar.exclusions="**/wwwroot/lib/**,**/Migrations/**,**/*.Designer.cs"
 
       - name: Restore
@@ -75,33 +74,35 @@ jobs:
         run: dotnet build AdvancedDevSample.slnx -c Release -nologo --no-restore
 
       - name: Test with coverage
-        run: dotnet test AdvancedDevSample.slnx -c Release -nologo --no-build --collect:"XPlat Code Coverage" --logger "trx;LogFileName=test-results.trx" --results-directory TestResults
+        run: dotnet test AdvancedDevSample.slnx -c Release -nologo --no-build --collect:"XPlat Code Coverage" --logger "trx;LogFileName=test-results.trx" --results-directory TestResults -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format="cobertura,opencover"
 
-      - name: Locate coverage report
-        id: coverage
+      - name: Locate Cobertura coverage report
+        id: coverage_cobertura
         shell: bash
         run: |
           file="$(find TestResults -name coverage.cobertura.xml | sort | tail -n 1)"
           if [[ -z "$file" ]]; then
-            echo "Coverage report not found." >&2
+            echo "Cobertura coverage report not found." >&2
             exit 1
           fi
           echo "file=$file" >> "$GITHUB_OUTPUT"
 
-      - name: Convert coverage for SonarQube
+      - name: Locate OpenCover coverage report
+        id: coverage_opencover
         shell: bash
         run: |
-          reportgenerator \
-            -reports:"${{ steps.coverage.outputs.file }}" \
-            -targetdir:"TestResults/SonarQube" \
-            -reporttypes:"OpenCover"
-          test -f "TestResults/SonarQube/OpenCover.xml"
+          file="$(find TestResults -name coverage.opencover.xml | sort | tail -n 1)"
+          if [[ -z "$file" ]]; then
+            echo "OpenCover coverage report not found." >&2
+            exit 1
+          fi
+          echo "file=$file" >> "$GITHUB_OUTPUT"
 
       - name: Enforce coverage thresholds
         shell: pwsh
         run: |
           ./eng/quality/check-coverage.ps1 `
-            -CoverageFile "${{ steps.coverage.outputs.file }}" `
+            -CoverageFile "${{ steps.coverage_cobertura.outputs.file }}" `
             -GlobalLineThreshold 55 `
             -InfrastructureLineThreshold 30
 
@@ -138,7 +139,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: coverage-cobertura
-          path: ${{ steps.coverage.outputs.file }}
+          path: ${{ steps.coverage_cobertura.outputs.file }}
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v6

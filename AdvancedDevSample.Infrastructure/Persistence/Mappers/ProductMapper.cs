@@ -14,18 +14,20 @@ public static class ProductMapper
             sku = new Sku(entity.Sku);
         }
 
-        return new Product(
-            id: entity.Id,
-            name: entity.Name,
-            price: entity.Price,
-            sku: sku,
-            stock: entity.Stock,
-            description: entity.Description,
-            categoryId: entity.CategoryId,
-            discountPercentage: entity.DiscountPercentage,
-            isActive: entity.IsActive,
-            createdAt: entity.CreatedAt,
-            updatedAt: entity.UpdatedAt);
+        return new Product(new Product.ReconstitutionData
+        {
+            Id = entity.Id,
+            Name = entity.Name,
+            Price = entity.Price,
+            Sku = sku,
+            Stock = entity.Stock,
+            Description = entity.Description,
+            CategoryId = entity.CategoryId,
+            DiscountPercentage = entity.DiscountPercentage,
+            IsActive = entity.IsActive,
+            CreatedAt = entity.CreatedAt,
+            UpdatedAt = entity.UpdatedAt
+        });
     }
 
     public static ProductEntity ToEntity(Product product)

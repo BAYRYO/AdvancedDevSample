@@ -8,6 +8,21 @@ namespace AdvancedDevSample.Domain.Entities
     /// </summary>
     public class Product
     {
+        public sealed class ReconstitutionData
+        {
+            public Guid Id { get; init; }
+            public string Name { get; init; } = string.Empty;
+            public decimal Price { get; init; }
+            public Sku? Sku { get; init; }
+            public int Stock { get; init; }
+            public string? Description { get; init; }
+            public Guid? CategoryId { get; init; }
+            public decimal? DiscountPercentage { get; init; }
+            public bool IsActive { get; init; }
+            public DateTime CreatedAt { get; init; }
+            public DateTime UpdatedAt { get; init; }
+        }
+
         public const int MaxNameLength = 200;
         public const int MaxDescriptionLength = 2000;
 
@@ -77,30 +92,19 @@ namespace AdvancedDevSample.Domain.Entities
         }
 
         // Full constructor for reconstitution from persistence
-        public Product(
-            Guid id,
-            string name,
-            decimal price,
-            Sku? sku,
-            int stock,
-            string? description,
-            Guid? categoryId,
-            decimal? discountPercentage,
-            bool isActive,
-            DateTime createdAt,
-            DateTime updatedAt)
+        public Product(ReconstitutionData data)
         {
-            Id = id == Guid.Empty ? Guid.NewGuid() : id;
-            Name = name ?? string.Empty;
-            Description = description;
-            Price = price;
-            Sku = sku;
-            Stock = new Stock(stock);
-            CategoryId = categoryId;
-            CurrentDiscount = discountPercentage.HasValue ? new Discount(discountPercentage.Value) : null;
-            IsActive = isActive;
-            CreatedAt = createdAt;
-            UpdatedAt = updatedAt;
+            Id = data.Id == Guid.Empty ? Guid.NewGuid() : data.Id;
+            Name = data.Name ?? string.Empty;
+            Description = data.Description;
+            Price = data.Price;
+            Sku = data.Sku;
+            Stock = new Stock(data.Stock);
+            CategoryId = data.CategoryId;
+            CurrentDiscount = data.DiscountPercentage.HasValue ? new Discount(data.DiscountPercentage.Value) : null;
+            IsActive = data.IsActive;
+            CreatedAt = data.CreatedAt;
+            UpdatedAt = data.UpdatedAt;
         }
 
         /// <summary>
