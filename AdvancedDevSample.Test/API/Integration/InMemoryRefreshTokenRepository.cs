@@ -9,7 +9,7 @@ public class InMemoryRefreshTokenRepository : IRefreshTokenRepository
 
     public Task<RefreshToken?> GetByTokenAsync(string token)
     {
-        var refreshToken = _tokens.Values.FirstOrDefault(t => t.Token == token);
+        var refreshToken = _tokens.Values.FirstOrDefault(t => t.Matches(token));
         return Task.FromResult(refreshToken);
     }
 

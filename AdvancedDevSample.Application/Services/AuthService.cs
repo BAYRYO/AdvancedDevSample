@@ -53,7 +53,7 @@ public class AuthService
         return new AuthResponseWithRefreshToken(
             Token: token,
             ExpiresAt: expiresAt,
-            RefreshToken: refreshToken.Token,
+            RefreshToken: refreshToken.GetPlainTextTokenOrThrow(),
             RefreshTokenExpiresAt: refreshToken.ExpiresAt,
             User: MapToUserResponse(user));
     }
@@ -90,7 +90,7 @@ public class AuthService
         return new AuthResponseWithRefreshToken(
             Token: token,
             ExpiresAt: expiresAt,
-            RefreshToken: refreshToken.Token,
+            RefreshToken: refreshToken.GetPlainTextTokenOrThrow(),
             RefreshTokenExpiresAt: refreshToken.ExpiresAt,
             User: MapToUserResponse(user));
     }
@@ -123,7 +123,7 @@ public class AuthService
         return new AuthResponseWithRefreshToken(
             Token: token,
             ExpiresAt: expiresAt,
-            RefreshToken: newRefreshToken.Token,
+            RefreshToken: newRefreshToken.GetPlainTextTokenOrThrow(),
             RefreshTokenExpiresAt: newRefreshToken.ExpiresAt,
             User: MapToUserResponse(user));
     }

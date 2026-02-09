@@ -97,6 +97,12 @@ var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
     ?? builder.Configuration["JWT_SECRET"]
     ?? throw new InvalidOperationException("JWT_SECRET environment variable is not set. Please set a secure secret key (minimum 32 characters).");
 
+if (jwtSecret.Length < 32)
+{
+    throw new InvalidOperationException(
+        "JWT_SECRET is too short. Please use a secure secret key with at least 32 characters.");
+}
+
 builder.Services.Configure<JwtSettings>(options =>
 {
     options.Secret = jwtSecret;

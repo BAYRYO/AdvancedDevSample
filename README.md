@@ -102,6 +102,16 @@ Controles appliques :
 - `release.yml` : publication de release GitHub sur tag `v*` avec artefacts versionnes
 - `dependabot.yml` : mise a jour hebdomadaire des dependances NuGet et GitHub Actions
 
+### SonarQube Quality Gate (GitHub Actions)
+
+Le workflow `quality.yml` execute une analyse SonarQube et bloque la pipeline si la Quality Gate est en echec.
+
+Configurer dans GitHub (Settings > Secrets and variables > Actions) :
+- Variable `SONAR_HOST_URL` (SonarQube Cloud: `https://sonarcloud.io`)
+- Variable `SONAR_PROJECT_KEY`
+- Variable `SONAR_ORGANIZATION`
+- Secret `SONAR_TOKEN` (token utilisateur ou token projet SonarQube)
+
 ## Endpoints API
 
 ### Produits (`/api/products`)

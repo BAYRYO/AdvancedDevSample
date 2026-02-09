@@ -6,7 +6,8 @@ namespace AdvancedDevSample.Domain.Entities;
 public class RefreshToken
 {
     public Guid Id { get; private set; }
-    public string Token { get; private set; }
+    public string TokenHash { get; private set; }
+    public string? PlainTextToken { get; private set; }
     public Guid UserId { get; private set; }
     public DateTime ExpiresAt { get; private set; }
     public DateTime CreatedAt { get; private set; }
@@ -20,7 +21,8 @@ public class RefreshToken
     public RefreshToken(Guid userId, int expirationDays = 7)
     {
         Id = Guid.NewGuid();
-        Token = GenerateToken();
+        PlainTextToken = GenerateToken();
+        TokenHash = HashToken(PlainTextToken);
         UserId = userId;
         ExpiresAt = DateTime.UtcNow.AddDays(expirationDays);
         CreatedAt = DateTime.UtcNow;
@@ -30,7 +32,7 @@ public class RefreshToken
     // Constructor for reconstitution from persistence
     public RefreshToken(
         Guid id,
-        string token,
+        string tokenHash,
         Guid userId,
         DateTime expiresAt,
         DateTime createdAt,
@@ -38,7 +40,8 @@ public class RefreshToken
         DateTime? revokedAt)
     {
         Id = id;
-        Token = token;
+        TokenHash = tokenHash;
+        PlainTextToken = null;
         UserId = userId;
         ExpiresAt = expiresAt;
         CreatedAt = createdAt;
@@ -48,10 +51,29 @@ public class RefreshToken
 
     public bool IsValid => !IsRevoked && ExpiresAt > DateTime.UtcNow;
 
+    public bool Matches(string candidateToken)
+    {
+        return TokenHash == HashToken(candidateToken);
+    }
+
+    public string GetPlainTextTokenOrThrow()
+    {
+        return PlainTextToken
+            ?? throw new InvalidOperationException(
+                "Plain text refresh token is only available when the token is first generated.");
+    }
+
     public void Revoke()
     {
         IsRevoked = true;
         RevokedAt = DateTime.UtcNow;
+    }
+
+    public static string HashToken(string token)
+    {
+        var bytes = System.Text.Encoding.UTF8.GetBytes(token);
+        var hash = System.Security.Cryptography.SHA256.HashData(bytes);
+        return Convert.ToHexString(hash);
     }
 
     private static string GenerateToken()

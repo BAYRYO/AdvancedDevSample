@@ -17,8 +17,9 @@ public class EfRefreshTokenRepository : IRefreshTokenRepository
 
     public async Task<RefreshToken?> GetByTokenAsync(string token)
     {
+        var tokenHash = RefreshToken.HashToken(token);
         var entity = await _context.RefreshTokens
-            .FirstOrDefaultAsync(r => r.Token == token);
+            .FirstOrDefaultAsync(r => r.Token == tokenHash);
 
         return entity == null ? null : ToDomain(entity);
     }
@@ -70,7 +71,7 @@ public class EfRefreshTokenRepository : IRefreshTokenRepository
     {
         return new RefreshToken(
             id: entity.Id,
-            token: entity.Token,
+            tokenHash: entity.Token,
             userId: entity.UserId,
             expiresAt: entity.ExpiresAt,
             createdAt: entity.CreatedAt,
@@ -83,7 +84,7 @@ public class EfRefreshTokenRepository : IRefreshTokenRepository
         return new RefreshTokenEntity
         {
             Id = domain.Id,
-            Token = domain.Token,
+            Token = domain.TokenHash,
             UserId = domain.UserId,
             ExpiresAt = domain.ExpiresAt,
             CreatedAt = domain.CreatedAt,

@@ -181,6 +181,22 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
     }
 
     [Fact]
+    public async Task Search_Should_Return_BadRequest_When_Page_Is_Invalid()
+    {
+        var response = await _client.GetAsync("/api/products?page=0&pageSize=20");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Search_Should_Return_BadRequest_When_PageSize_Is_Invalid()
+    {
+        var response = await _client.GetAsync("/api/products?page=1&pageSize=0");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Delete_Should_Return_NoContent()
     {
         var product = new Product("To Delete", 50m, new Sku("DEL-001"));

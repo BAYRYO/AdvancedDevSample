@@ -31,6 +31,41 @@ jobs:
             **/packages.lock.json
             global.json
 
+      - name: Setup Java (required by SonarQube scanner)
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Validate SonarQube configuration
+        shell: bash
+        run: |
+          [[ -n "${{ vars.SONAR_HOST_URL }}" ]] || { echo "Missing repository variable SONAR_HOST_URL" >&2; exit 1; }
+          [[ -n "${{ vars.SONAR_PROJECT_KEY }}" ]] || { echo "Missing repository variable SONAR_PROJECT_KEY" >&2; exit 1; }
+          [[ -n "${{ vars.SONAR_ORGANIZATION }}" ]] || { echo "Missing repository variable SONAR_ORGANIZATION" >&2; exit 1; }
+          [[ -n "${{ secrets.SONAR_TOKEN }}" ]] || { echo "Missing repository secret SONAR_TOKEN" >&2; exit 1; }
+
+      - name: Install SonarScanner and ReportGenerator
+        shell: bash
+        run: |
+          dotnet tool install --global dotnet-sonarscanner --version 10.*
+          dotnet tool install --global dotnet-reportgenerator-globaltool
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+      - name: Begin SonarQube analysis
+        shell: bash
+        run: |
+          dotnet sonarscanner begin \
+            /o:"${{ vars.SONAR_ORGANIZATION }}" \
+            /k:"${{ vars.SONAR_PROJECT_KEY }}" \
+            /d:sonar.host.url="${{ vars.SONAR_HOST_URL }}" \
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.qualitygate.wait=true \
+            /d:sonar.qualitygate.timeout=300 \
+            /d:sonar.cs.vstest.reportsPaths="**/*.trx" \
+            /d:sonar.cs.opencover.reportsPaths="TestResults/SonarQube/opencover.xml" \
+            /d:sonar.exclusions="**/wwwroot/lib/**,**/Migrations/**,**/*.Designer.cs"
+
       - name: Restore
         run: dotnet restore AdvancedDevSample.slnx
 
@@ -38,7 +73,7 @@ jobs:
         run: dotnet build AdvancedDevSample.slnx -c Release -nologo --no-restore
 
       - name: Test with coverage
-        run: dotnet test AdvancedDevSample.slnx -c Release -nologo --no-build --collect:"XPlat Code Coverage" --results-directory TestResults
+        run: dotnet test AdvancedDevSample.slnx -c Release -nologo --no-build --collect:"XPlat Code Coverage" --logger "trx;LogFileName=test-results.trx" --results-directory TestResults
 
       - name: Locate coverage report
         id: coverage
@@ -51,6 +86,14 @@ jobs:
           fi
           echo "file=$file" >> "$GITHUB_OUTPUT"
 
+      - name: Convert coverage for SonarQube
+        shell: bash
+        run: |
+          reportgenerator \
+            -reports:"${{ steps.coverage.outputs.file }}" \
+            -targetdir:"TestResults/SonarQube" \
+            -reporttypes:"OpenCover"
+
       - name: Enforce coverage thresholds
         shell: pwsh
         run: |
@@ -58,6 +101,11 @@ jobs:
             -CoverageFile "${{ steps.coverage.outputs.file }}" `
             -GlobalLineThreshold 55 `
             -InfrastructureLineThreshold 30
+
+      - name: End SonarQube analysis (waits for Quality Gate)
+        if: ${{ always() }}
+        shell: bash
+        run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
       - name: Verify formatting
         run: dotnet format AdvancedDevSample.slnx --verify-no-changes --severity error --verbosity minimal
