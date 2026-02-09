@@ -71,3 +71,25 @@ Commande Frontend:
 ```bash
 dotnet publish AdvancedDevSample.Frontend/AdvancedDevSample.Frontend.csproj -c Release -o artifacts/frontend
 ```
+
+## Diagramme de deploiement
+
+```mermaid
+flowchart LR
+  Dev[Developpeur] -->|push PR/main| GH[GitHub Repository]
+  GH --> Q[Workflow quality.yml]
+  GH --> S[Workflow security.yml]
+  GH --> D[Workflow docs.yml]
+  GH -->|tag v*| R[Workflow release.yml]
+
+  D --> Pages[GitHub Pages<br/>Documentation MkDocs]
+  R --> Rel[GitHub Release<br/>artifacts api/frontend]
+
+  subgraph Runtime local
+    FE[Blazor Frontend]
+    API[ASP.NET Core API]
+    DB[(SQLite)]
+    FE --> API
+    API --> DB
+  end
+```

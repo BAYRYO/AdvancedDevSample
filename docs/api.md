@@ -21,6 +21,40 @@ Base URL locale:
 
 ## Endpoints d'authentification
 
+## Sequence cle: login + refresh token
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant U as User
+  participant FE as Frontend (AuthService)
+  participant API as AuthController
+  participant AS as AuthService (Application)
+  participant UR as IUserRepository
+  participant RR as IRefreshTokenRepository
+
+  U->>FE: Login(email, password)
+  FE->>API: POST /api/auth/login
+  API->>AS: LoginAsync(request)
+  AS->>UR: GetByEmailAsync(email)
+  UR-->>AS: User
+  AS->>AS: Verify password + active user
+  AS->>RR: RevokeAllForUserAsync(userId)
+  AS->>RR: SaveAsync(new refresh token hash)
+  AS-->>API: JWT + refresh token
+  API-->>FE: 200 AuthResponseWithRefreshToken
+  FE-->>U: Session authenticatee
+
+  Note over FE: Token proche expiration
+  FE->>API: POST /api/auth/refresh
+  API->>AS: RefreshTokenAsync(refreshToken)
+  AS->>RR: GetByTokenAsync(token)
+  AS->>RR: SaveAsync(old token revoked)
+  AS->>RR: SaveAsync(new refresh token hash)
+  AS-->>API: New JWT + new refresh token
+  API-->>FE: 200 AuthResponseWithRefreshToken
+```
+
 ### `POST /api/auth/register`
 
 Cree un utilisateur, renvoie JWT + refresh token.

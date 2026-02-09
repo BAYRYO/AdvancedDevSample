@@ -32,6 +32,71 @@ Persistance via EF Core 10 + SQLite.
 - `PriceHistory -> Product` (`Cascade`)
 - `RefreshToken -> User` (`Cascade`)
 
+## ERD simplifie
+
+```mermaid
+erDiagram
+  CATEGORY ||--o{ PRODUCT : categorizes
+  PRODUCT ||--o{ PRICE_HISTORY : has
+  USER ||--o{ REFRESH_TOKEN : owns
+  USER ||--o{ AUDIT_LOG : generates
+
+  CATEGORY {
+    guid Id PK
+    string Name
+    string Description
+    bool IsActive
+  }
+
+  PRODUCT {
+    guid Id PK
+    string Name
+    string Sku UK
+    decimal Price
+    decimal DiscountPercentage
+    int Stock
+    guid CategoryId FK
+    bool IsActive
+  }
+
+  PRICE_HISTORY {
+    guid Id PK
+    guid ProductId FK
+    decimal OldPrice
+    decimal NewPrice
+    decimal DiscountPercentage
+    datetime ChangedAt
+    string Reason
+  }
+
+  USER {
+    guid Id PK
+    string Email UK
+    string PasswordHash
+    string FirstName
+    string LastName
+    int Role
+    bool IsActive
+  }
+
+  REFRESH_TOKEN {
+    guid Id PK
+    guid UserId FK
+    string Token UK
+    datetime ExpiresAt
+    bool IsRevoked
+  }
+
+  AUDIT_LOG {
+    guid Id PK
+    guid UserId FK
+    string EventType
+    string UserEmail
+    bool IsSuccess
+    datetime CreatedAt
+  }
+```
+
 ## Migrations
 
 Dossier:

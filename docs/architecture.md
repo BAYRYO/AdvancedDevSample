@@ -13,6 +13,35 @@ graph TD
   C -.->|uses| E
 ```
 
+## Diagramme composants
+
+```mermaid
+graph LR
+  subgraph Client
+    UI[Blazor WebAssembly]
+    AuthState[FrontendAuthStateProvider]
+    ApiClient[ApiClient + AuthTokenHandler]
+  end
+
+  subgraph Backend[ASP.NET Core API]
+    MW[Middlewares<br/>ExceptionHandling + SecurityHeaders]
+    Ctl[Controllers]
+    App[Services Application]
+    RepoPorts[Interfaces Repositories]
+    Infra[Repositories EF + TransactionManager]
+    Db[(SQLite)]
+  end
+
+  UI --> AuthState
+  AuthState --> ApiClient
+  ApiClient -->|HTTPS JSON| MW
+  MW --> Ctl
+  Ctl --> App
+  App --> RepoPorts
+  RepoPorts --> Infra
+  Infra --> Db
+```
+
 ## Projets et responsabilites
 
 - `AdvancedDevSample.Api`
@@ -57,6 +86,19 @@ graph TD
 3. creation de l'entite `Product`
 4. sauvegarde via `IProductRepository` (implementation EF)
 5. retour d'un `ProductResponse`
+
+```mermaid
+flowchart TD
+  A[Client POST /api/products] --> B[ProductsController]
+  B --> C[ProductService.CreateAsync]
+  C --> D{SKU unique ?}
+  D -- Non --> E[409 DuplicateSkuException]
+  D -- Oui --> F{Category existe ?}
+  F -- Non --> G[404 CategoryNotFoundException]
+  F -- Oui --> H[Creer Product]
+  H --> I[EfProductRepository.SaveAsync]
+  I --> J[201 Created + ProductResponse]
+```
 
 ## Flux type: login + refresh token
 
