@@ -70,6 +70,21 @@ En mode développement, la documentation est accessible via :
 - **Swagger UI**: `http://localhost:5069/swagger`
 - **Scalar**: `http://localhost:5069/scalar/v1`
 
+### Documentation du projet (MkDocs)
+
+Une documentation versionnee du projet est disponible via MkDocs.
+
+- **Source docs**: `docs/`
+- **Configuration**: `mkdocs.yml`
+- **Publication GitHub Pages**: `https://bayryo.github.io/AdvancedDevSample/`
+
+Lancer la documentation en local :
+
+```bash
+python -m pip install -r docs/requirements.txt
+mkdocs serve
+```
+
 ## Tests
 
 ```bash
@@ -106,6 +121,7 @@ Controles appliques :
 - `quality.yml` : qualite applicative (build, tests, couverture, formatage, controle migrations, artefacts)
 - `security.yml` : revue des dependances en PR, analyse statique CodeQL, scan de secrets (Gitleaks)
 - `release.yml` : publication de release GitHub sur tag `v*` avec artefacts versionnes
+- `docs.yml` : construction et deploiement automatique de la documentation MkDocs sur GitHub Pages
 - `dependabot.yml` : mise a jour hebdomadaire des dependances NuGet et GitHub Actions
 
 ### SonarQube Quality Gate (GitHub Actions)
