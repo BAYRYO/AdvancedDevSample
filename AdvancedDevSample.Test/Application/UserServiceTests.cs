@@ -1,3 +1,4 @@
+using AdvancedDevSample.Application.DTOs.Auth;
 using AdvancedDevSample.Application.DTOs.User;
 using AdvancedDevSample.Application.Services;
 using AdvancedDevSample.Domain.Entities;
