@@ -22,11 +22,13 @@ AdvancedDevSample/
 ## Configuration
 
 1. Copier le fichier d'environnement :
+
 ```bash
 cp .env.example .env
 ```
 
 2. Configurer les variables d'environnement dans `.env` :
+
 ```env
 SENTRY_DSN=https://your-dsn@sentry.io/project-id
 JWT_SECRET=replace-with-a-secure-secret-min-32-chars
@@ -50,20 +52,23 @@ dotnet run --project AdvancedDevSample.Frontend
 ```
 
 L'API sera disponible sur :
-- HTTP: http://localhost:5069
-- HTTPS: https://localhost:7119
+
+- HTTP: `http://localhost:5069`
+- HTTPS: `https://localhost:7119`
 
 Le frontend sera disponible sur :
-- HTTP: http://localhost:5173
-- HTTPS: https://localhost:7173
+
+- HTTP: `http://localhost:5173`
+- HTTPS: `https://localhost:7173`
 
 Le frontend est configuré pour appeler l'API en HTTPS par défaut (`https://localhost:7119`).
 
 ### Documentation API
 
 En mode développement, la documentation est accessible via :
-- **Swagger UI**: http://localhost:5069/swagger
-- **Scalar**: http://localhost:5069/scalar/v1
+
+- **Swagger UI**: `http://localhost:5069/swagger`
+- **Scalar**: `http://localhost:5069/scalar/v1`
 
 ## Tests
 
@@ -88,6 +93,7 @@ pwsh ./eng/quality/quality.ps1
 ```
 
 Controles appliques :
+
 - Build complet de la solution
 - Tests + collecte de couverture (format Cobertura)
 - Seuils de couverture : global >= 55%, Infrastructure >= 30%
@@ -104,9 +110,12 @@ Controles appliques :
 
 ### SonarQube Quality Gate (GitHub Actions)
 
+[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=BAYRYO_AdvancedDevSample)](https://sonarcloud.io/summary/new_code?id=BAYRYO_AdvancedDevSample)
+
 Le workflow `quality.yml` execute une analyse SonarQube et bloque la pipeline si la Quality Gate est en echec.
 
 Configurer dans GitHub (Settings > Secrets and variables > Actions) :
+
 - Variable `SONAR_HOST_URL` (SonarQube Cloud: `https://sonarcloud.io`)
 - Variable `SONAR_PROJECT_KEY`
 - Variable `SONAR_ORGANIZATION`
@@ -117,7 +126,7 @@ Configurer dans GitHub (Settings > Secrets and variables > Actions) :
 ### Produits (`/api/products`)
 
 | Méthode | Endpoint | Description |
-|---------|----------|-------------|
+| -------- | ---------- | ------------- |
 | `POST` | `/api/products` | Créer un produit |
 | `GET` | `/api/products` | Rechercher des produits (avec filtres) |
 | `GET` | `/api/products/{id}` | Obtenir un produit par ID |
@@ -133,7 +142,7 @@ Configurer dans GitHub (Settings > Secrets and variables > Actions) :
 ### Catégories (`/api/categories`)
 
 | Méthode | Endpoint | Description |
-|---------|----------|-------------|
+| -------- | ---------- | ------------- |
 | `POST` | `/api/categories` | Créer une catégorie |
 | `GET` | `/api/categories` | Lister les catégories |
 | `GET` | `/api/categories/{id}` | Obtenir une catégorie par ID |
@@ -146,6 +155,7 @@ L'application utilise SQLite. La base est créée automatiquement au premier lan
 Le seeding de l'utilisateur administrateur nécessite `ADMIN_EMAIL` et `ADMIN_PASSWORD`.
 
 Pour désactiver le seeding :
+
 ```json
 // appsettings.Development.json
 {
@@ -160,6 +170,7 @@ En dehors du développement, l'absence de migrations provoque une erreur de dém
 ## Monitoring
 
 L'application intègre [Sentry](https://sentry.io) pour :
+
 - Capture des erreurs et exceptions
 - Tracing des performances
 - Breadcrumbs pour le debugging

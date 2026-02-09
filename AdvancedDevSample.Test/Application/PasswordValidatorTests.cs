@@ -41,6 +41,16 @@ public class PasswordValidatorTests
     }
 
     [Fact]
+    public void Validate_WithTooLongPassword_ThrowsMaxLengthError()
+    {
+        string longPassword = new string('A', PasswordValidator.MaxLength + 1) + "1!a";
+
+        WeakPasswordException exception = Assert.Throws<WeakPasswordException>(() => PasswordValidator.Validate(longPassword));
+
+        Assert.Contains($"Password must be at most {PasswordValidator.MaxLength} characters long.", exception.ValidationErrors);
+    }
+
+    [Fact]
     public void IsValid_WithStrongPassword_ReturnsTrueAndNoErrors()
     {
         bool isValid = PasswordValidator.IsValid("ValidPass123!", out IReadOnlyList<string> errors);
@@ -88,5 +98,14 @@ public class PasswordValidatorTests
 
         Assert.False(isValid);
         Assert.Contains("Password must contain at least one lowercase letter.", errors);
+    }
+
+    [Fact]
+    public void IsValid_WithShortNonEmptyPassword_ReturnsFalseWithMinLengthError()
+    {
+        bool isValid = PasswordValidator.IsValid("Aa1!", out IReadOnlyList<string> errors);
+
+        Assert.False(isValid);
+        Assert.Contains($"Password must be at least {PasswordValidator.MinLength} characters long.", errors);
     }
 }

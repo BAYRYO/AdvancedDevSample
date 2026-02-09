@@ -174,6 +174,37 @@ public class ProductTest
     }
 
     [Fact]
+    public void UpdateDescription_Should_Update_And_Trim_Description()
+    {
+        var product = new Product("Test Product", 100m, new Sku("TEST-001"));
+
+        product.UpdateDescription("  New description  ");
+
+        Assert.Equal("New description", product.Description);
+    }
+
+    [Fact]
+    public void UpdateDescription_Should_Set_Null_When_Description_Is_Null()
+    {
+        var product = new Product("Test Product", 100m, new Sku("TEST-001"), description: "Existing");
+
+        product.UpdateDescription(null);
+
+        Assert.Null(product.Description);
+    }
+
+    [Fact]
+    public void UpdateDescription_Should_Throw_When_Description_Is_Too_Long()
+    {
+        var product = new Product("Test Product", 100m, new Sku("TEST-001"));
+        string longDescription = new string('a', Product.MaxDescriptionLength + 1);
+
+        DomainException exception = Assert.Throws<DomainException>(() => product.UpdateDescription(longDescription));
+
+        Assert.Equal($"La description ne peut pas depasser {Product.MaxDescriptionLength} caracteres.", exception.Message);
+    }
+
+    [Fact]
     public void UpdateCategory_Should_Update_CategoryId()
     {
         var product = new Product("Test Product", 100m, new Sku("TEST-001"));
@@ -227,12 +258,32 @@ public class ProductTest
     }
 
     [Fact]
+    public void BackwardCompatibility_Constructor_With_EmptyId_And_Price_GeneratesNewId()
+    {
+        var product = new Product(Guid.Empty, 10m);
+
+        Assert.NotEqual(Guid.Empty, product.Id);
+        Assert.Equal(10m, product.Price);
+        Assert.True(product.IsActive);
+    }
+
+    [Fact]
     public void BackwardCompatibility_Constructor_With_All_Parameters()
     {
         var id = Guid.NewGuid();
         var product = new Product(id, 10m, false);
 
         Assert.Equal(id, product.Id);
+        Assert.Equal(10m, product.Price);
+        Assert.False(product.IsActive);
+    }
+
+    [Fact]
+    public void BackwardCompatibility_Constructor_With_EmptyId_And_All_Parameters_GeneratesNewId()
+    {
+        var product = new Product(Guid.Empty, 10m, false);
+
+        Assert.NotEqual(Guid.Empty, product.Id);
         Assert.Equal(10m, product.Price);
         Assert.False(product.IsActive);
     }
