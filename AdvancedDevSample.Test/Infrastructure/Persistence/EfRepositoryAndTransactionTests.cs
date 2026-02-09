@@ -17,10 +17,10 @@ public class EfRepositoryAndTransactionTests
     public async Task EfCategoryRepository_Should_Save_Query_And_Delete()
     {
         using SqliteHarness harness = CreateHarness();
-        EfCategoryRepository repository = new EfCategoryRepository(harness.Context);
+        var repository = new EfCategoryRepository(harness.Context);
 
-        Category active = new Category("Electronics", "Devices");
-        Category inactive = new Category("Archived", "Old");
+        var active = new Category("Electronics", "Devices");
+        var inactive = new Category("Archived", "Old");
         inactive.Deactivate();
 
         await repository.SaveAsync(active);
@@ -44,20 +44,20 @@ public class EfRepositoryAndTransactionTests
     public async Task EfProductRepository_Should_Search_Save_Update_And_Delete()
     {
         using SqliteHarness harness = CreateHarness();
-        EfCategoryRepository categoryRepository = new EfCategoryRepository(harness.Context);
-        EfProductRepository repository = new EfProductRepository(harness.Context);
+        var categoryRepository = new EfCategoryRepository(harness.Context);
+        var repository = new EfProductRepository(harness.Context);
 
-        Category category = new Category("Phones", "Mobile");
+        var category = new Category("Phones", "Mobile");
         await categoryRepository.SaveAsync(category);
 
-        Product product = new Product("Phone X", 499m, new Sku("phx-001"), 20, categoryId: category.Id);
+        var product = new Product("Phone X", 499m, new Sku("phx-001"), 20, categoryId: category.Id);
         await repository.SaveAsync(product);
 
         Product? bySku = await repository.GetBySkuAsync("phx-001");
         Assert.NotNull(bySku);
         Assert.Equal(product.Id, bySku.Id);
 
-        ProductSearchCriteria criteria = new ProductSearchCriteria(
+        var criteria = new ProductSearchCriteria(
             Name: "Phone",
             MinPrice: 100m,
             MaxPrice: 800m,
@@ -88,10 +88,10 @@ public class EfRepositoryAndTransactionTests
     public async Task EfUserRepository_Should_Normalize_Email_And_Update_Existing_User()
     {
         using SqliteHarness harness = CreateHarness();
-        EfUserRepository repository = new EfUserRepository(harness.Context);
+        var repository = new EfUserRepository(harness.Context);
 
-        User first = new User("Alpha@example.com", "hash-1", "Alpha", "User");
-        User second = new User("beta@example.com", "hash-2", "Beta", "User");
+        var first = new User("Alpha@example.com", "hash-1", "Alpha", "User");
+        var second = new User("beta@example.com", "hash-2", "Beta", "User");
 
         await repository.SaveAsync(first);
         await repository.SaveAsync(second);
@@ -119,13 +119,13 @@ public class EfRepositoryAndTransactionTests
     public async Task EfRefreshTokenRepository_Should_Save_Query_And_Revoke_Tokens()
     {
         using SqliteHarness harness = CreateHarness();
-        EfUserRepository userRepository = new EfUserRepository(harness.Context);
-        EfRefreshTokenRepository tokenRepository = new EfRefreshTokenRepository(harness.Context);
+        var userRepository = new EfUserRepository(harness.Context);
+        var tokenRepository = new EfRefreshTokenRepository(harness.Context);
 
-        User user = new User("token-owner@example.com", "hash", "Token", "Owner");
+        var user = new User("token-owner@example.com", "hash", "Token", "Owner");
         await userRepository.SaveAsync(user);
 
-        RefreshToken token = new RefreshToken(user.Id, expirationDays: 3);
+        var token = new RefreshToken(user.Id, expirationDays: 3);
         await tokenRepository.SaveAsync(token);
 
         RefreshTokenEntity persistedToken = await harness.Context.RefreshTokens.SingleAsync(t => t.Id == token.Id);
@@ -151,12 +151,12 @@ public class EfRepositoryAndTransactionTests
     public async Task EfAuditLogRepository_Should_Filter_Limit_And_Order_Logs()
     {
         using SqliteHarness harness = CreateHarness();
-        EfAuditLogRepository repository = new EfAuditLogRepository(harness.Context);
+        var repository = new EfAuditLogRepository(harness.Context);
 
-        Guid userA = Guid.NewGuid();
-        Guid userB = Guid.NewGuid();
+        var userA = Guid.NewGuid();
+        var userB = Guid.NewGuid();
 
-        AuditLog oldest = new AuditLog(new AuditLog.ReconstitutionData
+        var oldest = new AuditLog(new AuditLog.ReconstitutionData
         {
             Id = Guid.NewGuid(),
             EventType = AuditLog.EventTypes.LoginSuccess,
@@ -168,7 +168,7 @@ public class EfRepositoryAndTransactionTests
             Details = "old",
             CreatedAt = DateTime.UtcNow.AddMinutes(-10)
         });
-        AuditLog middle = new AuditLog(new AuditLog.ReconstitutionData
+        var middle = new AuditLog(new AuditLog.ReconstitutionData
         {
             Id = Guid.NewGuid(),
             EventType = AuditLog.EventTypes.LoginFailure,
@@ -180,7 +180,7 @@ public class EfRepositoryAndTransactionTests
             Details = "mid",
             CreatedAt = DateTime.UtcNow.AddMinutes(-5)
         });
-        AuditLog newest = new AuditLog(new AuditLog.ReconstitutionData
+        var newest = new AuditLog(new AuditLog.ReconstitutionData
         {
             Id = Guid.NewGuid(),
             EventType = AuditLog.EventTypes.Register,
@@ -211,14 +211,14 @@ public class EfRepositoryAndTransactionTests
     public async Task EfPriceHistoryRepository_Should_Save_And_Order_By_ChangedAt_Descending()
     {
         using SqliteHarness harness = CreateHarness();
-        EfProductRepository productRepository = new EfProductRepository(harness.Context);
-        EfPriceHistoryRepository historyRepository = new EfPriceHistoryRepository(harness.Context);
+        var productRepository = new EfProductRepository(harness.Context);
+        var historyRepository = new EfPriceHistoryRepository(harness.Context);
 
-        Product product = new Product("Tracked Product", 100m, new Sku("TRACK-001"));
+        var product = new Product("Tracked Product", 100m, new Sku("TRACK-001"));
         await productRepository.SaveAsync(product);
 
-        PriceHistory older = new PriceHistory(Guid.NewGuid(), product.Id, 80m, 90m, null, DateTime.UtcNow.AddDays(-2), "Older");
-        PriceHistory newer = new PriceHistory(Guid.NewGuid(), product.Id, 90m, 100m, 5m, DateTime.UtcNow.AddDays(-1), "Newer");
+        var older = new PriceHistory(Guid.NewGuid(), product.Id, 80m, 90m, null, DateTime.UtcNow.AddDays(-2), "Older");
+        var newer = new PriceHistory(Guid.NewGuid(), product.Id, 90m, 100m, 5m, DateTime.UtcNow.AddDays(-1), "Newer");
 
         await historyRepository.SaveAsync(older);
         await historyRepository.SaveAsync(newer);
@@ -233,8 +233,8 @@ public class EfRepositoryAndTransactionTests
     public async Task EfTransactionManager_Should_Commit_And_Support_Existing_Transaction()
     {
         using SqliteHarness harness = CreateHarness();
-        EfTransactionManager manager = new EfTransactionManager(harness.Context);
-        Guid categoryId = Guid.NewGuid();
+        var manager = new EfTransactionManager(harness.Context);
+        var categoryId = Guid.NewGuid();
 
         await manager.ExecuteInTransactionAsync(async () =>
         {
@@ -269,8 +269,8 @@ public class EfRepositoryAndTransactionTests
     public async Task EfTransactionManager_Generic_Should_Rollback_When_Exception_Is_Thrown()
     {
         using SqliteHarness harness = CreateHarness();
-        EfTransactionManager manager = new EfTransactionManager(harness.Context);
-        Guid categoryId = Guid.NewGuid();
+        var manager = new EfTransactionManager(harness.Context);
+        var categoryId = Guid.NewGuid();
 
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
         {
@@ -298,14 +298,14 @@ public class EfRepositoryAndTransactionTests
 
     private static SqliteHarness CreateHarness()
     {
-        SqliteConnection connection = new SqliteConnection("DataSource=:memory:");
+        var connection = new SqliteConnection("DataSource=:memory:");
         connection.Open();
 
         DbContextOptions<AppDbContext> options = new DbContextOptionsBuilder<AppDbContext>()
             .UseSqlite(connection)
             .Options;
 
-        AppDbContext context = new AppDbContext(options);
+        var context = new AppDbContext(options);
         context.Database.EnsureCreated();
 
         return new SqliteHarness(context, connection);

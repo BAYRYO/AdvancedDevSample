@@ -102,7 +102,7 @@ public class SeedingAndFactoryTests
     public async Task AdminUserSeeder_Should_Return_Immediately_When_Admin_Already_Exists()
     {
         using SqliteHarness harness = CreateHarness();
-        AdminUserSeeder seeder = new AdminUserSeeder();
+        var seeder = new AdminUserSeeder();
 
         harness.Context.Users.Add(new UserEntity
         {
@@ -126,7 +126,7 @@ public class SeedingAndFactoryTests
     [Fact]
     public void AppDbContextFactory_Should_Use_Default_And_Environment_Connection_String()
     {
-        AppDbContextFactory factory = new AppDbContextFactory();
+        var factory = new AppDbContextFactory();
         string? previous = Environment.GetEnvironmentVariable("DESIGNTIME_CONNECTION_STRING");
 
         try
@@ -149,12 +149,12 @@ public class SeedingAndFactoryTests
 
     private static ServiceProvider BuildSeederServiceProvider()
     {
-        ServiceCollection services = new ServiceCollection();
+        var services = new ServiceCollection();
 
         services.AddLogging();
         services.AddSingleton<DbConnection>(_ =>
         {
-            SqliteConnection connection = new SqliteConnection("DataSource=:memory:");
+            var connection = new SqliteConnection("DataSource=:memory:");
             connection.Open();
             return connection;
         });
@@ -173,14 +173,14 @@ public class SeedingAndFactoryTests
 
     private static SqliteHarness CreateHarness()
     {
-        SqliteConnection connection = new SqliteConnection("DataSource=:memory:");
+        var connection = new SqliteConnection("DataSource=:memory:");
         connection.Open();
 
         DbContextOptions<AppDbContext> options = new DbContextOptionsBuilder<AppDbContext>()
             .UseSqlite(connection)
             .Options;
 
-        AppDbContext context = new AppDbContext(options);
+        var context = new AppDbContext(options);
         context.Database.EnsureCreated();
 
         return new SqliteHarness(context, connection);
