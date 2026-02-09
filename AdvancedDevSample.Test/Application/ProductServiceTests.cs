@@ -31,7 +31,7 @@ public class ProductServiceTests
         ProductService service = CreateService();
         _productRepository.Seed(new Product("Existing", 10m, new Sku("DUPL-001")));
 
-        CreateProductRequest request = new CreateProductRequest(
+        var request = new CreateProductRequest(
             Name: "Duplicate",
             Sku: "DUPL-001",
             Price: 20m);
@@ -44,7 +44,7 @@ public class ProductServiceTests
     {
         ProductService service = CreateService();
 
-        CreateProductRequest request = new CreateProductRequest(
+        var request = new CreateProductRequest(
             Name: "New",
             Sku: "CAT-404",
             Price: 20m,
@@ -73,12 +73,12 @@ public class ProductServiceTests
     public async Task UpdateAsync_WithPriceStockCategoryAndActivation_UpdatesAllFields()
     {
         ProductService service = CreateService();
-        Category oldCategory = new Category("Old", "Old category");
-        Category newCategory = new Category("New", "New category");
+        var oldCategory = new Category("Old", "Old category");
+        var newCategory = new Category("New", "New category");
         await _categoryRepository.SaveAsync(oldCategory);
         await _categoryRepository.SaveAsync(newCategory);
 
-        Product product = new Product(
+        var product = new Product(
             name: "Phone",
             price: 100m,
             sku: new Sku("PHN-001"),
@@ -112,10 +112,10 @@ public class ProductServiceTests
     public async Task UpdateAsync_WithClearCategory_RemovesCategory()
     {
         ProductService service = CreateService();
-        Category category = new Category("Tech", "Tech category");
+        var category = new Category("Tech", "Tech category");
         await _categoryRepository.SaveAsync(category);
 
-        Product product = new Product("Laptop", 999m, new Sku("LAP-001"), categoryId: category.Id);
+        var product = new Product("Laptop", 999m, new Sku("LAP-001"), categoryId: category.Id);
         _productRepository.Seed(product);
 
         ProductResponse updated = await service.UpdateAsync(product.Id, new UpdateProductRequest(ClearCategory: true));
@@ -127,7 +127,7 @@ public class ProductServiceTests
     public async Task UpdateAsync_WithUnknownCategory_ThrowsCategoryNotFoundException()
     {
         ProductService service = CreateService();
-        Product product = new Product("Laptop", 999m, new Sku("LAP-002"));
+        var product = new Product("Laptop", 999m, new Sku("LAP-002"));
         _productRepository.Seed(product);
 
         await Assert.ThrowsAsync<CategoryNotFoundException>(() =>
@@ -138,7 +138,7 @@ public class ProductServiceTests
     public async Task RemoveDiscountAsync_WithoutDiscount_ReturnsProductAndDoesNotWriteHistory()
     {
         ProductService service = CreateService();
-        Product product = new Product("No Discount", 50m, new Sku("NO-DISC-1"));
+        var product = new Product("No Discount", 50m, new Sku("NO-DISC-1"));
         _productRepository.Seed(product);
 
         ProductResponse response = await service.RemoveDiscountAsync(product.Id);
