@@ -23,7 +23,7 @@ public readonly record struct Sku
             throw new DomainException("Le SKU ne peut pas etre vide.");
         }
 
-        var normalized = value.Trim().ToUpperInvariant();
+        string normalized = value.Trim().ToUpperInvariant();
 
         if (normalized.Length < 3 || normalized.Length > 20)
         {

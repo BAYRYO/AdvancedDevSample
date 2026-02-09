@@ -102,14 +102,14 @@ public class ProductFactory
 
     public Product Build()
     {
-        var id = _id ?? Guid.NewGuid();
-        var name = _name ?? _faker.Commerce.ProductName();
-        var description = _description ?? _faker.Commerce.ProductDescription();
-        var price = _price ?? decimal.Parse(_faker.Commerce.Price(10, 1000));
-        var sku = _sku ?? GenerateUniqueSku();
-        var stock = _stock ?? _faker.Random.Int(0, 100);
-        var createdAt = _createdAt ?? DateTime.UtcNow;
-        var updatedAt = _updatedAt ?? DateTime.UtcNow;
+        Guid id = _id ?? Guid.NewGuid();
+        string name = _name ?? _faker.Commerce.ProductName();
+        string? description = _description ?? _faker.Commerce.ProductDescription();
+        decimal price = _price ?? decimal.Parse(_faker.Commerce.Price(10, 1000));
+        string sku = _sku ?? GenerateUniqueSku();
+        int stock = _stock ?? _faker.Random.Int(0, 100);
+        DateTime createdAt = _createdAt ?? DateTime.UtcNow;
+        DateTime updatedAt = _updatedAt ?? DateTime.UtcNow;
 
         return new Product(new Product.ReconstitutionData
         {
@@ -129,26 +129,28 @@ public class ProductFactory
 
     public List<Product> BuildMany(int count)
     {
-        return Enumerable.Range(0, count)
+        return
+        [
+            .. Enumerable.Range(0, count)
             .Select(_ => new ProductFactory()
                 .WithCategory(_categoryId)
                 .Build())
-            .ToList();
+        ];
     }
 
     private static string GenerateUniqueSku()
     {
-        var counter = Interlocked.Increment(ref _skuCounter);
+        int counter = Interlocked.Increment(ref _skuCounter);
         return $"SKU-{counter:D6}";
     }
 
     public static Faker<Product> Faker(Guid? categoryId = null)
     {
-        var skuIndex = 0;
+        int skuIndex = 0;
         return new Faker<Product>("fr")
             .CustomInstantiator(f =>
             {
-                var sku = $"SKU-{Interlocked.Increment(ref skuIndex):D6}";
+                string sku = $"SKU-{Interlocked.Increment(ref skuIndex):D6}";
                 return new Product(new Product.ReconstitutionData
                 {
                     Id = Guid.NewGuid(),

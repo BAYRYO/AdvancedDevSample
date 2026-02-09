@@ -35,7 +35,7 @@ namespace AdvancedDevSample.Domain.ValueObjects
 
         public Price ApplyDiscount(Discount discount)
         {
-            var discountedValue = discount.ApplyTo(Value);
+            decimal discountedValue = discount.ApplyTo(Value);
             return new Price(discountedValue);
         }
 

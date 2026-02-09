@@ -23,7 +23,7 @@ public class StockTests
     [Fact]
     public void Constructor_Should_Throw_When_Value_Is_Negative()
     {
-        var exception = Assert.Throws<DomainException>(() => new Stock(-1));
+        DomainException exception = Assert.Throws<DomainException>(() => new Stock(-1));
         Assert.Equal("Le stock ne peut pas etre negatif.", exception.Message);
     }
 
@@ -31,7 +31,7 @@ public class StockTests
     public void Add_Should_Increase_Quantity()
     {
         var stock = new Stock(10);
-        var result = stock.Add(5);
+        Stock result = stock.Add(5);
         Assert.Equal(15, result.Quantity);
     }
 
@@ -39,7 +39,7 @@ public class StockTests
     public void Add_Should_Throw_When_Amount_Is_Negative()
     {
         var stock = new Stock(10);
-        var exception = Assert.Throws<DomainException>(() => stock.Add(-5));
+        DomainException exception = Assert.Throws<DomainException>(() => stock.Add(-5));
         Assert.Equal("Le stock ne peut pas etre negatif.", exception.Message);
     }
 
@@ -47,7 +47,7 @@ public class StockTests
     public void Remove_Should_Decrease_Quantity()
     {
         var stock = new Stock(10);
-        var result = stock.Remove(5);
+        Stock result = stock.Remove(5);
         Assert.Equal(5, result.Quantity);
     }
 
@@ -55,7 +55,7 @@ public class StockTests
     public void Remove_Should_Throw_When_Amount_Is_Negative()
     {
         var stock = new Stock(10);
-        var exception = Assert.Throws<DomainException>(() => stock.Remove(-5));
+        DomainException exception = Assert.Throws<DomainException>(() => stock.Remove(-5));
         Assert.Equal("Le stock ne peut pas etre negatif.", exception.Message);
     }
 
@@ -63,7 +63,7 @@ public class StockTests
     public void Remove_Should_Throw_When_Insufficient_Stock()
     {
         var stock = new Stock(10);
-        var exception = Assert.Throws<DomainException>(() => stock.Remove(15));
+        DomainException exception = Assert.Throws<DomainException>(() => stock.Remove(15));
         Assert.Equal("Stock insuffisant pour cette operation.", exception.Message);
     }
 
@@ -71,7 +71,7 @@ public class StockTests
     public void Remove_Should_Allow_Removing_Exact_Quantity()
     {
         var stock = new Stock(10);
-        var result = stock.Remove(10);
+        Stock result = stock.Remove(10);
         Assert.Equal(0, result.Quantity);
     }
 

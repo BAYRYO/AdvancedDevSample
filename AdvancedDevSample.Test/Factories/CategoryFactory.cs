@@ -64,21 +64,20 @@ public class CategoryFactory
 
     public Category Build()
     {
-        var id = _id ?? Guid.NewGuid();
-        var name = _name ?? _faker.Commerce.Categories(1)[0];
-        var description = _description ?? _faker.Lorem.Sentence();
-        var createdAt = _createdAt ?? DateTime.UtcNow;
-        var updatedAt = _updatedAt ?? DateTime.UtcNow;
+        Guid id = _id ?? Guid.NewGuid();
+        string name = _name ?? _faker.Commerce.Categories(1)[0];
+        string? description = _description ?? _faker.Lorem.Sentence();
+        DateTime createdAt = _createdAt ?? DateTime.UtcNow;
+        DateTime updatedAt = _updatedAt ?? DateTime.UtcNow;
 
         return new Category(id, name, description, _isActive, createdAt, updatedAt);
     }
 
-    public List<Category> BuildMany(int count)
-    {
-        return Enumerable.Range(0, count)
+    public static List<Category> BuildMany(int count) =>
+    [
+        .. Enumerable.Range(0, count)
             .Select(_ => new CategoryFactory().Build())
-            .ToList();
-    }
+    ];
 
     public static Faker<Category> Faker() => new Faker<Category>("fr")
         .CustomInstantiator(f => new Category(

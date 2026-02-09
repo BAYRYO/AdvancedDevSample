@@ -21,13 +21,13 @@ public class SqlitePersistenceIntegrationTests : IClassFixture<SqliteWebApplicat
     {
         HttpClient client = _factory.CreateClient();
 
-        RegisterRequest first = new RegisterRequest(
+        var first = new RegisterRequest(
             Email: "CaseSensitive@example.com",
             Password: "Password123!",
             FirstName: "Case",
             LastName: "One");
 
-        RegisterRequest second = new RegisterRequest(
+        var second = new RegisterRequest(
             Email: "casesensitive@example.com",
             Password: "Password123!",
             FirstName: "Case",

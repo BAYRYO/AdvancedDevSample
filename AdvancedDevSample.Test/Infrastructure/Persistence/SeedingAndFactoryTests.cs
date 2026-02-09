@@ -14,26 +14,26 @@ public class SeedingAndFactoryTests
     [Fact]
     public async Task DatabaseSeeder_Should_Seed_All_Data_And_Be_Idempotent()
     {
-        var previousEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
-        var previousPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
+        string? previousEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
+        string? previousPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
 
         Environment.SetEnvironmentVariable("ADMIN_EMAIL", "admin.seed@example.com");
         Environment.SetEnvironmentVariable("ADMIN_PASSWORD", "StrongPassword!123");
 
         try
         {
-            await using var provider = BuildSeederServiceProvider();
+            await using ServiceProvider provider = BuildSeederServiceProvider();
 
             await provider.SeedDatabaseAsync();
 
-            using (var scope = provider.CreateScope())
+            using (IServiceScope scope = provider.CreateScope())
             {
-                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-                Assert.True(await context.Users.CountAsync() >= 1);
+                Assert.True(await context.Users.AnyAsync());
                 Assert.True(await context.Categories.CountAsync() >= 5);
                 Assert.True(await context.Products.CountAsync() >= 5);
-                Assert.True(await context.PriceHistories.CountAsync() > 0);
+                Assert.True(await context.PriceHistories.AnyAsync());
             }
 
             int usersAfterFirstSeed;
@@ -41,9 +41,9 @@ public class SeedingAndFactoryTests
             int productsAfterFirstSeed;
             int historyAfterFirstSeed;
 
-            using (var scope = provider.CreateScope())
+            using (IServiceScope scope = provider.CreateScope())
             {
-                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 usersAfterFirstSeed = await context.Users.CountAsync();
                 categoriesAfterFirstSeed = await context.Categories.CountAsync();
                 productsAfterFirstSeed = await context.Products.CountAsync();
@@ -52,9 +52,9 @@ public class SeedingAndFactoryTests
 
             await provider.SeedDatabaseAsync();
 
-            using (var scope = provider.CreateScope())
+            using (IServiceScope scope = provider.CreateScope())
             {
-                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
                 Assert.Equal(usersAfterFirstSeed, await context.Users.CountAsync());
                 Assert.Equal(categoriesAfterFirstSeed, await context.Categories.CountAsync());
@@ -72,15 +72,15 @@ public class SeedingAndFactoryTests
     [Fact]
     public async Task DatabaseSeeder_Should_Continue_When_Admin_Environment_Is_Missing()
     {
-        var previousEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
-        var previousPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
+        string? previousEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
+        string? previousPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
 
         Environment.SetEnvironmentVariable("ADMIN_EMAIL", null);
         Environment.SetEnvironmentVariable("ADMIN_PASSWORD", null);
 
         try
         {
-            await using var provider = BuildSeederServiceProvider();
+            await using ServiceProvider provider = BuildSeederServiceProvider();
             await provider.SeedDatabaseAsync();
 
             using IServiceScope scope = provider.CreateScope();
@@ -101,8 +101,8 @@ public class SeedingAndFactoryTests
     [Fact]
     public async Task AdminUserSeeder_Should_Return_Immediately_When_Admin_Already_Exists()
     {
-        using var harness = CreateHarness();
-        var seeder = new AdminUserSeeder();
+        using SqliteHarness harness = CreateHarness();
+        AdminUserSeeder seeder = new AdminUserSeeder();
 
         harness.Context.Users.Add(new UserEntity
         {
@@ -126,19 +126,19 @@ public class SeedingAndFactoryTests
     [Fact]
     public void AppDbContextFactory_Should_Use_Default_And_Environment_Connection_String()
     {
-        var factory = new AppDbContextFactory();
-        var previous = Environment.GetEnvironmentVariable("DESIGNTIME_CONNECTION_STRING");
+        AppDbContextFactory factory = new AppDbContextFactory();
+        string? previous = Environment.GetEnvironmentVariable("DESIGNTIME_CONNECTION_STRING");
 
         try
         {
             Environment.SetEnvironmentVariable("DESIGNTIME_CONNECTION_STRING", null);
-            using var defaultContext = factory.CreateDbContext(Array.Empty<string>());
-            var defaultConnection = defaultContext.Database.GetConnectionString();
+            using AppDbContext defaultContext = factory.CreateDbContext(Array.Empty<string>());
+            string? defaultConnection = defaultContext.Database.GetConnectionString();
             Assert.NotNull(defaultConnection);
             Assert.Contains("advanceddevsample.db", defaultConnection!, StringComparison.OrdinalIgnoreCase);
 
             Environment.SetEnvironmentVariable("DESIGNTIME_CONNECTION_STRING", "Data Source=:memory:");
-            using var envContext = factory.CreateDbContext(Array.Empty<string>());
+            using AppDbContext envContext = factory.CreateDbContext(Array.Empty<string>());
             Assert.Equal("Data Source=:memory:", envContext.Database.GetConnectionString());
         }
         finally
@@ -149,12 +149,12 @@ public class SeedingAndFactoryTests
 
     private static ServiceProvider BuildSeederServiceProvider()
     {
-        var services = new ServiceCollection();
+        ServiceCollection services = new ServiceCollection();
 
         services.AddLogging();
         services.AddSingleton<DbConnection>(_ =>
         {
-            var connection = new SqliteConnection("DataSource=:memory:");
+            SqliteConnection connection = new SqliteConnection("DataSource=:memory:");
             connection.Open();
             return connection;
         });
@@ -162,10 +162,10 @@ public class SeedingAndFactoryTests
             options.UseSqlite(sp.GetRequiredService<DbConnection>()));
         services.AddDatabaseSeeder();
 
-        var provider = services.BuildServiceProvider();
+        ServiceProvider provider = services.BuildServiceProvider();
 
-        using var scope = provider.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        using IServiceScope scope = provider.CreateScope();
+        AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         context.Database.EnsureCreated();
 
         return provider;
@@ -173,14 +173,14 @@ public class SeedingAndFactoryTests
 
     private static SqliteHarness CreateHarness()
     {
-        var connection = new SqliteConnection("DataSource=:memory:");
+        SqliteConnection connection = new SqliteConnection("DataSource=:memory:");
         connection.Open();
 
-        var options = new DbContextOptionsBuilder<AppDbContext>()
+        DbContextOptions<AppDbContext> options = new DbContextOptionsBuilder<AppDbContext>()
             .UseSqlite(connection)
             .Options;
 
-        var context = new AppDbContext(options);
+        AppDbContext context = new AppDbContext(options);
         context.Database.EnsureCreated();
 
         return new SqliteHarness(context, connection);

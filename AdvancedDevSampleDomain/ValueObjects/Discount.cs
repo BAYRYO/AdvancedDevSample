@@ -26,10 +26,7 @@ public readonly record struct Discount
         Percentage = percentage;
     }
 
-    public decimal ApplyTo(decimal price)
-    {
-        return Math.Round(price * (1m - Percentage / 100m), 2);
-    }
+    public decimal ApplyTo(decimal price) => Math.Round(price * (1m - Percentage / 100m), 2);
 
     public override string ToString() => $"{Percentage}%";
 

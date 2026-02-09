@@ -136,13 +136,13 @@ public class User
             throw new DomainException($"L'adresse email ne peut pas depasser {MaxEmailLength} caracteres.");
         }
 
-        var atIndex = email.IndexOf('@');
+        int atIndex = email.IndexOf('@');
         if (atIndex <= 0 || atIndex == email.Length - 1)
         {
             throw new DomainException("L'adresse email n'est pas valide.");
         }
 
-        var domain = email.Substring(atIndex + 1);
+        string domain = email.Substring(atIndex + 1);
         if (!domain.Contains('.'))
         {
             throw new DomainException("L'adresse email n'est pas valide.");

@@ -60,11 +60,13 @@ public class InMemoryProductRepository : IProductRepository
         }
 
         int totalCount = query.Count();
-        List<Product> items = query
-            .OrderBy(p => p.Name)
-            .Skip((criteria.Page - 1) * criteria.PageSize)
-            .Take(criteria.PageSize)
-            .ToList();
+        var items =
+        [
+            .. query
+                .OrderBy(p => p.Name)
+                .Skip((criteria.Page - 1) * criteria.PageSize)
+                .Take(criteria.PageSize)
+        ];
 
         return Task.FromResult(((IReadOnlyList<Product>)items, totalCount));
     }

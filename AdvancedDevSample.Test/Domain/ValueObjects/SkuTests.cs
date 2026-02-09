@@ -23,35 +23,35 @@ public class SkuTests
     [Fact]
     public void Constructor_Should_Throw_When_Value_Is_Empty()
     {
-        var exception = Assert.Throws<DomainException>(() => new Sku(""));
+        DomainException exception = Assert.Throws<DomainException>(() => new Sku(""));
         Assert.Equal("Le SKU ne peut pas etre vide.", exception.Message);
     }
 
     [Fact]
     public void Constructor_Should_Throw_When_Value_Is_Whitespace()
     {
-        var exception = Assert.Throws<DomainException>(() => new Sku("   "));
+        DomainException exception = Assert.Throws<DomainException>(() => new Sku("   "));
         Assert.Equal("Le SKU ne peut pas etre vide.", exception.Message);
     }
 
     [Fact]
     public void Constructor_Should_Throw_When_Value_Too_Short()
     {
-        var exception = Assert.Throws<DomainException>(() => new Sku("AB"));
+        DomainException exception = Assert.Throws<DomainException>(() => new Sku("AB"));
         Assert.Equal("Le SKU doit contenir entre 3 et 20 caracteres.", exception.Message);
     }
 
     [Fact]
     public void Constructor_Should_Throw_When_Value_Too_Long()
     {
-        var exception = Assert.Throws<DomainException>(() => new Sku("ABCDEFGHIJ1234567890X"));
+        DomainException exception = Assert.Throws<DomainException>(() => new Sku("ABCDEFGHIJ1234567890X"));
         Assert.Equal("Le SKU doit contenir entre 3 et 20 caracteres.", exception.Message);
     }
 
     [Fact]
     public void Constructor_Should_Throw_When_Value_Contains_Invalid_Characters()
     {
-        var exception = Assert.Throws<DomainException>(() => new Sku("ABC_123"));
+        DomainException exception = Assert.Throws<DomainException>(() => new Sku("ABC_123"));
         Assert.Equal("Le SKU ne peut contenir que des lettres, chiffres et tirets.", exception.Message);
     }
 

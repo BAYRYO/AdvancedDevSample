@@ -95,7 +95,7 @@ public class UserTests
     public void Constructor_WithEmailTooLong_ThrowsDomainException()
     {
         // Arrange
-        var longEmail = new string('a', 250) + "@b.com";
+        string longEmail = new string('a', 250) + "@b.com";
 
         // Act & Assert
         Assert.Throws<DomainException>(() => new User(
@@ -156,7 +156,7 @@ public class UserTests
     public void Constructor_WithFirstNameTooLong_ThrowsDomainException()
     {
         // Arrange
-        var longName = new string('a', 101);
+        string longName = new string('a', 101);
 
         // Act & Assert
         Assert.Throws<DomainException>(() => new User(
@@ -170,7 +170,7 @@ public class UserTests
     public void Constructor_WithLastNameTooLong_ThrowsDomainException()
     {
         // Arrange
-        var longName = new string('a', 101);
+        string longName = new string('a', 101);
 
         // Act & Assert
         Assert.Throws<DomainException>(() => new User(
@@ -211,7 +211,7 @@ public class UserTests
             passwordHash: "hash",
             firstName: "John",
             lastName: "Doe");
-        var beforeUpdate = DateTime.UtcNow;
+        DateTime beforeUpdate = DateTime.UtcNow;
 
         // Act
         user.UpdateLastLogin();

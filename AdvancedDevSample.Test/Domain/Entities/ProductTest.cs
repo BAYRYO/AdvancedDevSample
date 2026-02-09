@@ -23,7 +23,7 @@ public class ProductTest
         var product = new Product(10);
         product.Deactivate();
 
-        var exception = Assert.Throws<DomainException>(() => product.ChangePrice(20));
+        DomainException exception = Assert.Throws<DomainException>(() => product.ChangePrice(20));
 
         Assert.Equal("Produit inactif", exception.Message);
     }
@@ -33,7 +33,7 @@ public class ProductTest
     {
         var product = new Product(10);
 
-        var exception = Assert.Throws<DomainException>(() => product.ChangePrice(0));
+        DomainException exception = Assert.Throws<DomainException>(() => product.ChangePrice(0));
 
         Assert.Equal("Prix invalide", exception.Message);
     }
@@ -43,7 +43,7 @@ public class ProductTest
     {
         var product = new Product(10);
 
-        var exception = Assert.Throws<DomainException>(() => product.ChangePrice(-5));
+        DomainException exception = Assert.Throws<DomainException>(() => product.ChangePrice(-5));
 
         Assert.Equal("Prix invalide", exception.Message);
     }
@@ -65,7 +65,7 @@ public class ProductTest
         var product = new Product("Test Product", 100m, new Sku("TEST-001"));
         product.Deactivate();
 
-        var exception = Assert.Throws<DomainException>(() => product.ApplyDiscount(25m));
+        DomainException exception = Assert.Throws<DomainException>(() => product.ApplyDiscount(25m));
 
         Assert.Equal("Impossible d'appliquer une reduction a un produit inactif.", exception.Message);
     }
@@ -75,7 +75,7 @@ public class ProductTest
     {
         var product = new Product("Test Product", 100m, new Sku("TEST-001"));
 
-        var exception = Assert.Throws<DomainException>(() => product.ApplyDiscount(60m));
+        DomainException exception = Assert.Throws<DomainException>(() => product.ApplyDiscount(60m));
 
         Assert.Equal("La reduction ne peut pas depasser 50%.", exception.Message);
     }
@@ -96,7 +96,7 @@ public class ProductTest
     {
         var product = new Product("Test Product", 100m, new Sku("TEST-001"));
 
-        var effectivePrice = product.GetEffectivePrice();
+        decimal effectivePrice = product.GetEffectivePrice();
 
         Assert.Equal(100m, effectivePrice);
     }
@@ -107,7 +107,7 @@ public class ProductTest
         var product = new Product("Test Product", 100m, new Sku("TEST-001"));
         product.ApplyDiscount(25m);
 
-        var effectivePrice = product.GetEffectivePrice();
+        decimal effectivePrice = product.GetEffectivePrice();
 
         Assert.Equal(75m, effectivePrice);
     }
@@ -137,7 +137,7 @@ public class ProductTest
     {
         var product = new Product("Test Product", 100m, new Sku("TEST-001"), stock: 10);
 
-        var exception = Assert.Throws<DomainException>(() => product.RemoveStock(15));
+        DomainException exception = Assert.Throws<DomainException>(() => product.RemoveStock(15));
 
         Assert.Equal("Stock insuffisant pour cette operation.", exception.Message);
     }
@@ -157,7 +157,7 @@ public class ProductTest
     {
         var product = new Product("Test Product", 100m, new Sku("TEST-001"));
 
-        var exception = Assert.Throws<DomainException>(() => product.UpdateName(""));
+        DomainException exception = Assert.Throws<DomainException>(() => product.UpdateName(""));
 
         Assert.Equal("Le nom du produit est obligatoire.", exception.Message);
     }
@@ -166,9 +166,9 @@ public class ProductTest
     public void UpdateName_Should_Throw_When_Name_Too_Long()
     {
         var product = new Product("Test Product", 100m, new Sku("TEST-001"));
-        var longName = new string('a', 201);
+        string longName = new string('a', 201);
 
-        var exception = Assert.Throws<DomainException>(() => product.UpdateName(longName));
+        DomainException exception = Assert.Throws<DomainException>(() => product.UpdateName(longName));
 
         Assert.Equal("Le nom du produit ne peut pas depasser 200 caracteres.", exception.Message);
     }

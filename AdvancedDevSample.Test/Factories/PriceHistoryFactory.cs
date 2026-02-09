@@ -65,12 +65,12 @@ public class PriceHistoryFactory
 
     public PriceHistory Build()
     {
-        var id = _id ?? Guid.NewGuid();
-        var productId = _productId ?? Guid.NewGuid();
-        var oldPrice = _oldPrice ?? decimal.Parse(_faker.Commerce.Price(10, 1000));
-        var newPrice = _newPrice ?? decimal.Parse(_faker.Commerce.Price(10, 1000));
-        var changedAt = _changedAt ?? _faker.Date.Past(1);
-        var reason = _reason ?? _faker.PickRandom(PriceChangeReasons);
+        Guid id = _id ?? Guid.NewGuid();
+        Guid productId = _productId ?? Guid.NewGuid();
+        decimal oldPrice = _oldPrice ?? decimal.Parse(_faker.Commerce.Price(10, 1000));
+        decimal newPrice = _newPrice ?? decimal.Parse(_faker.Commerce.Price(10, 1000));
+        DateTime changedAt = _changedAt ?? _faker.Date.Past(1);
+        string? reason = _reason ?? _faker.PickRandom(PriceChangeReasons);
 
         return new PriceHistory(
             id,
@@ -85,11 +85,13 @@ public class PriceHistoryFactory
 
     public List<PriceHistory> BuildMany(int count, Guid? productId = null)
     {
-        return Enumerable.Range(0, count)
+        return
+        [
+            .. Enumerable.Range(0, count)
             .Select(_ => new PriceHistoryFactory()
                 .ForProduct(productId ?? _productId ?? Guid.NewGuid())
                 .Build())
-            .ToList();
+        ];
     }
 
     private static readonly string[] PriceChangeReasons =
@@ -110,9 +112,9 @@ public class PriceHistoryFactory
         return new Faker<PriceHistory>("fr")
             .CustomInstantiator(f =>
             {
-                var oldPrice = decimal.Parse(f.Commerce.Price(10, 1000));
-                var priceChange = f.Random.Decimal(-0.3m, 0.3m);
-                var newPrice = Math.Max(1, oldPrice * (1 + priceChange));
+                decimal oldPrice = decimal.Parse(f.Commerce.Price(10, 1000));
+                decimal priceChange = f.Random.Decimal(-0.3m, 0.3m);
+                decimal newPrice = Math.Max(1, oldPrice * (1 + priceChange));
 
                 return new PriceHistory(
                     Guid.NewGuid(),

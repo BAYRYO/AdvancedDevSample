@@ -10,6 +10,6 @@ public class WeakPasswordException : DomainException
     public WeakPasswordException(IEnumerable<string> errors)
         : base("Password does not meet security requirements: " + string.Join(" ", errors))
     {
-        ValidationErrors = errors.ToList();
+        ValidationErrors = [.. errors];
     }
 }
