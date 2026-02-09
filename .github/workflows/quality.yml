@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -63,7 +65,7 @@ jobs:
             /d:sonar.qualitygate.wait=true \
             /d:sonar.qualitygate.timeout=300 \
             /d:sonar.cs.vstest.reportsPaths="**/*.trx" \
-            /d:sonar.cs.opencover.reportsPaths="TestResults/SonarQube/opencover.xml" \
+            /d:sonar.cs.opencover.reportsPaths="TestResults/SonarQube/OpenCover.xml" \
             /d:sonar.exclusions="**/wwwroot/lib/**,**/Migrations/**,**/*.Designer.cs"
 
       - name: Restore
@@ -93,6 +95,7 @@ jobs:
             -reports:"${{ steps.coverage.outputs.file }}" \
             -targetdir:"TestResults/SonarQube" \
             -reporttypes:"OpenCover"
+          test -f "TestResults/SonarQube/OpenCover.xml"
 
       - name: Enforce coverage thresholds
         shell: pwsh

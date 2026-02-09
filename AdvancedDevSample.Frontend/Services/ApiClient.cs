@@ -166,7 +166,7 @@ public class ApiClient
             var error = root.TryGetProperty("error", out var errorProp) ? errorProp.GetString() : null;
 
             var message = detail ?? title ?? error ?? body;
-            return new ApiException(message ?? "Request failed.", (int)response.StatusCode);
+            return new ApiException(message, (int)response.StatusCode);
         }
         catch
         {

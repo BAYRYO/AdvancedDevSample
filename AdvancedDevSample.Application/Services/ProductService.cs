@@ -201,7 +201,7 @@ public class ProductService
 
     public async Task DeleteAsync(Guid id)
     {
-        var product = await _productRepository.GetByIdAsync(id)
+        _ = await _productRepository.GetByIdAsync(id)
             ?? throw new ProductNotFoundException(id);
 
         await _productRepository.DeleteAsync(id);
@@ -270,7 +270,7 @@ public class ProductService
 
     public async Task<IReadOnlyList<PriceHistoryResponse>> GetPriceHistoryAsync(Guid id)
     {
-        var product = await _productRepository.GetByIdAsync(id)
+        _ = await _productRepository.GetByIdAsync(id)
             ?? throw new ProductNotFoundException(id);
 
         var history = await _priceHistoryRepository.GetByProductIdAsync(id);

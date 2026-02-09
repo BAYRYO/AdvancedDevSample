@@ -18,6 +18,7 @@ using Scalar.AspNetCore;
 using Sentry;
 
 var builder = WebApplication.CreateBuilder(args);
+const string JwtIssuerAudience = "AdvancedDevSample";
 
 // Configure Sentry for error monitoring, logging, and tracing
 builder.WebHost.UseSentry(options =>
@@ -106,8 +107,8 @@ if (jwtSecret.Length < 32)
 builder.Services.Configure<JwtSettings>(options =>
 {
     options.Secret = jwtSecret;
-    options.Issuer = builder.Configuration["Jwt:Issuer"] ?? "AdvancedDevSample";
-    options.Audience = builder.Configuration["Jwt:Audience"] ?? "AdvancedDevSample";
+    options.Issuer = builder.Configuration["Jwt:Issuer"] ?? JwtIssuerAudience;
+    options.Audience = builder.Configuration["Jwt:Audience"] ?? JwtIssuerAudience;
     options.ExpirationMinutes = builder.Configuration.GetValue<int>("Jwt:ExpirationMinutes", 60);
 });
 
@@ -125,8 +126,8 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "AdvancedDevSample",
-        ValidAudience = builder.Configuration["Jwt:Audience"] ?? "AdvancedDevSample",
+        ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? JwtIssuerAudience,
+        ValidAudience = builder.Configuration["Jwt:Audience"] ?? JwtIssuerAudience,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
         ClockSkew = TimeSpan.Zero
     };
@@ -295,10 +296,15 @@ static async Task EnsureCreatedWithSqliteRaceToleranceAsync(AppDbContext dbConte
         ex.SqliteErrorCode == 1 &&
         ex.Message.Contains("already exists", StringComparison.OrdinalIgnoreCase))
     {
-        logger.LogDebug("Ignoring SQLite EnsureCreated race condition: {Message}", ex.Message);
+        logger.LogDebug(ex, "Ignoring SQLite EnsureCreated race condition: {Message}", ex.Message);
     }
 }
 
-app.Run();
+await app.RunAsync();
 
-public partial class Program { }
+public partial class Program
+{
+    protected Program()
+    {
+    }
+}

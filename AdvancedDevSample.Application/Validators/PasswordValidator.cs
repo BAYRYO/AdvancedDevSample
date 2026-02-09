@@ -10,6 +10,7 @@ public static class PasswordValidator
 {
     public const int MinLength = 8;
     public const int MaxLength = 128;
+    private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(100);
 
     /// <summary>
     /// Validates a password against security requirements.
@@ -34,22 +35,22 @@ public static class PasswordValidator
             errors.Add($"Password must be at most {MaxLength} characters long.");
         }
 
-        if (!Regex.IsMatch(password, @"[A-Z]"))
+        if (!Regex.IsMatch(password, @"[A-Z]", RegexOptions.None, RegexTimeout))
         {
             errors.Add("Password must contain at least one uppercase letter.");
         }
 
-        if (!Regex.IsMatch(password, @"[a-z]"))
+        if (!Regex.IsMatch(password, @"[a-z]", RegexOptions.None, RegexTimeout))
         {
             errors.Add("Password must contain at least one lowercase letter.");
         }
 
-        if (!Regex.IsMatch(password, @"[0-9]"))
+        if (!Regex.IsMatch(password, @"[0-9]", RegexOptions.None, RegexTimeout))
         {
             errors.Add("Password must contain at least one digit.");
         }
 
-        if (!Regex.IsMatch(password, @"[!@#$%^&*(),.?""':{}|<>]"))
+        if (!Regex.IsMatch(password, @"[!@#$%^&*(),.?""':{}|<>]", RegexOptions.None, RegexTimeout))
         {
             errors.Add("Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>).");
         }
@@ -84,22 +85,22 @@ public static class PasswordValidator
             errorList.Add($"Password must be at most {MaxLength} characters long.");
         }
 
-        if (!Regex.IsMatch(password, @"[A-Z]"))
+        if (!Regex.IsMatch(password, @"[A-Z]", RegexOptions.None, RegexTimeout))
         {
             errorList.Add("Password must contain at least one uppercase letter.");
         }
 
-        if (!Regex.IsMatch(password, @"[a-z]"))
+        if (!Regex.IsMatch(password, @"[a-z]", RegexOptions.None, RegexTimeout))
         {
             errorList.Add("Password must contain at least one lowercase letter.");
         }
 
-        if (!Regex.IsMatch(password, @"[0-9]"))
+        if (!Regex.IsMatch(password, @"[0-9]", RegexOptions.None, RegexTimeout))
         {
             errorList.Add("Password must contain at least one digit.");
         }
 
-        if (!Regex.IsMatch(password, @"[!@#$%^&*(),.?""':{}|<>]"))
+        if (!Regex.IsMatch(password, @"[!@#$%^&*(),.?""':{}|<>]", RegexOptions.None, RegexTimeout))
         {
             errorList.Add("Password must contain at least one special character.");
         }

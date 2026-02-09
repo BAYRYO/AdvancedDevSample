@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace AdvancedDevSample.Domain.Entities;
 
 /// <summary>
@@ -15,6 +17,7 @@ public class RefreshToken
     public DateTime? RevokedAt { get; private set; }
 
     // Navigation property
+    [SuppressMessage("Major Code Smell", "S1144", Justification = "Setter required for EF Core navigation materialization.")]
     public User? User { get; private set; }
 
     // Constructor for creating new refresh tokens

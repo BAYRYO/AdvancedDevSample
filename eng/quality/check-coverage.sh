@@ -6,7 +6,7 @@ GLOBAL_THRESHOLD="${GLOBAL_LINE_THRESHOLD:-55}"
 INFRA_THRESHOLD="${INFRA_LINE_THRESHOLD:-30}"
 
 if [[ -z "${COVERAGE_FILE}" ]]; then
-  COVERAGE_FILE="$(find . -name 'coverage.cobertura.xml' | sort | tail -n 1)"
+  COVERAGE_FILE="$(find . -name 'coverage.cobertura.xml' -printf '%T@ %p\n' | sort -n | tail -n 1 | cut -d' ' -f2-)"
 fi
 
 if [[ -z "${COVERAGE_FILE}" || ! -f "${COVERAGE_FILE}" ]]; then

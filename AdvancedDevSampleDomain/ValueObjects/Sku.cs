@@ -9,7 +9,10 @@ namespace AdvancedDevSample.Domain.ValueObjects;
 /// </summary>
 public readonly record struct Sku
 {
-    private static readonly Regex ValidPattern = new(@"^[A-Z0-9\-]+$", RegexOptions.Compiled);
+    private static readonly Regex ValidPattern = new(
+        @"^[A-Z0-9\-]+$",
+        RegexOptions.Compiled,
+        TimeSpan.FromMilliseconds(100));
 
     public string Value { get; init; }
 

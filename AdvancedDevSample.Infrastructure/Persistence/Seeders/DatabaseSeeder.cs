@@ -36,7 +36,7 @@ public class DatabaseSeeder
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error running seeder: {SeederName}", seederName);
-                throw;
+                throw new InvalidOperationException($"Error running seeder: {seederName}", ex);
             }
         }
 

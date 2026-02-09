@@ -74,7 +74,7 @@ public class CategoryService
 
     public async Task DeleteAsync(Guid id)
     {
-        var category = await _categoryRepository.GetByIdAsync(id)
+        _ = await _categoryRepository.GetByIdAsync(id)
             ?? throw new CategoryNotFoundException(id);
 
         await _categoryRepository.DeleteAsync(id);

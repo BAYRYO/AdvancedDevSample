@@ -8,7 +8,7 @@ $ErrorActionPreference = 'Stop'
 
 if ([string]::IsNullOrWhiteSpace($CoverageFile)) {
     $CoverageFile = Get-ChildItem -Path '.' -Recurse -Filter 'coverage.cobertura.xml' |
-        Sort-Object FullName |
+        Sort-Object LastWriteTimeUtc, FullName |
         Select-Object -Last 1 |
         Select-Object -ExpandProperty FullName
 }

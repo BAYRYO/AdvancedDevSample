@@ -123,7 +123,7 @@ namespace AdvancedDevSample.Api.Middlewares
                 }
 
                 // Add exception fingerprint for better grouping
-                scope.SetFingerprint(new string[] { errorType, context.Request.Path, ex.GetType().Name });
+                scope.SetFingerprint(errorType, context.Request.Path.ToString(), ex.GetType().Name);
 
                 // Add extra context data
                 scope.SetExtra("request.path", context.Request.Path.ToString());
