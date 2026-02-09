@@ -75,13 +75,13 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
     public static string GenerateTestToken(Guid userId, string email, UserRole role)
     {
-        Claim[] claims = new[]
-        {
+        Claim[] claims =
+        [
             new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, email),
             new Claim(ClaimTypes.Role, role.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
+        ];
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TestJwtSecret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

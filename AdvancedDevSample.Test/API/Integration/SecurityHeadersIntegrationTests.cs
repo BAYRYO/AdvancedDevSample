@@ -14,7 +14,7 @@ public class SecurityHeadersIntegrationTests : IClassFixture<CustomWebApplicatio
     [Fact]
     public async Task ApiResponses_ShouldIncludeSecurityHeaders()
     {
-        var response = await _client.GetAsync("/api/categories");
+        HttpResponseMessage response = await _client.GetAsync("/api/categories");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.True(response.Headers.Contains("X-Content-Type-Options"));
@@ -22,7 +22,7 @@ public class SecurityHeadersIntegrationTests : IClassFixture<CustomWebApplicatio
         Assert.True(response.Headers.Contains("Referrer-Policy"));
         Assert.True(response.Headers.Contains("Content-Security-Policy"));
 
-        var csp = string.Join(" ", response.Headers.GetValues("Content-Security-Policy"));
+        string csp = string.Join(" ", response.Headers.GetValues("Content-Security-Policy"));
         Assert.Contains("default-src 'none'", csp);
         Assert.Contains("frame-ancestors 'none'", csp);
     }

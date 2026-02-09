@@ -5,14 +5,16 @@ namespace AdvancedDevSample.Test.API.Integration;
 
 public class InMemoryPriceHistoryRepository : IPriceHistoryRepository
 {
-    private readonly List<PriceHistory> _store = new();
+    private readonly List<PriceHistory> _store = [];
 
     public Task<IReadOnlyList<PriceHistory>> GetByProductIdAsync(Guid productId)
     {
-        IReadOnlyList<PriceHistory> result = _store
+        IReadOnlyList<PriceHistory> result =
+        [
+            .. _store
             .Where(ph => ph.ProductId == productId)
             .OrderByDescending(ph => ph.ChangedAt)
-            .ToList();
+        ];
         return Task.FromResult(result);
     }
 
@@ -22,8 +24,5 @@ public class InMemoryPriceHistoryRepository : IPriceHistoryRepository
         return Task.CompletedTask;
     }
 
-    public void Clear()
-    {
-        _store.Clear();
-    }
+    public void Clear() => _store.Clear();
 }

@@ -38,8 +38,8 @@ public class SqliteWebApplicationFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
-            services.RemoveAll(typeof(DbContextOptions<AppDbContext>));
-            services.RemoveAll(typeof(AppDbContext));
+            services.RemoveAll<DbContextOptions<AppDbContext>>();
+            services.RemoveAll<AppDbContext>();
 
             _connection = new SqliteConnection("DataSource=:memory:");
             _connection.Open();
@@ -52,23 +52,23 @@ public class SqliteWebApplicationFactory : WebApplicationFactory<Program>
 
     public async Task ResetDatabaseAsync()
     {
-        using var scope = Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        using IServiceScope scope = Services.CreateScope();
+        AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         await db.Database.EnsureDeletedAsync();
         await db.Database.EnsureCreatedAsync();
     }
 
     public HttpClient CreateAuthenticatedClient(UserRole role = UserRole.User)
     {
-        var client = CreateClient();
-        var token = GenerateTestToken(Guid.NewGuid(), "sqlite-test@example.com", role);
+        HttpClient client = CreateClient();
+        string token = GenerateTestToken(Guid.NewGuid(), "sqlite-test@example.com", role);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         return client;
     }
 
     private static string GenerateTestToken(Guid userId, string email, UserRole role)
     {
-        var claims = new[]
+        Claim[] claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, email),

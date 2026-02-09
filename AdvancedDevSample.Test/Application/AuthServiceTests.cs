@@ -38,7 +38,7 @@ public class AuthServiceTests
             LastName: "Doe");
 
         // Act
-        var response = await _authService.RegisterAsync(request);
+        AuthResponseWithRefreshToken response = await _authService.RegisterAsync(request);
 
         // Assert
         Assert.NotNull(response);
@@ -112,7 +112,7 @@ public class AuthServiceTests
             Password: "correct_password");
 
         // Act
-        var response = await _authService.LoginAsync(request);
+        AuthResponseWithRefreshToken response = await _authService.LoginAsync(request);
 
         // Assert
         Assert.NotNull(response);
@@ -194,7 +194,7 @@ public class AuthServiceTests
             Password: "correct_password");
 
         // Act
-        var response = await _authService.LoginAsync(request);
+        AuthResponseWithRefreshToken response = await _authService.LoginAsync(request);
 
         // Assert
         Assert.NotNull(response.User.LastLoginAt);
@@ -305,7 +305,7 @@ public class AuthServiceTests
         await _userRepository.SaveAsync(user);
 
         // Act
-        var response = await _authService.GetCurrentUserAsync(user.Id);
+        UserResponse? response = await _authService.GetCurrentUserAsync(user.Id);
 
         // Assert
         Assert.NotNull(response);
@@ -317,7 +317,7 @@ public class AuthServiceTests
     public async Task GetCurrentUserAsync_WithNonExistentUser_ReturnsNull()
     {
         // Act
-        var response = await _authService.GetCurrentUserAsync(Guid.NewGuid());
+        UserResponse? response = await _authService.GetCurrentUserAsync(Guid.NewGuid());
 
         // Assert
         Assert.Null(response);
@@ -336,7 +336,7 @@ public class AuthServiceTests
         await _userRepository.SaveAsync(user);
 
         // Act
-        var response = await _authService.GetCurrentUserAsync(user.Id);
+        UserResponse? response = await _authService.GetCurrentUserAsync(user.Id);
 
         // Assert
         Assert.Null(response);
@@ -348,25 +348,25 @@ public class AuthServiceTests
 
     private class FakeUserRepository : IUserRepository
     {
-        private readonly Dictionary<Guid, User> _users = new();
+        private readonly Dictionary<Guid, User> _users = [];
 
         public Task<User?> GetByIdAsync(Guid id)
         {
-            _users.TryGetValue(id, out var user);
+            _users.TryGetValue(id, out User? user);
             return Task.FromResult(user);
         }
 
         public Task<User?> GetByEmailAsync(string email)
         {
-            var normalizedEmail = email.Trim().ToLowerInvariant();
-            var user = _users.Values.FirstOrDefault(u => u.Email == normalizedEmail);
+            string normalizedEmail = email.Trim().ToLowerInvariant();
+            User? user = _users.Values.FirstOrDefault(u => u.Email == normalizedEmail);
             return Task.FromResult(user);
         }
 
         public Task<bool> ExistsByEmailAsync(string email)
         {
-            var normalizedEmail = email.Trim().ToLowerInvariant();
-            var exists = _users.Values.Any(u => u.Email == normalizedEmail);
+            string normalizedEmail = email.Trim().ToLowerInvariant();
+            bool exists = _users.Values.Any(u => u.Email == normalizedEmail);
             return Task.FromResult(exists);
         }
 
@@ -378,22 +378,19 @@ public class AuthServiceTests
 
         public Task<IEnumerable<User>> GetAllAsync(int page = 1, int pageSize = 20)
         {
-            var users = _users.Values
+            IEnumerable<User> users = _users.Values
                 .OrderBy(u => u.Email)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize);
             return Task.FromResult(users);
         }
 
-        public Task<int> GetCountAsync()
-        {
-            return Task.FromResult(_users.Count);
-        }
+        public Task<int> GetCountAsync() => Task.FromResult(_users.Count);
     }
 
     private class FakeRefreshTokenRepository : IRefreshTokenRepository
     {
-        private readonly Dictionary<Guid, RefreshToken> _tokens = new();
+        private readonly Dictionary<Guid, RefreshToken> _tokens = [];
 
         public Task<RefreshToken?> GetByTokenAsync(string token)
         {
@@ -403,7 +400,7 @@ public class AuthServiceTests
 
         public Task<IEnumerable<RefreshToken>> GetByUserIdAsync(Guid userId)
         {
-            var tokens = _tokens.Values.Where(t => t.UserId == userId);
+            IEnumerable<RefreshToken> tokens = _tokens.Values.Where(t => t.UserId == userId);
             return Task.FromResult(tokens);
         }
 
@@ -415,8 +412,8 @@ public class AuthServiceTests
 
         public Task RevokeAllForUserAsync(Guid userId)
         {
-            var userTokens = _tokens.Values.Where(t => t.UserId == userId).ToList();
-            foreach (var token in userTokens)
+            List<RefreshToken> userTokens = _tokens.Values.Where(t => t.UserId == userId).ToList();
+            foreach (RefreshToken token in userTokens)
             {
                 token.Revoke();
             }
@@ -444,10 +441,7 @@ public class AuthServiceTests
 
     private class FakeJwtService : IJwtService
     {
-        public (string Token, DateTime ExpiresAt) GenerateToken(User user)
-        {
-            return ($"fake_token_for_{user.Email}", DateTime.UtcNow.AddHours(1));
-        }
+        public (string Token, DateTime ExpiresAt) GenerateToken(User user) => ($"fake_token_for_{user.Email}", DateTime.UtcNow.AddHours(1));
     }
 
     #endregion

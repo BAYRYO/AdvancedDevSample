@@ -5,7 +5,7 @@ namespace AdvancedDevSample.Test.API.Integration;
 
 public class InMemoryRefreshTokenRepository : IRefreshTokenRepository
 {
-    private readonly Dictionary<Guid, RefreshToken> _tokens = new();
+    private readonly Dictionary<Guid, RefreshToken> _tokens = [];
 
     public Task<RefreshToken?> GetByTokenAsync(string token)
     {
@@ -15,7 +15,7 @@ public class InMemoryRefreshTokenRepository : IRefreshTokenRepository
 
     public Task<IEnumerable<RefreshToken>> GetByUserIdAsync(Guid userId)
     {
-        var tokens = _tokens.Values.Where(t => t.UserId == userId);
+        IEnumerable<RefreshToken> tokens = _tokens.Values.Where(t => t.UserId == userId);
         return Task.FromResult(tokens);
     }
 
@@ -27,16 +27,13 @@ public class InMemoryRefreshTokenRepository : IRefreshTokenRepository
 
     public Task RevokeAllForUserAsync(Guid userId)
     {
-        var userTokens = _tokens.Values.Where(t => t.UserId == userId).ToList();
-        foreach (var token in userTokens)
+        List<RefreshToken> userTokens = _tokens.Values.Where(t => t.UserId == userId).ToList();
+        foreach (RefreshToken token in userTokens)
         {
             token.Revoke();
         }
         return Task.CompletedTask;
     }
 
-    public void Clear()
-    {
-        _tokens.Clear();
-    }
+    public void Clear() => _tokens.Clear();
 }

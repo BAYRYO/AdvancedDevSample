@@ -5,16 +5,13 @@ namespace AdvancedDevSample.Test.API.Integration;
 
 public class InMemoryProductRepository : IProductRepository
 {
-    private readonly Dictionary<Guid, Product> _store = new();
+    private readonly Dictionary<Guid, Product> _store = [];
 
     // Existing sync methods
     public Product? GetById(Guid id)
-        => _store.TryGetValue(id, out var p) ? p : null;
+        => _store.TryGetValue(id, out Product? product) ? product : null;
 
-    public void Save(Product product)
-    {
-        _store[product.Id] = product;
-    }
+    public void Save(Product product) => _store[product.Id] = product;
 
     // New async methods
     public Task<Product?> GetByIdAsync(Guid id)
@@ -22,20 +19,20 @@ public class InMemoryProductRepository : IProductRepository
 
     public Task<Product?> GetBySkuAsync(string sku)
     {
-        var normalized = sku.ToUpperInvariant();
-        var product = _store.Values.FirstOrDefault(p => p.Sku?.Value == normalized);
+        string normalized = sku.ToUpperInvariant();
+        Product? product = _store.Values.FirstOrDefault(p => p.Sku?.Value == normalized);
         return Task.FromResult(product);
     }
 
     public Task<IReadOnlyList<Product>> GetAllAsync()
     {
-        IReadOnlyList<Product> result = _store.Values.ToList();
+        IReadOnlyList<Product> result = [.. _store.Values];
         return Task.FromResult(result);
     }
 
     public Task<(IReadOnlyList<Product> Items, int TotalCount)> SearchAsync(ProductSearchCriteria criteria)
     {
-        var query = _store.Values.AsEnumerable();
+        IEnumerable<Product> query = _store.Values.AsEnumerable();
 
         if (!string.IsNullOrWhiteSpace(criteria.Name))
         {
@@ -62,8 +59,8 @@ public class InMemoryProductRepository : IProductRepository
             query = query.Where(p => p.IsActive == criteria.IsActive.Value);
         }
 
-        var totalCount = query.Count();
-        var items = query
+        int totalCount = query.Count();
+        List<Product> items = query
             .OrderBy(p => p.Name)
             .Skip((criteria.Page - 1) * criteria.PageSize)
             .Take(criteria.PageSize)
@@ -86,21 +83,15 @@ public class InMemoryProductRepository : IProductRepository
 
     public Task<bool> ExistsWithSkuAsync(string sku, Guid? excludeProductId = null)
     {
-        var normalized = sku.ToUpperInvariant();
-        var exists = _store.Values.Any(p =>
+        string normalized = sku.ToUpperInvariant();
+        bool exists = _store.Values.Any(p =>
             p.Sku?.Value == normalized &&
             (!excludeProductId.HasValue || p.Id != excludeProductId.Value));
         return Task.FromResult(exists);
     }
 
     // Test helper methods
-    public void Seed(Product product)
-    {
-        _store[product.Id] = product;
-    }
+    public void Seed(Product product) => _store[product.Id] = product;
 
-    public void Clear()
-    {
-        _store.Clear();
-    }
+    public void Clear() => _store.Clear();
 }
