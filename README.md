@@ -1,5 +1,6 @@
 # AdvancedDevSample
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=BAYRYO_AdvancedDevSample&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=BAYRYO_AdvancedDevSample)
 [![Quality](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/quality.yml/badge.svg)](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/quality.yml)
 [![Security](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/security.yml/badge.svg)](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/security.yml)
 [![Docs](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/docs.yml/badge.svg)](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/docs.yml)
@@ -17,7 +18,7 @@ Construire un logiciel propre, securise et livrable.
 
 ## Pourquoi ce repo existe
 
-La plupart des exemples sont soit trop simplistes, soit trop lourds pour apprendre vite.  
+La plupart des exemples sont soit trop simplistes, soit trop lourds pour apprendre vite.
 Celui-ci prend un chemin intermediaire :
 
 - assez compact pour etre lu en une journee
