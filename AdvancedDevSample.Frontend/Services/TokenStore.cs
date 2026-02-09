@@ -23,7 +23,7 @@ public class TokenStore
             return _cached;
         }
 
-        string json = await _storage.GetItemAsync(StorageKey);
+        string? json = await _storage.GetItemAsync(StorageKey);
         if (string.IsNullOrWhiteSpace(json))
         {
             return null;

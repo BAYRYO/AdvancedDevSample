@@ -125,7 +125,7 @@ public class ApiClient
 
         try
         {
-            using JsonDocument json = JsonDocument.Parse(body);
+            using var json = JsonDocument.Parse(body);
             JsonElement root = json.RootElement;
             string? title = root.TryGetProperty("title", out JsonElement titleProp) ? titleProp.GetString() : null;
             string? detail = root.TryGetProperty("detail", out JsonElement detailProp) ? detailProp.GetString() : null;

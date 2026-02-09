@@ -28,7 +28,7 @@ public class AuthService
         HttpClient client = _httpClientFactory.CreateClient("ApiNoAuth");
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/auth/login", request);
         AuthResponseWithRefreshToken auth = await ReadRequiredAsync<AuthResponseWithRefreshToken>(response);
-        StoredAuthSession session = StoredAuthSession.FromAuthResponse(auth);
+        var session = StoredAuthSession.FromAuthResponse(auth);
 
         await _tokenStore.SaveAsync(session);
         await _authStateProvider.SetAuthenticatedUserAsync(session);
@@ -39,7 +39,7 @@ public class AuthService
         HttpClient client = _httpClientFactory.CreateClient("ApiNoAuth");
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/auth/register", request);
         AuthResponseWithRefreshToken auth = await ReadRequiredAsync<AuthResponseWithRefreshToken>(response);
-        StoredAuthSession session = StoredAuthSession.FromAuthResponse(auth);
+        var session = StoredAuthSession.FromAuthResponse(auth);
 
         await _tokenStore.SaveAsync(session);
         await _authStateProvider.SetAuthenticatedUserAsync(session);
@@ -84,7 +84,7 @@ public class AuthService
                 return null;
             }
 
-            StoredAuthSession refreshed = StoredAuthSession.FromAuthResponse(auth);
+            var refreshed = StoredAuthSession.FromAuthResponse(auth);
             await _tokenStore.SaveAsync(refreshed);
             await _authStateProvider.SetAuthenticatedUserAsync(refreshed);
             return refreshed;

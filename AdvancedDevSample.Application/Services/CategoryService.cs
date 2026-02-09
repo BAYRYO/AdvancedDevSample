@@ -16,7 +16,7 @@ public class CategoryService
 
     public async Task<CategoryResponse> CreateAsync(CreateCategoryRequest request)
     {
-        Category category = new Category(request.Name, request.Description);
+        var category = new Category(request.Name, request.Description);
         await _categoryRepository.SaveAsync(category);
 
         return ToCategoryResponse(category);

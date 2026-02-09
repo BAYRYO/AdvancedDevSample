@@ -62,12 +62,8 @@ public class UserService
 
     public async Task<UserResponse> UpdateUserRoleAsync(Guid userId, UpdateUserRoleRequest request)
     {
-        User? user = await _userRepository.GetByIdAsync(userId);
-
-        if (user is null)
-        {
-            throw new UserNotFoundException(userId);
-        }
+        User user = await _userRepository.GetByIdAsync(userId)
+            ?? throw new UserNotFoundException(userId);
 
         if (!Enum.TryParse<UserRole>(request.Role, true, out UserRole newRole))
         {
@@ -91,12 +87,8 @@ public class UserService
 
     public async Task<UserResponse> DeactivateUserAsync(Guid userId)
     {
-        User? user = await _userRepository.GetByIdAsync(userId);
-
-        if (user is null)
-        {
-            throw new UserNotFoundException(userId);
-        }
+        User user = await _userRepository.GetByIdAsync(userId)
+            ?? throw new UserNotFoundException(userId);
 
         user.Deactivate();
         await _userRepository.SaveAsync(user);

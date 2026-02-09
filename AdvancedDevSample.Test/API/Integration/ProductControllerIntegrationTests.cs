@@ -33,10 +33,10 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
     [Fact]
     public async Task ChangePrice_Should_Return_NoContent_And_Save_Product()
     {
-        Product product = new Product(10);
+        var product = new Product(10);
         _repo.Seed(product);
 
-        ChangePriceRequest request = new ChangePriceRequest(20);
+        var request = new ChangePriceRequest(20);
 
         HttpResponseMessage response = await _authenticatedClient.PutAsJsonAsync(
             $"/api/products/{product.Id}/price",
@@ -53,10 +53,10 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
     [Fact]
     public async Task ChangePrice_Should_Record_PriceHistory()
     {
-        Product product = new Product(10);
+        var product = new Product(10);
         _repo.Seed(product);
 
-        ChangePriceRequest request = new ChangePriceRequest(20);
+        var request = new ChangePriceRequest(20);
 
         HttpResponseMessage response = await _authenticatedClient.PutAsJsonAsync(
             $"/api/products/{product.Id}/price",
@@ -74,8 +74,8 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
     [Fact]
     public async Task ChangePrice_Should_Return_NotFound_When_Product_Does_Not_Exist()
     {
-        Guid nonExistentId = Guid.NewGuid();
-        ChangePriceRequest request = new ChangePriceRequest(20);
+        var nonExistentId = Guid.NewGuid();
+        var request = new ChangePriceRequest(20);
 
         HttpResponseMessage response = await _authenticatedClient.PutAsJsonAsync(
             $"/api/products/{nonExistentId}/price",
@@ -88,10 +88,10 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
     [Fact]
     public async Task ChangePrice_Should_Return_BadRequest_When_Price_Is_Invalid()
     {
-        Product product = new Product(10);
+        var product = new Product(10);
         _repo.Seed(product);
 
-        ChangePriceRequest request = new ChangePriceRequest(-5);
+        var request = new ChangePriceRequest(-5);
 
         HttpResponseMessage response = await _authenticatedClient.PutAsJsonAsync(
             $"/api/products/{product.Id}/price",
@@ -104,7 +104,7 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
     [Fact]
     public async Task Create_Should_Return_Created_And_Save_Product()
     {
-        CreateProductRequest request = new CreateProductRequest(
+        var request = new CreateProductRequest(
             Name: "Test Product",
             Sku: "TEST-001",
             Price: 99.99m,
@@ -126,10 +126,10 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
     [Fact]
     public async Task Create_Should_Return_BadRequest_When_Sku_Is_Duplicate()
     {
-        Product existingProduct = new Product("Existing Product", 50m, new Sku("DUPE-001"));
+        var existingProduct = new Product("Existing Product", 50m, new Sku("DUPE-001"));
         _repo.Seed(existingProduct);
 
-        CreateProductRequest request = new CreateProductRequest(
+        var request = new CreateProductRequest(
             Name: "New Product",
             Sku: "DUPE-001",
             Price: 99.99m);
@@ -142,7 +142,7 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
     [Fact]
     public async Task GetById_Should_Return_Product()
     {
-        Product product = new Product("Test Product", 50m, new Sku("GET-001"));
+        var product = new Product("Test Product", 50m, new Sku("GET-001"));
         _repo.Seed(product);
 
         HttpResponseMessage response = await _client.GetAsync($"/api/products/{product.Id}");
@@ -199,7 +199,7 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
     [Fact]
     public async Task Delete_Should_Return_NoContent()
     {
-        Product product = new Product("To Delete", 50m, new Sku("DEL-001"));
+        var product = new Product("To Delete", 50m, new Sku("DEL-001"));
         _repo.Seed(product);
 
         HttpResponseMessage response = await _adminClient.DeleteAsync($"/api/products/{product.Id}");
@@ -211,10 +211,10 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
     [Fact]
     public async Task ApplyDiscount_Should_Return_Product_With_Discount()
     {
-        Product product = new Product("Discounted Product", 100m, new Sku("DISC-001"));
+        var product = new Product("Discounted Product", 100m, new Sku("DISC-001"));
         _repo.Seed(product);
 
-        ApplyDiscountRequest request = new ApplyDiscountRequest(25m, "Summer sale");
+        var request = new ApplyDiscountRequest(25m, "Summer sale");
 
         HttpResponseMessage response = await _authenticatedClient.PostAsJsonAsync($"/api/products/{product.Id}/discount", request);
 
@@ -229,7 +229,7 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
     [Fact]
     public async Task RemoveDiscount_Should_Remove_Discount_From_Product()
     {
-        Product product = new Product("Discounted Product", 100m, new Sku("RDISC-001"));
+        var product = new Product("Discounted Product", 100m, new Sku("RDISC-001"));
         product.ApplyDiscount(25m);
         _repo.Seed(product);
 
@@ -246,10 +246,10 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
     [Fact]
     public async Task GetPriceHistory_Should_Return_History()
     {
-        Product product = new Product("History Product", 100m, new Sku("HIST-001"));
+        var product = new Product("History Product", 100m, new Sku("HIST-001"));
         _repo.Seed(product);
 
-        PriceHistory priceHistory = new PriceHistory(
+        var priceHistory = new PriceHistory(
             productId: product.Id,
             oldPrice: 100m,
             newPrice: 80m,
@@ -271,7 +271,7 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
     [Fact]
     public async Task Activate_Should_Activate_Product()
     {
-        Product product = new Product("Inactive Product", 50m, new Sku("ACT-001"));
+        var product = new Product("Inactive Product", 50m, new Sku("ACT-001"));
         product.Deactivate();
         _repo.Seed(product);
 
@@ -287,7 +287,7 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
     [Fact]
     public async Task Deactivate_Should_Deactivate_Product()
     {
-        Product product = new Product("Active Product", 50m, new Sku("DEACT-001"));
+        var product = new Product("Active Product", 50m, new Sku("DEACT-001"));
         _repo.Seed(product);
 
         HttpResponseMessage response = await _authenticatedClient.PostAsync($"/api/products/{product.Id}/deactivate", null);
@@ -302,10 +302,10 @@ public class ProductControllerIntegrationTests : IClassFixture<CustomWebApplicat
     [Fact]
     public async Task Update_Should_Clear_Category_When_ClearCategory_True()
     {
-        Category category = new Category("Electronics", "Devices");
+        var category = new Category("Electronics", "Devices");
         await _categoryRepo.SaveAsync(category);
 
-        Product product = new Product("Categorized Product", 99m, new Sku("CLR-CAT-001"), categoryId: category.Id);
+        var product = new Product("Categorized Product", 99m, new Sku("CLR-CAT-001"), categoryId: category.Id);
         _repo.Seed(product);
 
         HttpResponseMessage response = await _authenticatedClient.PutAsJsonAsync(
