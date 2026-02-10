@@ -1,6 +1,6 @@
 # API
 
-Base URL locale:
+URL de base locale:
 
 - HTTP: `http://localhost:5069`
 - HTTPS: `https://localhost:7119`
@@ -9,37 +9,59 @@ Base URL locale:
 
 - format JSON
 - identifiants en `Guid`
-- auth via `Authorization: Bearer <token>`
+- authentification via `Authorization: Bearer <token>`
 - erreurs metier/app: `{ "title": "...", "detail": "..." }`
-- erreurs techniques: `{ "error": "Erreur technique" }`
+- erreurs infrastructure: `{ "error": "Erreur technique" }`
+- erreurs inattendues: `{ "title": "Erreur serveur", "detail": "..." }`
+
+Exemples:
+
+```json
+{ "title": "Erreur metier", "detail": "Le message d'erreur metier." }
+```
+
+```json
+{ "error": "Erreur technique" }
+```
+
+```json
+{ "title": "Erreur serveur", "detail": "Le message d'erreur inattendue." }
+```
 
 ## Authentification et autorisation
 
 - JWT bearer avec validation issuer/audience/signature/expiration
-- policies disponibles:
+- politiques disponibles:
   - `AdminOnly`
   - `UserOrAdmin`
 
-### Sequence login + refresh token
+Matrice d'utilisation actuelle des policies:
+
+| Policy | Endpoints concernes |
+| --- | --- |
+| `AdminOnly` | `/api/users/*` (policy), suppressions admin produits/categories via role `Admin` |
+| `UserOrAdmin` | aucune route n'utilise explicitement cette policy pour l'instant |
+
+### Sequence connexion + rotation du refresh token
 
 ```mermaid
 sequenceDiagram
-  participant C as Client
+  participant C as Client API
   participant A as AuthController
   participant S as AuthService
   participant R as RefreshTokenRepository
 
   C->>A: POST /api/auth/login
   A->>S: LoginAsync(email, password)
-  S->>R: Revoke old user tokens
-  S->>R: Save new refresh token
+  S->>R: Revoque les anciens tokens
+  S->>R: Sauvegarde un refresh token
   S-->>A: JWT + refresh token
   A-->>C: 200 AuthResponse
 
   C->>A: POST /api/auth/refresh
   A->>S: RefreshTokenAsync(token)
-  S->>R: Validate and rotate token
-  S-->>A: new JWT + new refresh token
+  S->>R: Valide et effectue la rotation
+  S-->>A: nouveau JWT + nouveau refresh token
   A-->>C: 200 AuthResponse
 ```
 
@@ -48,8 +70,8 @@ sequenceDiagram
 | Methode | Route | Auth | Notes |
 | --- | --- | --- | --- |
 | `POST` | `/api/auth/register` | Public | `201`, retourne JWT + refresh token |
-| `POST` | `/api/auth/login` | Public | rate limit `5/min/IP` |
-| `POST` | `/api/auth/refresh` | Public | rotation refresh token |
+| `POST` | `/api/auth/login` | Public | limite `5/min/IP` |
+| `POST` | `/api/auth/refresh` | Public | rotation du refresh token |
 | `GET` | `/api/auth/me` | JWT | utilisateur courant |
 
 Exemple login:
@@ -118,19 +140,19 @@ Filtre supporte:
 
 Toutes ces routes requierent la politique `AdminOnly`.
 
-| Methode | Route | Description |
-| --- | --- | --- |
-| `GET` | `/api/users?page=1&pageSize=20` | liste paginee |
-| `GET` | `/api/users/{id}` | detail |
-| `PUT` | `/api/users/{id}/role` | role `User` ou `Admin` |
-| `DELETE` | `/api/users/{id}` | desactivation (soft delete) |
+| Methode | Route | Description | Reponses |
+| --- | --- | --- | --- |
+| `GET` | `/api/users?page=1&pageSize=20` | liste paginee | `200`, `401`, `403` |
+| `GET` | `/api/users/{id}` | detail | `200`, `401`, `403`, `404` |
+| `PUT` | `/api/users/{id}/role` | role `User` ou `Admin` | `200`, `400`, `401`, `403`, `404` |
+| `DELETE` | `/api/users/{id}` | desactivation (soft delete) | `200`, `401`, `403`, `404` |
 
 ## Sante et metriques
 
 | Methode | Route | Description |
 | --- | --- | --- |
-| `GET` | `/health/live` | liveness process |
-| `GET` | `/health/ready` | readiness avec test DB |
+| `GET` | `/health/live` | disponibilite processus |
+| `GET` | `/health/ready` | disponibilite avec test DB |
 | `GET` | `/metrics` | route Prometheus |
 
 ## Documentation interactive

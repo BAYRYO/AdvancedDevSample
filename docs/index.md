@@ -8,10 +8,10 @@ Fournir une base moderne .NET 10 orientee production avec:
 
 - architecture en couches testable
 - API REST securisee (JWT + refresh token)
-- frontend Blazor WebAssembly
+- Frontend Blazor WebAssembly
 - persistance EF Core + PostgreSQL
-- observabilite (checks de sante, metriques Prometheus, Sentry)
-- CI/CD complete (qualite, securite, docker, release, docs)
+- observabilite (endpoints de sante, metriques Prometheus, Sentry)
+- CI/CD complete (qualite, securite, docker, versions, documentation)
 
 ## Vue rapide
 
@@ -23,8 +23,8 @@ graph LR
   APP --> DOM[Domaine]
   API --> INF[Infrastructure EF Core]
   INF --> DB[(PostgreSQL)]
-  API --> OBS[Metrics and Health]
-  OBS --> PROM[Prometheus and Grafana]
+  API --> OBS[Metriques et sante]
+  OBS --> PROM[Prometheus et Grafana]
 ```
 
 ## Stack
@@ -46,7 +46,7 @@ graph LR
 - contrat API (auth, produits, categories, utilisateurs)
 - persistance, migrations, seeding
 - securite (headers, authz, rate limiting)
-- qualite, CI/CD, exploitation, troubleshooting
+- qualite, CI/CD, exploitation, depannage
 
 ## Lecture recommandee
 

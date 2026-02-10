@@ -104,6 +104,11 @@ pwsh ./eng/quality/quality.ps1
 - site public: `https://bayryo.github.io/AdvancedDevSample/`
 - index local: `docs/index.md`
 
+Source de verite documentaire:
+
+- `README.md` reste un guide de demarrage synthetique
+- les details operationnels et techniques font foi dans `docs/getting-started.md`, `docs/configuration.md`, `docs/api.md`, `docs/operations.md`
+
 Lancer localement:
 
 ```bash

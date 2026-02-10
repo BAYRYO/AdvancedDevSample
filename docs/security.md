@@ -45,6 +45,7 @@ Middleware `SecurityHeadersMiddleware` ajoute:
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`
 - `Referrer-Policy: no-referrer`
+- `X-Permitted-Cross-Domain-Policies: none`
 - `Permissions-Policy: camera=(), microphone=(), geolocation=()`
 - `Cross-Origin-Opener-Policy: same-origin`
 - `Cross-Origin-Resource-Policy: same-origin`

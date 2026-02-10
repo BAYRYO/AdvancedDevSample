@@ -1,6 +1,6 @@
 # CI/CD
 
-Le repository utilise GitHub Actions pour la qualite, la securite, Docker, les releases et la documentation.
+Le repository utilise GitHub Actions pour la qualite, la securite, Docker, les versions et la documentation.
 
 ## Vue pipeline
 
@@ -24,25 +24,31 @@ flowchart TD
 
 Declencheurs:
 
+- `workflow_dispatch`
 - push `main`
 - pull request vers `main`
 
+Notes de declenchement:
+
+- workflow filtre par chemins applicatifs/tests/quality/workflow
+- un changement hors chemins filtres ne declenche pas `quality.yml`
+
 Actions:
 
-1. restore/build/test couverture
+1. restauration + compilation + tests + couverture
 2. seuils couverture
-3. SonarQube + attente Quality Gate
+3. SonarQube + attente de la porte de qualite
 4. verification formatage
 5. verification derive migrations EF
 
 ```mermaid
 flowchart LR
-  B[build] --> T[tests]
+  B[compilation] --> T[tests]
   T --> C[couverture]
   C --> SQ[SonarQube]
-  SQ --> QG[Quality Gate]
-  QG --> F[format]
-  F --> M[migrations drift]
+  SQ --> QG[Porte de qualite]
+  QG --> F[formatage]
+  F --> M[derive migrations]
 ```
 
 ## `security.yml`
@@ -54,7 +60,7 @@ Declencheurs:
 
 Actions:
 
-- dependency review (PR)
+- revue des dependances (PR)
 - CodeQL C#
 - scan secrets Gitleaks
 
@@ -66,15 +72,20 @@ Declencheurs:
 - push `main`
 - push tags `v*`
 
+Notes de declenchement:
+
+- workflow filtre par chemins (sources applicatives, Dockerfiles, compose, build props/targets)
+- sur `push`, publication d'images active (jobs `docker-cd` puis `image-vuln-scan`)
+
 Jobs:
 
 - `docker-ci`
-  - build images API et Frontend
+  - compilation des images API et Frontend
   - `docker compose up -d --build`
   - tests de fumee (`/health/ready` API + disponibilite frontend)
-- `docker-cd` (sur push)
+- `docker-cd` (sur push `main` ou tags `v*`)
   - login GHCR
-  - buildx multi-arch (`linux/amd64`, `linux/arm64`)
+  - buildx multi-architecture (`linux/amd64`, `linux/arm64`)
   - generation SBOM + provenance
   - signature Cosign keyless des images API + Frontend
   - push images API + Frontend
@@ -90,10 +101,10 @@ Declencheur:
 
 Actions:
 
-1. build + tests
+1. compilation + tests
 2. `dotnet publish` API + Frontend
 3. packaging `.tar.gz`
-4. creation release GitHub avec artefacts
+4. creation d une version GitHub avec artefacts
 
 ## `docs.yml`
 
@@ -101,6 +112,10 @@ Declencheurs:
 
 - push `main` sur changements docs
 - execution manuelle
+
+Notes de declenchement:
+
+- filtre `paths`: `docs/**`, `mkdocs.yml`, `.github/workflows/docs.yml`
 
 Actions:
 

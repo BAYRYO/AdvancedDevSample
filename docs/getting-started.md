@@ -7,6 +7,19 @@
 - Git
 - Python 3.11+ (uniquement pour la doc)
 
+## Parcours de demarrage
+
+```mermaid
+flowchart TD
+  A[Cloner le repo] --> B[Copier .env.example vers .env]
+  B --> C{Mode de lancement}
+  C -->|Docker| D[docker compose up --build -d]
+  C -->|Local| E[dotnet run API + Frontend]
+  D --> F[Verifier /health/ready et Frontend]
+  E --> F
+  F --> G[Lancer les tests]
+```
+
 Verification rapide:
 
 ```bash
@@ -89,11 +102,25 @@ URLs de dev:
 
 ## Premier demarrage API
 
-Au boot de l'API:
+Au demarrage de l API:
 
 - migrations appliquees si `UseMigrations=true` et migrations presentes
 - repli `EnsureCreated()` en `Development` sans migration
 - seeding execute uniquement en `Development` si `SeedDatabase=true`
+
+```mermaid
+flowchart LR
+  START[Demarrage API] --> MIG{UseMigrations=true et migrations presentes?}
+  MIG -->|Oui| M[Migrate()]
+  MIG -->|Non| DEV{Environnement Development?}
+  DEV -->|Oui| EC[EnsureCreated()]
+  DEV -->|Non| ERR[Erreur de demarrage]
+  M --> SEED{SeedDatabase=true et Development?}
+  EC --> SEED
+  SEED -->|Oui| RUN[Execution des initialiseurs]
+  SEED -->|Non| READY[API prete]
+  RUN --> READY
+```
 
 ## Tests
 

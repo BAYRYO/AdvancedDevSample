@@ -15,7 +15,7 @@
 ## Horizon long terme (90+ jours)
 
 1. versionnement API explicite et politique de deprecation
-2. publication d'images Docker signees avec SBOM
+2. verification systematique des signatures Cosign et attestations SBOM en phase de deploiement
 3. strategie multi-environnements (staging/prod) documentee
 
 ## Definition d'excellence

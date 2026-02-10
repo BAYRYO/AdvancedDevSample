@@ -17,6 +17,57 @@ Persistance via EF Core 10 + PostgreSQL.
 - `RefreshTokens`
 - `AuditLogs`
 
+## Schema relationnel simplifie
+
+```mermaid
+erDiagram
+  CATEGORIES ||--o{ PRODUCTS : contient
+  PRODUCTS ||--o{ PRICE_HISTORIES : historise
+  USERS ||--o{ REFRESH_TOKENS : possede
+  USERS ||--o{ AUDIT_LOGS : genere
+
+  CATEGORIES {
+    guid Id PK
+    string Name
+    bool IsActive
+  }
+  PRODUCTS {
+    guid Id PK
+    string Name
+    string Sku UK
+    decimal Price
+    guid CategoryId FK
+    bool IsActive
+  }
+  PRICE_HISTORIES {
+    guid Id PK
+    guid ProductId FK
+    decimal OldPrice
+    decimal NewPrice
+    datetime ChangedAt
+  }
+  USERS {
+    guid Id PK
+    string Email UK
+    string PasswordHash
+    string Role
+    bool IsActive
+  }
+  REFRESH_TOKENS {
+    guid Id PK
+    string Token UK
+    guid UserId FK
+    datetime ExpiresAt
+    datetime RevokedAt
+  }
+  AUDIT_LOGS {
+    guid Id PK
+    guid UserId FK
+    string Action
+    datetime CreatedAt
+  }
+```
+
 ## Contraintes
 
 - `Products.Sku` unique (si non null)
@@ -38,11 +89,20 @@ Dossier:
 
 - `AdvancedDevSample.Infrastructure/Persistence/Migrations`
 
-Comportement au boot:
+Comportement au demarrage:
 
 - `UseMigrations=true` + migrations presentes -> `Migrate()`
 - sans migration en `Development` -> `EnsureCreated()`
 - sans migration hors `Development` -> erreur de demarrage
+
+```mermaid
+flowchart TD
+  BOOT[Demarrage API] --> CHECK{Migrations presentes?}
+  CHECK -->|Oui et UseMigrations=true| APPLY[Migrate()]
+  CHECK -->|Non| ENV{Environnement Development?}
+  ENV -->|Oui| CREATE[EnsureCreated()]
+  ENV -->|Non| FAIL[Arret: migration manquante]
+```
 
 ## Seeding (`Development`)
 
@@ -52,6 +112,13 @@ Ordre:
 2. `CategorySeeder`
 3. `ProductSeeder`
 4. `PriceHistorySeeder`
+
+```mermaid
+flowchart LR
+  A[AdminUserSeeder] --> B[CategorySeeder]
+  B --> C[ProductSeeder]
+  C --> D[PriceHistorySeeder]
+```
 
 Details:
 
