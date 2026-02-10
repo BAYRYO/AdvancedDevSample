@@ -5,8 +5,11 @@ using System.Text;
 using AdvancedDevSample.Application.Interfaces;
 using AdvancedDevSample.Domain.Enums;
 using AdvancedDevSample.Domain.Interfaces;
+using AdvancedDevSample.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -28,19 +31,13 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     public InMemoryRefreshTokenRepository RefreshTokenRepository { get; } = new();
     public InMemoryAuditLogRepository AuditLogRepository { get; } = new();
 
-    public CustomWebApplicationFactory()
-    {
-        Environment.SetEnvironmentVariable("JWT_SECRET", TestJwtSecret);
-        Environment.SetEnvironmentVariable("UseInMemoryDatabase", "true");
-        Environment.SetEnvironmentVariable("InMemoryDatabaseName", _inMemoryDatabaseName);
-    }
-
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureAppConfiguration((context, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
+                ["JWT_SECRET"] = TestJwtSecret,
                 ["SeedDatabase"] = "false",
                 ["UseMigrations"] = "false",
                 ["UseInMemoryDatabase"] = "true",
@@ -50,6 +47,13 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
+            services.RemoveAll<IDbContextOptionsConfiguration<AppDbContext>>();
+            services.RemoveAll<DbContextOptions<AppDbContext>>();
+            services.RemoveAll<AppDbContext>();
+
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseInMemoryDatabase(_inMemoryDatabaseName));
+
             services.RemoveAll<IProductRepository>();
             services.RemoveAll<ICategoryRepository>();
             services.RemoveAll<IPriceHistoryRepository>();
@@ -96,12 +100,4 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
-
-    protected override void Dispose(bool disposing)
-    {
-        base.Dispose(disposing);
-        Environment.SetEnvironmentVariable("UseInMemoryDatabase", null);
-        Environment.SetEnvironmentVariable("InMemoryDatabaseName", null);
-    }
-
 }
