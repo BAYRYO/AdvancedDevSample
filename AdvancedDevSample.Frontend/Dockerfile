@@ -17,8 +17,9 @@ WORKDIR /usr/share/nginx/html
 COPY AdvancedDevSample.Frontend/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/publish/wwwroot ./
 
-RUN chown -R nginx:nginx /usr/share/nginx/html /var/cache/nginx /var/log/nginx /etc/nginx/conf.d
-RUN touch /var/run/nginx.pid && chown nginx:nginx /var/run/nginx.pid
+RUN chown -R nginx:nginx /usr/share/nginx/html /var/cache/nginx /var/log/nginx /etc/nginx/conf.d \
+    && touch /var/run/nginx.pid \
+    && chown nginx:nginx /var/run/nginx.pid
 
 USER nginx
 

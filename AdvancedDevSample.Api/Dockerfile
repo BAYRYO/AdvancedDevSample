@@ -13,7 +13,11 @@ COPY AdvancedDevSample.Application/ AdvancedDevSample.Application/
 COPY AdvancedDevSample.Infrastructure/ AdvancedDevSample.Infrastructure/
 COPY AdvancedDevSampleDomain/ AdvancedDevSampleDomain/
 RUN dotnet restore AdvancedDevSample.Api/AdvancedDevSample.Api.csproj --force-evaluate
-RUN dotnet publish AdvancedDevSample.Api/AdvancedDevSample.Api.csproj -c Release -o /app/publish /p:UseAppHost=false --no-restore
+RUN dotnet publish AdvancedDevSample.Api/AdvancedDevSample.Api.csproj \
+    -c Release \
+    -o /app/publish \
+    /p:UseAppHost=false \
+    --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
