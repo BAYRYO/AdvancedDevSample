@@ -1,5 +1,5 @@
-using AdvancedDevSample.Domain.Exceptions;
 using System.Globalization;
+using AdvancedDevSample.Domain.Exceptions;
 
 namespace AdvancedDevSample.Domain.ValueObjects
 {
