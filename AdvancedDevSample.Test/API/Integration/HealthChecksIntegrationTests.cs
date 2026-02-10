@@ -19,7 +19,7 @@ public class HealthChecksIntegrationTests : IClassFixture<CustomWebApplicationFa
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         string payload = await response.Content.ReadAsStringAsync();
-        using JsonDocument document = JsonDocument.Parse(payload);
+        using var document = JsonDocument.Parse(payload);
 
         Assert.Equal("Healthy", document.RootElement.GetProperty("status").GetString());
         Assert.True(document.RootElement.GetProperty("checks").TryGetProperty("self", out _));
@@ -32,7 +32,7 @@ public class HealthChecksIntegrationTests : IClassFixture<CustomWebApplicationFa
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         string payload = await response.Content.ReadAsStringAsync();
-        using JsonDocument document = JsonDocument.Parse(payload);
+        using var document = JsonDocument.Parse(payload);
 
         Assert.Equal("Healthy", document.RootElement.GetProperty("status").GetString());
         Assert.True(document.RootElement.GetProperty("checks").TryGetProperty("database", out _));
