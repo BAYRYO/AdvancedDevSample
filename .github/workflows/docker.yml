@@ -111,6 +111,9 @@ jobs:
     if: github.event_name == 'push'
     needs: docker-ci
     runs-on: ubuntu-latest
+    outputs:
+      api_digest: ${{ steps.build_api.outputs.digest }}
+      frontend_digest: ${{ steps.build_frontend.outputs.digest }}
     permissions:
       contents: read
       packages: write
@@ -190,7 +193,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=frontend-publish
 
       - name: Install Cosign
-        uses: sigstore/cosign-installer@v3.9.1
+        uses: sigstore/cosign-installer@b4da77ecad80ff9afe572690e3ce4a55a58e629c # v3.9.1
 
       - name: Sign API image
         shell: bash
@@ -226,9 +229,9 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Scan API image (HIGH/CRITICAL)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # 0.28.0
         with:
-          image-ref: ghcr.io/${{ steps.owner.outputs.value }}/advanceddevsample-api:sha-${{ github.sha }}
+          image-ref: ghcr.io/${{ steps.owner.outputs.value }}/advanceddevsample-api@${{ needs.docker-cd.outputs.api_digest }}
           format: table
           severity: HIGH,CRITICAL
           ignore-unfixed: true
@@ -236,9 +239,9 @@ jobs:
           exit-code: "1"
 
       - name: Scan Frontend image (HIGH/CRITICAL)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # 0.28.0
         with:
-          image-ref: ghcr.io/${{ steps.owner.outputs.value }}/advanceddevsample-frontend:sha-${{ github.sha }}
+          image-ref: ghcr.io/${{ steps.owner.outputs.value }}/advanceddevsample-frontend@${{ needs.docker-cd.outputs.frontend_digest }}
           format: table
           severity: HIGH,CRITICAL
           ignore-unfixed: true

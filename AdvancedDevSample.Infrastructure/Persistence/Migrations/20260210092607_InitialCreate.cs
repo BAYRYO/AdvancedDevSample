@@ -11,8 +11,16 @@ namespace AdvancedDevSample.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            const string AuditLogsTable = "AuditLogs";
+            const string UsersTable = "Users";
+            const string ProductsTable = "Products";
+            const string RefreshTokensTable = "RefreshTokens";
+            const string PriceHistoriesTable = "PriceHistories";
+            const string BooleanType = "boolean";
+            const string TimestampWithTimeZoneType = "timestamp with time zone";
+
             migrationBuilder.CreateTable(
-                name: "AuditLogs",
+                name: AuditLogsTable,
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -21,9 +29,9 @@ namespace AdvancedDevSample.Infrastructure.Persistence.Migrations
                     UserEmail = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     IpAddress = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     UserAgent = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    IsSuccess = table.Column<bool>(type: "boolean", nullable: false),
+                    IsSuccess = table.Column<bool>(type: BooleanType, nullable: false),
                     Details = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: TimestampWithTimeZoneType, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -37,9 +45,9 @@ namespace AdvancedDevSample.Infrastructure.Persistence.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    IsActive = table.Column<bool>(type: BooleanType, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: TimestampWithTimeZoneType, nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: TimestampWithTimeZoneType, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -47,7 +55,7 @@ namespace AdvancedDevSample.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Users",
+                name: UsersTable,
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -56,10 +64,10 @@ namespace AdvancedDevSample.Infrastructure.Persistence.Migrations
                     FirstName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     LastName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Role = table.Column<int>(type: "integer", nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    LastLoginAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    IsActive = table.Column<bool>(type: BooleanType, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: TimestampWithTimeZoneType, nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: TimestampWithTimeZoneType, nullable: false),
+                    LastLoginAt = table.Column<DateTime>(type: TimestampWithTimeZoneType, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -67,20 +75,20 @@ namespace AdvancedDevSample.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Products",
+                name: ProductsTable,
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     Description = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
                     Price = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    IsActive = table.Column<bool>(type: BooleanType, nullable: false),
                     Sku = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
                     Stock = table.Column<int>(type: "integer", nullable: false),
                     CategoryId = table.Column<Guid>(type: "uuid", nullable: true),
                     DiscountPercentage = table.Column<decimal>(type: "numeric(5,2)", precision: 5, scale: 2, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: TimestampWithTimeZoneType, nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: TimestampWithTimeZoneType, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -94,16 +102,16 @@ namespace AdvancedDevSample.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "RefreshTokens",
+                name: RefreshTokensTable,
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Token = table.Column<string>(type: "text", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    IsRevoked = table.Column<bool>(type: "boolean", nullable: false),
-                    RevokedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    ExpiresAt = table.Column<DateTime>(type: TimestampWithTimeZoneType, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: TimestampWithTimeZoneType, nullable: false),
+                    IsRevoked = table.Column<bool>(type: BooleanType, nullable: false),
+                    RevokedAt = table.Column<DateTime>(type: TimestampWithTimeZoneType, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -111,13 +119,13 @@ namespace AdvancedDevSample.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_RefreshTokens_Users_UserId",
                         column: x => x.UserId,
-                        principalTable: "Users",
+                        principalTable: UsersTable,
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "PriceHistories",
+                name: PriceHistoriesTable,
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -125,7 +133,7 @@ namespace AdvancedDevSample.Infrastructure.Persistence.Migrations
                     OldPrice = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
                     NewPrice = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
                     DiscountPercentage = table.Column<decimal>(type: "numeric(5,2)", precision: 5, scale: 2, nullable: true),
-                    ChangedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ChangedAt = table.Column<DateTime>(type: TimestampWithTimeZoneType, nullable: false),
                     Reason = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true)
                 },
                 constraints: table =>
@@ -134,62 +142,62 @@ namespace AdvancedDevSample.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_PriceHistories_Products_ProductId",
                         column: x => x.ProductId,
-                        principalTable: "Products",
+                        principalTable: ProductsTable,
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AuditLogs_CreatedAt",
-                table: "AuditLogs",
+                table: AuditLogsTable,
                 column: "CreatedAt");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AuditLogs_EventType",
-                table: "AuditLogs",
+                table: AuditLogsTable,
                 column: "EventType");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AuditLogs_UserId",
-                table: "AuditLogs",
+                table: AuditLogsTable,
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PriceHistories_ChangedAt",
-                table: "PriceHistories",
+                table: PriceHistoriesTable,
                 column: "ChangedAt");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PriceHistories_ProductId",
-                table: "PriceHistories",
+                table: PriceHistoriesTable,
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Products_CategoryId",
-                table: "Products",
+                table: ProductsTable,
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Products_Sku",
-                table: "Products",
+                table: ProductsTable,
                 column: "Sku",
                 unique: true,
                 filter: "\"Sku\" IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_Token",
-                table: "RefreshTokens",
+                table: RefreshTokensTable,
                 column: "Token",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_UserId",
-                table: "RefreshTokens",
+                table: RefreshTokensTable,
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_Email",
-                table: "Users",
+                table: UsersTable,
                 column: "Email",
                 unique: true);
         }
@@ -197,20 +205,26 @@ namespace AdvancedDevSample.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "AuditLogs");
+            const string AuditLogsTable = "AuditLogs";
+            const string UsersTable = "Users";
+            const string ProductsTable = "Products";
+            const string RefreshTokensTable = "RefreshTokens";
+            const string PriceHistoriesTable = "PriceHistories";
 
             migrationBuilder.DropTable(
-                name: "PriceHistories");
+                name: AuditLogsTable);
 
             migrationBuilder.DropTable(
-                name: "RefreshTokens");
+                name: PriceHistoriesTable);
 
             migrationBuilder.DropTable(
-                name: "Products");
+                name: RefreshTokensTable);
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: ProductsTable);
+
+            migrationBuilder.DropTable(
+                name: UsersTable);
 
             migrationBuilder.DropTable(
                 name: "Categories");
