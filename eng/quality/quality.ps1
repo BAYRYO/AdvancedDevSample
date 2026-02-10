@@ -1,6 +1,7 @@
 param(
-    [double]$GlobalLineThreshold = 55,
-    [double]$InfrastructureLineThreshold = 30
+    [double]$GlobalLineThreshold = 60,
+    [double]$InfrastructureLineThreshold = 45,
+    [double]$FrontendLineThreshold = 8
 )
 
 $ErrorActionPreference = 'Stop'
@@ -28,7 +29,8 @@ try {
     & (Join-Path $repoRoot 'eng/quality/check-coverage.ps1') `
         -CoverageFile $coverageFile `
         -GlobalLineThreshold $GlobalLineThreshold `
-        -InfrastructureLineThreshold $InfrastructureLineThreshold
+        -InfrastructureLineThreshold $InfrastructureLineThreshold `
+        -FrontendLineThreshold $FrontendLineThreshold
 
     dotnet format $solution --verify-no-changes --severity error --verbosity minimal
 }

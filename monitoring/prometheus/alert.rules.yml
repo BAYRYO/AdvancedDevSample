@@ -1,0 +1,41 @@
+groups:
+  - name: advanceddevsample-slo
+    rules:
+      - record: job:http_request_error_ratio_5m
+        expr: |
+          (
+            sum(rate(http_server_request_duration_seconds_count{job="advanceddevsample-api", http_response_status_code=~"5.."}[5m]))
+            /
+            clamp_min(sum(rate(http_server_request_duration_seconds_count{job="advanceddevsample-api"}[5m])), 1)
+          )
+
+      - alert: AdvancedDevSampleHigh5xxRatio
+        expr: job:http_request_error_ratio_5m > 0.01
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High API 5xx ratio"
+          description: "5xx ratio above 1% for 10 minutes."
+
+      - alert: AdvancedDevSampleHighLatencyP95
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le) (rate(http_server_request_duration_seconds_bucket{job="advanceddevsample-api"}[5m]))
+          ) > 0.8
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High p95 latency"
+          description: "p95 latency above 800ms for 15 minutes."
+
+      - alert: AdvancedDevSampleNoTraffic
+        expr: sum(rate(http_server_request_duration_seconds_count{job="advanceddevsample-api"}[10m])) == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No incoming API traffic detected"
+          description: "No HTTP requests observed for 10 minutes."

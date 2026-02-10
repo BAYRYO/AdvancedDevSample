@@ -6,6 +6,12 @@
 
 <h1>AdvancedDevSample Dashboard</h1>
 
+<p class="text-muted">
+    This reference application demonstrates a realistic .NET 10 stack with clean boundaries, secure authentication,
+    operational controls, and automated quality gates. Use the dashboard to explore business data, then navigate to
+    products, categories, and account pages to validate user flows end-to-end.
+</p>
+
 @if (!string.IsNullOrWhiteSpace(_errorMessage))
 {
     <div class="alert alert-danger">@_errorMessage</div>
@@ -49,11 +55,21 @@ else
 <div class="d-flex gap-2 flex-wrap">
     <a class="btn btn-primary" href="products">Manage Products</a>
     <a class="btn btn-outline-primary" href="categories">Manage Categories</a>
+    <a class="btn btn-outline-secondary" href="about">Read project goals</a>
     @if (_session is null)
     {
         <a class="btn btn-success" href="account/login">Sign in</a>
     }
 </div>
+
+<section class="mt-4">
+    <h2>Project links</h2>
+    <ul>
+        <li><a href="https://github.com/BAYRYO/AdvancedDevSample" target="_blank" rel="noopener noreferrer">Source code</a></li>
+        <li><a href="https://bayryo.github.io/AdvancedDevSample/" target="_blank" rel="noopener noreferrer">Technical documentation</a></li>
+        <li><a href="privacy">Privacy policy</a></li>
+    </ul>
+</section>
 
 @code {
     private bool _loading = true;

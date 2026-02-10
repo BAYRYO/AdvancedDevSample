@@ -140,6 +140,14 @@ Request:
 | `POST` | `/api/products/{id}/activate` | JWT | Activer |
 | `POST` | `/api/products/{id}/deactivate` | JWT | Desactiver |
 
+## Endpoints de sante
+
+| Methode | Route | Auth | Description |
+| --- | --- | --- | --- |
+| `GET` | `/health/live` | Public | Liveness du process API |
+| `GET` | `/health/ready` | Public | Readiness avec verification BDD |
+| `GET` | `/metrics` | Public | Metriques Prometheus (OpenTelemetry) |
+
 ### Recherche produits
 
 `GET /api/products?name=...&minPrice=...&maxPrice=...&categoryId=...&isActive=...&page=1&pageSize=20`

@@ -31,6 +31,9 @@ public class NavMenuComponentTests : TestContext
 
         IRenderedComponent<NavMenu> component = RenderComponent<NavMenu>();
 
+        component.Find("a[href='about']");
+        component.Find("a[href='contact']");
+        component.Find("a[href='privacy']");
         component.Find("a[href='account/login']");
         component.Find("a[href='account/register']");
         Assert.DoesNotContain("users", component.Markup, StringComparison.OrdinalIgnoreCase);

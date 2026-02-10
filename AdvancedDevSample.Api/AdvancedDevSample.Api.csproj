@@ -14,6 +14,12 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.2" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.12.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.12.0-beta.1" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.12.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.12.0" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.12.36" />
     <PackageReference Include="Sentry.AspNetCore" Version="6.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.2" />

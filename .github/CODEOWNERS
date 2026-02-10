@@ -1,0 +1,9 @@
+* @BAYRYO
+
+/AdvancedDevSample.Api/ @BAYRYO
+/AdvancedDevSample.Application/ @BAYRYO
+/AdvancedDevSampleDomain/ @BAYRYO
+/AdvancedDevSample.Infrastructure/ @BAYRYO
+/AdvancedDevSample.Frontend/ @BAYRYO
+/AdvancedDevSample.Test/ @BAYRYO
+/docs/ @BAYRYO

@@ -1,4 +1,5 @@
 using AdvancedDevSample.Application.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace AdvancedDevSample.Infrastructure.Persistence;
@@ -14,7 +15,7 @@ public class EfTransactionManager : ITransactionManager
 
     public async Task ExecuteInTransactionAsync(Func<Task> action, CancellationToken cancellationToken = default)
     {
-        if (_dbContext.Database.CurrentTransaction != null)
+        if (_dbContext.Database.CurrentTransaction != null || !_dbContext.Database.IsRelational())
         {
             await action();
             return;
@@ -29,7 +30,7 @@ public class EfTransactionManager : ITransactionManager
         Func<Task<T>> action,
         CancellationToken cancellationToken = default)
     {
-        if (_dbContext.Database.CurrentTransaction != null)
+        if (_dbContext.Database.CurrentTransaction != null || !_dbContext.Database.IsRelational())
         {
             return await action();
         }

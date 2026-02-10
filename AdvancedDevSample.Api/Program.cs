@@ -1,5 +1,6 @@
 using System.Text;
 using System.Threading.RateLimiting;
+using AdvancedDevSample.Api.Health;
 using AdvancedDevSample.Api.Middlewares;
 using AdvancedDevSample.Application.Configuration;
 using AdvancedDevSample.Application.Interfaces;
@@ -10,10 +11,14 @@ using AdvancedDevSample.Infrastructure.Persistence.Seeders;
 using AdvancedDevSample.Infrastructure.Repositories;
 using AdvancedDevSample.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Scalar.AspNetCore;
 using Sentry;
 
@@ -22,6 +27,7 @@ const string JwtIssuerAudience = "AdvancedDevSample";
 
 ConfigureSentry(builder);
 ConfigureLogging(builder);
+ConfigureOpenTelemetry(builder);
 ConfigureDatabase(builder);
 RegisterApplicationServices(builder.Services);
 RegisterInfrastructureServices(builder.Services);
@@ -32,6 +38,10 @@ ConfigureCors(builder.Services, builder.Configuration);
 ConfigureSwagger(builder.Services);
 builder.Services.AddControllers();
 builder.Services.AddDatabaseSeeder();
+builder.Services
+    .AddHealthChecks()
+    .AddCheck("self", () => HealthCheckResult.Healthy(), tags: ["live"])
+    .AddCheck<DatabaseHealthCheck>("database", tags: ["ready"]);
 
 WebApplication app = builder.Build();
 
@@ -72,13 +82,58 @@ static void ConfigureLogging(WebApplicationBuilder builder)
     });
 }
 
+static void ConfigureOpenTelemetry(WebApplicationBuilder builder)
+{
+    string serviceName = builder.Configuration["OpenTelemetry:ServiceName"] ?? "AdvancedDevSample.Api";
+    string serviceVersion = typeof(Program).Assembly.GetName().Version?.ToString() ?? "1.0.0";
+    string? otlpEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT")
+        ?? builder.Configuration["OpenTelemetry:Otlp:Endpoint"];
+
+    builder.Services
+        .AddOpenTelemetry()
+        .ConfigureResource(resource => resource.AddService(serviceName, serviceVersion: serviceVersion))
+        .WithTracing(tracing =>
+        {
+            tracing
+                .AddAspNetCoreInstrumentation(options => options.RecordException = true)
+                .AddHttpClientInstrumentation();
+
+            if (!string.IsNullOrWhiteSpace(otlpEndpoint))
+            {
+                tracing.AddOtlpExporter(options => options.Endpoint = new Uri(otlpEndpoint));
+            }
+        })
+        .WithMetrics(metrics =>
+        {
+            metrics
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddPrometheusExporter();
+
+            if (!string.IsNullOrWhiteSpace(otlpEndpoint))
+            {
+                metrics.AddOtlpExporter(options => options.Endpoint = new Uri(otlpEndpoint));
+            }
+        });
+}
+
 static void ConfigureDatabase(WebApplicationBuilder builder)
 {
+    bool useInMemoryDatabase = builder.Configuration.GetValue<bool>("UseInMemoryDatabase");
+    string inMemoryDatabaseName = builder.Configuration["InMemoryDatabaseName"] ?? "AdvancedDevSample";
     string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-        ?? "Data Source=advanceddevsample.db";
+                              ?? "Host=localhost;Port=5432;Database=advanceddevsample;Username=postgres;Password=postgres";
 
     builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseSqlite(connectionString));
+    {
+        if (useInMemoryDatabase)
+        {
+            options.UseInMemoryDatabase(inMemoryDatabaseName);
+            return;
+        }
+
+        options.UseNpgsql(connectionString);
+    });
 }
 
 static void RegisterApplicationServices(IServiceCollection services)
@@ -243,7 +298,7 @@ static async Task InitializeDatabaseAsync(WebApplication app)
     }
     else
     {
-        await EnsureCreatedWithSqliteRaceToleranceAsync(dbContext, app.Logger);
+        await dbContext.Database.EnsureCreatedAsync();
     }
 
     if (app.Environment.IsDevelopment() && seedDatabase)
@@ -265,7 +320,7 @@ static async Task ApplyMigrationsOrFallbackAsync(WebApplication app, AppDbContex
     {
         app.Logger.LogWarning(
             "UseMigrations is enabled but no EF migrations were found. Falling back to EnsureCreated().");
-        await EnsureCreatedWithSqliteRaceToleranceAsync(dbContext, app.Logger);
+        await dbContext.Database.EnsureCreatedAsync();
         return;
     }
 
@@ -299,7 +354,41 @@ static void ConfigurePipeline(WebApplication app)
     app.UseAuthentication();
     app.UseAuthorization();
     app.UseRateLimiter();
+    app.MapPrometheusScrapingEndpoint("/metrics");
+
+    app.MapHealthChecks("/health/live", new HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains("live"),
+        ResponseWriter = WriteHealthResponseAsync
+    });
+    app.MapHealthChecks("/health/ready", new HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains("ready"),
+        ResponseWriter = WriteHealthResponseAsync
+    });
+
     app.MapControllers();
+}
+
+static Task WriteHealthResponseAsync(HttpContext context, HealthReport report)
+{
+    context.Response.ContentType = "application/json";
+
+    var payload = new
+    {
+        status = report.Status.ToString(),
+        totalDurationMs = report.TotalDuration.TotalMilliseconds,
+        checks = report.Entries.ToDictionary(
+            entry => entry.Key,
+            entry => new
+            {
+                status = entry.Value.Status.ToString(),
+                durationMs = entry.Value.Duration.TotalMilliseconds,
+                description = entry.Value.Description
+            })
+    };
+
+    return context.Response.WriteAsJsonAsync(payload);
 }
 
 static void RegisterShutdownHandlers(WebApplication app)
@@ -308,20 +397,6 @@ static void RegisterShutdownHandlers(WebApplication app)
     {
         SentrySdk.Flush(TimeSpan.FromSeconds(2));
     });
-}
-
-static async Task EnsureCreatedWithSqliteRaceToleranceAsync(AppDbContext dbContext, ILogger logger)
-{
-    try
-    {
-        await dbContext.Database.EnsureCreatedAsync();
-    }
-    catch (SqliteException ex) when (
-        ex.SqliteErrorCode == 1 &&
-        ex.Message.Contains("already exists", StringComparison.OrdinalIgnoreCase))
-    {
-        logger.LogDebug(ex, "Ignoring SQLite EnsureCreated race condition: {Message}", ex.Message);
-    }
 }
 
 public partial class Program

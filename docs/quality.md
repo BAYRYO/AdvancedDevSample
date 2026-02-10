@@ -7,7 +7,7 @@
 - domaine (entites, value objects)
 - application (services, validateurs)
 - integration API (controllers, middlewares)
-- persistance (SQLite/in-memory)
+- persistance (PostgreSQL/in-memory)
 - frontend (services/composants)
 
 ## Lancer les tests
@@ -52,8 +52,9 @@ Le pipeline local execute:
 
 Dans la pipeline qualite (`quality.sh` / `quality.ps1`):
 
-- couverture globale lignes >= `55%`
-- couverture lignes `AdvancedDevSample.Infrastructure` >= `30%`
+- couverture globale lignes >= `60%`
+- couverture lignes `AdvancedDevSample.Infrastructure` >= `45%`
+- couverture lignes `AdvancedDevSample.Frontend` >= `8%` (seuil anti-regression)
 
 Scripts d'analyse:
 

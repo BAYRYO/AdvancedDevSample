@@ -13,7 +13,7 @@ Construire un logiciel propre, securise et livrable.
 - frontieres Clean Architecture + DDD qui restent robustes dans le temps
 - authentification JWT avec rotation des refresh tokens et limitation du login
 - frontend Blazor WebAssembly avec client API type
-- EF Core + SQLite avec migrations, seeders et controle de derive du modele
+- EF Core + PostgreSQL avec migrations, seeders et controle de derive du modele
 - gates qualite et securite integrees dans GitHub Actions
 
 ## Pourquoi ce repo existe
@@ -40,7 +40,7 @@ graph TD
         B --> C["Application Layer<br/>(Services, DTOs)"]
         C --> D["Domain Layer<br/>(Entities, Business Logic)"]
         B --> E["Infrastructure<br/>(EF Core, Repositories, JWT)"]
-        E --> F["SQLite"]
+        E --> F["PostgreSQL"]
         D -.-> E
 ```
 
@@ -72,7 +72,21 @@ Variables minimales :
 - `ADMIN_EMAIL` + `ADMIN_PASSWORD` (recommande pour le seeding dev)
 - `SENTRY_DSN` (optionnel)
 
-### 3) Lancer l'API + le Frontend
+### 3) Lancer toute la stack avec Docker
+
+```bash
+docker compose up --build -d
+```
+
+Services disponibles :
+
+- PostgreSQL: `localhost:5432`
+- API HTTP: `http://localhost:5069`
+- Frontend: `http://localhost:8080`
+- Swagger: `http://localhost:5069/swagger`
+- Scalar: `http://localhost:5069/scalar/v1`
+
+### 4) (Optionnel) Lancer sans Docker
 
 ```bash
 dotnet restore AdvancedDevSample.slnx
@@ -129,6 +143,19 @@ python3 -m mkdocs serve
 
 Puis ouvrir `http://127.0.0.1:8000`.
 
+## Monitoring local (Prometheus + Grafana)
+
+Lancer la stack:
+
+```bash
+docker compose -f monitoring/docker-compose.yml up -d
+```
+
+Acces:
+
+- Prometheus: `http://localhost:9090`
+- Grafana: `http://localhost:3000`
+
 ## Carte du repo
 
 ```text
@@ -157,6 +184,13 @@ AdvancedDevSample/
 - Dev frontend : `docs/frontend.md` -> `docs/api.md` -> `docs/security.md`
 - Mainteneur : `docs/quality.md` -> `docs/cicd.md` -> `docs/operations.md`
 
+## Gouvernance
+
+- conduite: `CODE_OF_CONDUCT.md`
+- securite: `SECURITY.md`
+- ownership: `.github/CODEOWNERS`
+- templates contribution: `.github/ISSUE_TEMPLATE/` et `.github/pull_request_template.md`
+
 ## Licence
 
-Projet a finalite pedagogique. Choisis et ajoute la licence adaptee a ton usage.
+Ce projet est distribue sous licence MIT. Voir `LICENSE`.

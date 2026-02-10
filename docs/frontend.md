@@ -15,7 +15,7 @@ Fichier: `AdvancedDevSample.Frontend/wwwroot/appsettings.json`
 
 ```json
 {
-  "ApiBaseUrl": "https://localhost:7119"
+  "ApiBaseUrl": "http://localhost:5069"
 }
 ```
 

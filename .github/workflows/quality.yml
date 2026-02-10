@@ -98,8 +98,9 @@ jobs:
         run: |
           ./eng/quality/check-coverage.ps1 `
             -CoverageFile "${{ steps.coverage_cobertura.outputs.file }}" `
-            -GlobalLineThreshold 55 `
-            -InfrastructureLineThreshold 30
+            -GlobalLineThreshold 60 `
+            -InfrastructureLineThreshold 45 `
+            -FrontendLineThreshold 8
 
       - name: End SonarQube analysis (waits for Quality Gate)
         if: ${{ always() }}

@@ -28,6 +28,12 @@ Etapes principales:
 8. `dotnet format --verify-no-changes`
 9. check derive migrations EF
 
+Seuils couverture appliques en CI:
+
+- global >= `60%`
+- infrastructure >= `45%`
+- frontend >= `8%` (anti-regression progressive)
+
 Variables/secrets attendus:
 
 - `SONAR_HOST_URL`

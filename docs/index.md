@@ -17,7 +17,7 @@ Bienvenue dans la documentation technique de `AdvancedDevSample`.
 - **.NET 10**
 - **ASP.NET Core** (API)
 - **Blazor WebAssembly** (Frontend)
-- **Entity Framework Core 10** + **SQLite**
+- **Entity Framework Core 10** + **PostgreSQL**
 - **Sentry** (observabilite)
 - **xUnit** (tests)
 - **MkDocs Material** (documentation)
@@ -26,6 +26,7 @@ Bienvenue dans la documentation technique de `AdvancedDevSample`.
 
 - installation locale et prerequis
 - configuration complete (env, appsettings, CORS, JWT)
+- vision produit, roadmap, gouvernance
 - architecture technique et flux de donnees
 - contrat API detaille (auth, produits, categories, utilisateurs)
 - frontend (auth state, refresh token, appels API)
@@ -38,10 +39,10 @@ Bienvenue dans la documentation technique de `AdvancedDevSample`.
 ## Lecture recommandee
 
 1. [Demarrage](getting-started.md)
-2. [Configuration](configuration.md)
-3. [Architecture](architecture.md)
-4. [API](api.md)
-5. [Tests et qualite](quality.md)
+2. [Vision produit](product.md)
+3. [Configuration](configuration.md)
+4. [Architecture](architecture.md)
+5. [API](api.md)
 
 ## Parcours par profil
 

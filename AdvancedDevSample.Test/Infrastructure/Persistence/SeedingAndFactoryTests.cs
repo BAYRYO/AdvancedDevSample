@@ -135,11 +135,14 @@ public class SeedingAndFactoryTests
             using AppDbContext defaultContext = factory.CreateDbContext([]);
             string? defaultConnection = defaultContext.Database.GetConnectionString();
             Assert.NotNull(defaultConnection);
-            Assert.Contains("advanceddevsample.db", defaultConnection!, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("Host=localhost", defaultConnection!, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("Database=advanceddevsample", defaultConnection!, StringComparison.OrdinalIgnoreCase);
 
-            Environment.SetEnvironmentVariable("DESIGNTIME_CONNECTION_STRING", "Data Source=:memory:");
+            const string envConnection =
+                "Host=127.0.0.1;Port=5432;Database=advanceddevsample_test;Username=postgres;Password=postgres";
+            Environment.SetEnvironmentVariable("DESIGNTIME_CONNECTION_STRING", envConnection);
             using AppDbContext envContext = factory.CreateDbContext([]);
-            Assert.Equal("Data Source=:memory:", envContext.Database.GetConnectionString());
+            Assert.Equal(envConnection, envContext.Database.GetConnectionString());
         }
         finally
         {

@@ -33,6 +33,29 @@ Sequence API:
 3. seeding dev conditionnel
 4. exposition controllers
 
+## Health checks
+
+Endpoints exposes:
+
+- `GET /health/live`: verifie la disponibilite process (liveness)
+- `GET /health/ready`: verifie la connectivite base de donnees (readiness)
+
+Format de reponse:
+
+```json
+{
+  "status": "Healthy",
+  "totalDurationMs": 2.31,
+  "checks": {
+    "database": {
+      "status": "Healthy",
+      "durationMs": 1.52,
+      "description": "Database connection is available."
+    }
+  }
+}
+```
+
 ## Runbook rapide
 
 ### Symptomes: API ne demarre pas
@@ -40,7 +63,7 @@ Sequence API:
 Verifier:
 
 1. presence `JWT_SECRET` >= 32 caracteres
-2. accessibilite sqlite / droits dossier
+2. accessibilite PostgreSQL (reseau, credentials, base)
 3. coherence migrations si `UseMigrations=true`
 
 ### Symptomes: frontend appelle la mauvaise API
@@ -60,6 +83,32 @@ Verifier:
 
 ## Runbooks production
 
+## SLI / SLO recommandes
+
+SLI minimaux:
+
+1. disponibilite API (succes `2xx/3xx` sur endpoints critiques)
+2. latence p95 sur endpoints critiques
+3. taux d'erreur serveur (`5xx`)
+4. taux de refresh token en echec
+5. statut readiness (`/health/ready`)
+
+SLO de depart (a ajuster selon contexte):
+
+1. disponibilite mensuelle API >= 99.5%
+2. latence p95 `GET /api/products` <= 400 ms
+3. taux `5xx` <= 0.5% sur 30 minutes glissantes
+4. disponibilite readiness >= 99.9%
+
+## Alerting minimal
+
+Declencher une alerte si:
+
+1. `health/ready` en echec 3 fois consecutives
+2. `5xx` > 1% pendant 10 minutes
+3. latence p95 > 800 ms pendant 15 minutes
+4. pic de `401` ou `429` anormal (suspicion brute-force ou desynchronisation auth)
+
 ### Rollback apres release
 
 Preconditions:
@@ -75,13 +124,13 @@ Procedure:
 3. verifier `GET /swagger/v1/swagger.json` et un endpoint de lecture (`GET /api/products`)
 4. verifier les logs d'erreurs et les evenements Sentry 5 a 10 minutes apres rollback
 
-### Sauvegarde SQLite
+### Sauvegarde PostgreSQL
 
 Exemple local:
 
 ```bash
 mkdir -p backups
-cp advanceddevsample.db "backups/advanceddevsample-$(date +%Y%m%d-%H%M%S).db"
+docker exec advanceddevsample-postgres pg_dump -U postgres advanceddevsample > "backups/advanceddevsample-$(date +%Y%m%d-%H%M%S).sql"
 ```
 
 Bonnes pratiques:
@@ -90,12 +139,12 @@ Bonnes pratiques:
 2. conserver plusieurs points de restauration
 3. tester periodiquement une restauration a blanc
 
-### Restauration SQLite
+### Restauration PostgreSQL
 
 Exemple local:
 
 ```bash
-cp backups/advanceddevsample-YYYYMMDD-HHMMSS.db advanceddevsample.db
+cat backups/advanceddevsample-YYYYMMDD-HHMMSS.sql | docker exec -i advanceddevsample-postgres psql -U postgres -d advanceddevsample
 ```
 
 Puis:
@@ -148,7 +197,7 @@ flowchart LR
   subgraph Runtime local
     FE[Blazor Frontend]
     API[ASP.NET Core API]
-    DB[(SQLite)]
+    DB[(PostgreSQL)]
     FE --> API
     API --> DB
   end
@@ -158,4 +207,5 @@ flowchart LR
 
 - [Configuration](configuration.md)
 - [Securite](security.md)
+- [Monitoring](monitoring.md)
 - [Troubleshooting](troubleshooting.md)

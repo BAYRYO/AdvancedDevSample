@@ -19,9 +19,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     private const string TestJwtSecret = "test-jwt-secret-key-for-integration-tests-minimum-32-characters";
     private const string TestIssuer = "AdvancedDevSample";
     private const string TestAudience = "AdvancedDevSample";
-    private readonly string _testDbPath = Path.Combine(
-        Path.GetTempPath(),
-        $"advanceddevsample-tests-{Guid.NewGuid():N}.db");
+    private readonly string _inMemoryDatabaseName = $"advanceddevsample-tests-{Guid.NewGuid():N}";
 
     public InMemoryProductRepository ProductRepository { get; } = new();
     public InMemoryCategoryRepository CategoryRepository { get; } = new();
@@ -33,6 +31,8 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     public CustomWebApplicationFactory()
     {
         Environment.SetEnvironmentVariable("JWT_SECRET", TestJwtSecret);
+        Environment.SetEnvironmentVariable("UseInMemoryDatabase", "true");
+        Environment.SetEnvironmentVariable("InMemoryDatabaseName", _inMemoryDatabaseName);
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -43,7 +43,8 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             {
                 ["SeedDatabase"] = "false",
                 ["UseMigrations"] = "false",
-                ["ConnectionStrings:DefaultConnection"] = $"Data Source={_testDbPath}"
+                ["UseInMemoryDatabase"] = "true",
+                ["InMemoryDatabaseName"] = _inMemoryDatabaseName
             });
         });
 
@@ -99,19 +100,8 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
-
-        if (!disposing || !File.Exists(_testDbPath))
-        {
-            return;
-        }
-
-        try
-        {
-            File.Delete(_testDbPath);
-        }
-        catch
-        {
-            // Ignore cleanup failures in tests.
-        }
+        Environment.SetEnvironmentVariable("UseInMemoryDatabase", null);
+        Environment.SetEnvironmentVariable("InMemoryDatabaseName", null);
     }
+
 }

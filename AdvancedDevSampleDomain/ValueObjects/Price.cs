@@ -1,4 +1,5 @@
 using AdvancedDevSample.Domain.Exceptions;
+using System.Globalization;
 
 namespace AdvancedDevSample.Domain.ValueObjects
 {
@@ -39,7 +40,7 @@ namespace AdvancedDevSample.Domain.ValueObjects
             return new Price(discountedValue);
         }
 
-        public override string ToString() => Value.ToString("F2");
+        public override string ToString() => Value.ToString("F2", CultureInfo.InvariantCulture);
 
         public static implicit operator decimal(Price price) => price.Value;
     }

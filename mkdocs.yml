@@ -43,6 +43,10 @@ extra_css:
 
 nav:
   - Accueil: index.md
+  - Produit:
+      - Vision produit: product.md
+      - Roadmap: roadmap.md
+      - Gouvernance: governance.md
   - Guide:
       - Demarrage: getting-started.md
       - Contribution: contributing.md
@@ -56,6 +60,7 @@ nav:
       - Tests et qualite: quality.md
   - Operations:
       - CI/CD: cicd.md
+      - Monitoring: monitoring.md
       - Exploitation: operations.md
       - Troubleshooting: troubleshooting.md
       - Deploiement docs: docs-deployment.md

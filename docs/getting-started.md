@@ -43,7 +43,21 @@ Variables essentielles:
 - `JWT_SECRET` (obligatoire; >= 32 caracteres)
 - `ADMIN_EMAIL` + `ADMIN_PASSWORD` (recommande en dev pour creer un admin)
 
-## Lancer l'API et le frontend
+## Lancer toute la stack avec Docker
+
+```bash
+docker compose up --build -d
+```
+
+## URLs en Docker
+
+- PostgreSQL: `localhost:5432`
+- API HTTP: `http://localhost:5069`
+- Frontend: `http://localhost:8080`
+- Swagger: `http://localhost:5069/swagger`
+- Scalar: `http://localhost:5069/scalar/v1`
+
+## Lancer sans Docker (optionnel)
 
 Dans 2 terminaux:
 
@@ -62,7 +76,7 @@ dotnet run --project AdvancedDevSample.Frontend
 - Frontend HTTP: `http://localhost:5173`
 - Frontend HTTPS: `https://localhost:7173`
 
-Le frontend pointe par defaut vers `https://localhost:7119` (`AdvancedDevSample.Frontend/wwwroot/appsettings.json`).
+Le frontend pointe par defaut vers `http://localhost:5069` (`AdvancedDevSample.Frontend/wwwroot/appsettings.json`).
 
 ## Documentation API runtime (dev)
 

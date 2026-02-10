@@ -38,7 +38,7 @@ graph TD
 
   subgraph Infra[Infrastructure]
     Repos[Repositories EF + TransactionManager]
-    Db[(SQLite)]
+    Db[(PostgreSQL)]
     Repos --> Db
   end
 
@@ -131,4 +131,4 @@ flowchart TD
 
 - les services d'application dependent d'interfaces
 - l'API ne depend pas des details EF
-- tests integration incluent des repositories memoire et SQLite selon scenario
+- tests integration incluent des repositories memoire et des scenarios persistance reel

@@ -1,0 +1,33 @@
+name: Bug report
+description: Report a reproducible problem.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Describe the bug and impact.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Provide exact steps and expected behavior.
+      placeholder: |
+        1. Go to ...
+        2. Click ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots
+      description: Add relevant logs, traces, or screenshots.
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, browser, .NET SDK, commit/tag if known.

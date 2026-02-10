@@ -18,6 +18,10 @@ Template: `.env.example`
 | Variable | Requise | Description |
 | --- | --- | --- |
 | `JWT_SECRET` | Oui | Cle de signature JWT (minimum 32 caracteres) |
+| `POSTGRES_DB` | Non | Nom de la base PostgreSQL (Docker Compose) |
+| `POSTGRES_USER` | Non | Utilisateur PostgreSQL (Docker Compose) |
+| `POSTGRES_PASSWORD` | Non | Mot de passe PostgreSQL (Docker Compose) |
+| `FRONTEND_API_BASE_URL` | Non | URL API injectee au build du frontend Docker |
 | `SENTRY_DSN` | Non | DSN Sentry (fallback sur `Sentry:Dsn`) |
 | `ADMIN_EMAIL` | Non | Email admin seed en dev |
 | `ADMIN_PASSWORD` | Non | Mot de passe admin seed en dev |
@@ -38,8 +42,8 @@ Template: `.env.example`
 
 ### `ConnectionStrings:DefaultConnection`
 
-- non definie explicitement par defaut
-- fallback code: `Data Source=advanceddevsample.db`
+- definie dans `appsettings.json` et `appsettings.Development.json`
+- format PostgreSQL (`Host=...;Port=...;Database=...;Username=...;Password=...`)
 
 ### JWT (`Jwt:*`)
 
@@ -77,13 +81,17 @@ Fichier Frontend: `AdvancedDevSample.Frontend/Properties/launchSettings.json`
 
 Fichier: `AdvancedDevSample.Frontend/wwwroot/appsettings.json`
 
-- `ApiBaseUrl`: URL racine API (`https://localhost:7119` par defaut)
+- `ApiBaseUrl`: URL racine API (`http://localhost:5069` par defaut)
 
 ## Exemple `.env` local
 
 ```env
 SENTRY_DSN=
 JWT_SECRET=change-this-to-a-secure-random-secret-with-32-plus-chars
+POSTGRES_DB=advanceddevsample
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+FRONTEND_API_BASE_URL=http://localhost:5069
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=StrongPassword!123
 ```

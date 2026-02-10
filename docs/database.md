@@ -1,12 +1,12 @@
 # Base de donnees
 
-Persistance via EF Core 10 + SQLite.
+Persistance via EF Core 10 + PostgreSQL.
 
 ## Contexte
 
 - `AppDbContext`: `AdvancedDevSample.Infrastructure/Persistence/AppDbContext.cs`
-- provider: `UseSqlite(...)`
-- fallback connection string: `Data Source=advanceddevsample.db`
+- provider: `UseNpgsql(...)`
+- fallback connection string: `Host=localhost;Port=5432;Database=advanceddevsample;Username=postgres;Password=postgres`
 
 ## Entites persistantes
 
