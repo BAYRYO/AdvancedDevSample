@@ -16,6 +16,17 @@ on:
       - "AdvancedDevSample.Frontend/**"
   push:
     branches: [main]
+    paths:
+      - ".github/workflows/docker.yml"
+      - "docker-compose.yml"
+      - ".dockerignore"
+      - "Directory.Build.props"
+      - "Directory.Build.targets"
+      - "AdvancedDevSample.Api/**"
+      - "AdvancedDevSample.Application/**"
+      - "AdvancedDevSample.Infrastructure/**"
+      - "AdvancedDevSampleDomain/**"
+      - "AdvancedDevSample.Frontend/**"
     tags:
       - "v*"
 
@@ -103,6 +114,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -148,6 +160,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push API image
+        id: build_api
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
           context: .
@@ -156,10 +169,13 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta_api.outputs.tags }}
           labels: ${{ steps.meta_api.outputs.labels }}
+          sbom: true
+          provenance: mode=max
           cache-from: type=gha,scope=api-publish
           cache-to: type=gha,mode=max,scope=api-publish
 
       - name: Build and push Frontend image
+        id: build_frontend
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
           context: .
@@ -168,5 +184,63 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta_frontend.outputs.tags }}
           labels: ${{ steps.meta_frontend.outputs.labels }}
+          sbom: true
+          provenance: mode=max
           cache-from: type=gha,scope=frontend-publish
           cache-to: type=gha,mode=max,scope=frontend-publish
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.9.1
+
+      - name: Sign API image
+        shell: bash
+        run: |
+          api_image="ghcr.io/${{ steps.owner.outputs.value }}/advanceddevsample-api@${{ steps.build_api.outputs.digest }}"
+          cosign sign --yes "$api_image"
+
+      - name: Sign Frontend image
+        shell: bash
+        run: |
+          frontend_image="ghcr.io/${{ steps.owner.outputs.value }}/advanceddevsample-frontend@${{ steps.build_frontend.outputs.digest }}"
+          cosign sign --yes "$frontend_image"
+
+  image-vuln-scan:
+    name: Container Vulnerability Scan
+    if: github.event_name == 'push'
+    needs: docker-cd
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Normalize image owner
+        id: owner
+        shell: bash
+        run: echo "value=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Login to GHCR
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Scan API image (HIGH/CRITICAL)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ghcr.io/${{ steps.owner.outputs.value }}/advanceddevsample-api:sha-${{ github.sha }}
+          format: table
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          vuln-type: os,library
+          exit-code: "1"
+
+      - name: Scan Frontend image (HIGH/CRITICAL)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ghcr.io/${{ steps.owner.outputs.value }}/advanceddevsample-frontend:sha-${{ github.sha }}
+          format: table
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          vuln-type: os,library
+          exit-code: "1"

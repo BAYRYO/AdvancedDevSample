@@ -3,6 +3,16 @@ name: Security
 on:
   pull_request:
     branches: [main]
+    paths:
+      - ".github/workflows/security.yml"
+      - "Directory.Build.props"
+      - "Directory.Build.targets"
+      - "AdvancedDevSample.Api/**"
+      - "AdvancedDevSample.Application/**"
+      - "AdvancedDevSample.Infrastructure/**"
+      - "AdvancedDevSampleDomain/**"
+      - "AdvancedDevSample.Test/**"
+      - "AdvancedDevSample.Frontend/**"
   schedule:
     - cron: "0 3 * * 1"
 

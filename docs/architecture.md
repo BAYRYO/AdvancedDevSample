@@ -10,7 +10,7 @@ graph TD
   API --> APP[Application Services]
   APP --> DOM[Domaine\nEntities, Value Objects, Exceptions]
   INF[Infrastructure\nEF Core, Repositories, Services] -. implemente .-> DOM
-  APP -. depend des interfaces .-> INF
+  INF -. implemente les interfaces .-> APP
   INF --> DB[(PostgreSQL)]
 ```
 

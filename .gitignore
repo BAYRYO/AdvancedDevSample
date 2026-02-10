@@ -374,6 +374,11 @@ AdvancedDevSample.Api/*.db-wal
 
 # Malformed Windows-style build directory names created on POSIX filesystems
 **/bin\\Debug/
+**/bin\\Release/
 **/obj\\Debug/
+**/obj\\Release/
+
+# MkDocs build output
+site/
 
 .venv/

@@ -1,10 +1,37 @@
 name: Quality
 
 on:
+  workflow_dispatch:
   pull_request:
     branches: [main]
+    paths:
+      - ".github/workflows/quality.yml"
+      - "Directory.Build.props"
+      - "Directory.Build.targets"
+      - "AdvancedDevSample.Api/**"
+      - "AdvancedDevSample.Application/**"
+      - "AdvancedDevSample.Infrastructure/**"
+      - "AdvancedDevSampleDomain/**"
+      - "AdvancedDevSample.Test/**"
+      - "AdvancedDevSample.Frontend/**"
+      - "eng/quality/**"
+      - "*.sln"
+      - "*.slnx"
   push:
     branches: [main]
+    paths:
+      - ".github/workflows/quality.yml"
+      - "Directory.Build.props"
+      - "Directory.Build.targets"
+      - "AdvancedDevSample.Api/**"
+      - "AdvancedDevSample.Application/**"
+      - "AdvancedDevSample.Infrastructure/**"
+      - "AdvancedDevSampleDomain/**"
+      - "AdvancedDevSample.Test/**"
+      - "AdvancedDevSample.Frontend/**"
+      - "eng/quality/**"
+      - "*.sln"
+      - "*.slnx"
 
 permissions:
   contents: read
@@ -21,6 +48,9 @@ jobs:
       SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
       SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION }}
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      NUGET_XMLDOC_MODE: skip
 
     steps:
       - name: Checkout
@@ -39,26 +69,21 @@ jobs:
             global.json
 
       - name: Setup Java (required by SonarQube scanner)
+        if: ${{ env.SONAR_HOST_URL != '' && env.SONAR_PROJECT_KEY != '' && env.SONAR_ORGANIZATION != '' && env.SONAR_TOKEN != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
 
-      - name: Validate SonarQube configuration
-        shell: bash
-        run: |
-          [[ -n "$SONAR_HOST_URL" ]] || { echo "Missing repository variable SONAR_HOST_URL" >&2; exit 1; }
-          [[ -n "$SONAR_PROJECT_KEY" ]] || { echo "Missing repository variable SONAR_PROJECT_KEY" >&2; exit 1; }
-          [[ -n "$SONAR_ORGANIZATION" ]] || { echo "Missing repository variable SONAR_ORGANIZATION" >&2; exit 1; }
-          [[ -n "$SONAR_TOKEN" ]] || { echo "Missing repository secret SONAR_TOKEN" >&2; exit 1; }
-
       - name: Install SonarScanner
+        if: ${{ env.SONAR_HOST_URL != '' && env.SONAR_PROJECT_KEY != '' && env.SONAR_ORGANIZATION != '' && env.SONAR_TOKEN != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         shell: bash
         run: |
           dotnet tool install --global dotnet-sonarscanner --version 10.*
           echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
 
       - name: Begin SonarQube analysis
+        if: ${{ env.SONAR_HOST_URL != '' && env.SONAR_PROJECT_KEY != '' && env.SONAR_ORGANIZATION != '' && env.SONAR_TOKEN != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         shell: bash
         run: |
           dotnet sonarscanner begin \
@@ -103,7 +128,7 @@ jobs:
             -FrontendLineThreshold 8
 
       - name: End SonarQube analysis (waits for Quality Gate)
-        if: ${{ always() }}
+        if: ${{ always() && env.SONAR_HOST_URL != '' && env.SONAR_PROJECT_KEY != '' && env.SONAR_ORGANIZATION != '' && env.SONAR_TOKEN != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         shell: bash
         run: dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"
 

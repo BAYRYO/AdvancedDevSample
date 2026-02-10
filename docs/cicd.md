@@ -47,7 +47,12 @@ Jobs:
 - `docker-cd` (sur push)
   - login GHCR
   - buildx multi-arch (`linux/amd64`, `linux/arm64`)
+  - generation SBOM + provenance
+  - signature Cosign keyless des images API + Frontend
   - push images API + Frontend
+- `image-vuln-scan` (sur push)
+  - scan Trivy sur les images publiees
+  - blocage sur vulnerabilites `HIGH`/`CRITICAL`
 
 ## `release.yml`
 
