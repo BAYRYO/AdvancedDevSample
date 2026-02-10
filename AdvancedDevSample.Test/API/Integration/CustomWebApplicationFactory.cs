@@ -31,13 +31,18 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     public InMemoryRefreshTokenRepository RefreshTokenRepository { get; } = new();
     public InMemoryAuditLogRepository AuditLogRepository { get; } = new();
 
+    public CustomWebApplicationFactory()
+    {
+        // Program startup reads JWT secret from environment first.
+        Environment.SetEnvironmentVariable("JWT_SECRET", TestJwtSecret);
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureAppConfiguration((context, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["JWT_SECRET"] = TestJwtSecret,
                 ["SeedDatabase"] = "false",
                 ["UseMigrations"] = "false",
                 ["UseInMemoryDatabase"] = "true",
