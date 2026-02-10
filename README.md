@@ -3,56 +3,31 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=BAYRYO_AdvancedDevSample&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=BAYRYO_AdvancedDevSample)
 [![Quality](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/quality.yml/badge.svg)](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/quality.yml)
 [![Security](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/security.yml/badge.svg)](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/security.yml)
+[![Docker CI/CD](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/docker.yml/badge.svg)](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/docker.yml)
 [![Docs](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/docs.yml/badge.svg)](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/docs.yml)
 [![Release](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/release.yml/badge.svg)](https://github.com/BAYRYO/AdvancedDevSample/actions/workflows/release.yml)
 
-Construire un logiciel propre, securise et livrable.
+`AdvancedDevSample` est une reference full-stack .NET 10 orientee production.
 
-`AdvancedDevSample` est un projet de reference full-stack .NET 10 concu pour montrer a quoi ressemble une architecture orientee production dans la pratique :
+Le projet couvre une application complete avec:
 
-- frontieres Clean Architecture + DDD qui restent robustes dans le temps
-- authentification JWT avec rotation des refresh tokens et limitation du login
-- frontend Blazor WebAssembly avec client API type
-- EF Core + PostgreSQL avec migrations, seeders et controle de derive du modele
-- gates qualite et securite integrees dans GitHub Actions
+- architecture en couches (API, Application, Domaine, Infrastructure, Frontend)
+- authentification JWT + refresh token avec rotation
+- persistance EF Core 10 + PostgreSQL + migrations
+- observabilite (checks de sante, metriques Prometheus, Sentry)
+- qualite automatisee (tests, couverture, format, Sonar, scans securite)
+- documentation MkDocs publiee automatiquement
 
-## Pourquoi ce repo existe
+## Demarrage rapide
 
-La plupart des exemples sont soit trop simplistes, soit trop lourds pour apprendre vite.
-Celui-ci prend un chemin intermediaire :
-
-- assez compact pour etre lu en une journee
-- assez strict pour transmettre de bonnes pratiques
-- assez complet pour etre lance, teste et livre
-
-## Ce que tu peux apprendre ici
-
-- comment isoler la logique metier des details d'infrastructure
-- comment exposer un contrat API exploitable avec des erreurs predictibles
-- comment faire tourner une CI avec quality gates, scans securite et deploiement doc
-- comment structurer une documentation qui accelere l'onboarding
-
-## Apercu architecture
-
-```mermaid
-graph TD
-        A["Frontend<br/>(Blazor WASM)"] -->|HTTP/HTTPS| B["API<br/>(ASP.NET Core)"]
-        B --> C["Application Layer<br/>(Services, DTOs)"]
-        C --> D["Domain Layer<br/>(Entities, Business Logic)"]
-        B --> E["Infrastructure<br/>(EF Core, Repositories, JWT)"]
-        E --> F["PostgreSQL"]
-        D -.-> E
-```
-
-## Demarrage rapide (5 minutes)
-
-### 1) Prerequis
+### Prerequis
 
 - .NET SDK 10.x
+- Docker + Docker Compose (recommande)
 - Git
-- Python 3.11+ (uniquement pour la doc)
+- Python 3.11+ (uniquement pour MkDocs)
 
-### 2) Environnement local
+### Configuration locale
 
 Linux/macOS:
 
@@ -66,27 +41,37 @@ PowerShell:
 Copy-Item .env.example .env
 ```
 
-Variables minimales :
+Variables importantes:
 
-- `JWT_SECRET` (obligatoire, >= 32 caracteres)
-- `ADMIN_EMAIL` + `ADMIN_PASSWORD` (recommande pour le seeding dev)
+- `JWT_SECRET` (obligatoire, minimum 32 caracteres)
+- `ADMIN_EMAIL` et `ADMIN_PASSWORD` (admin seed en dev)
+- `OTEL_EXPORTER_OTLP_ENDPOINT` (optionnel)
 - `SENTRY_DSN` (optionnel)
 
-### 3) Lancer toute la stack avec Docker
+### Lancer toute la stack
 
 ```bash
 docker compose up --build -d
 ```
 
-Services disponibles :
+Services disponibles:
 
-- PostgreSQL: `localhost:5432`
-- API HTTP: `http://localhost:5069`
+- API: `http://localhost:5069`
 - Frontend: `http://localhost:8080`
 - Swagger: `http://localhost:5069/swagger`
 - Scalar: `http://localhost:5069/scalar/v1`
+- PostgreSQL: `localhost:5432`
 
-### 4) (Optionnel) Lancer sans Docker
+Avec monitoring local:
+
+```bash
+docker compose --profile monitoring up -d
+```
+
+- Prometheus: `http://localhost:9090`
+- Grafana: `http://localhost:3000`
+
+### Lancer sans Docker
 
 ```bash
 dotnet restore AdvancedDevSample.slnx
@@ -94,36 +79,21 @@ dotnet run --project AdvancedDevSample.Api
 dotnet run --project AdvancedDevSample.Frontend
 ```
 
-URLs de developpement :
+URLs de dev:
 
 - API HTTP: `http://localhost:5069`
 - API HTTPS: `https://localhost:7119`
 - Frontend HTTP: `http://localhost:5173`
 - Frontend HTTPS: `https://localhost:7173`
-- Swagger: `http://localhost:5069/swagger`
-- Scalar: `http://localhost:5069/scalar/v1`
 
-## Qualite par defaut
-
-Lancer les tests :
+## Qualite
 
 ```bash
 dotnet test AdvancedDevSample.slnx
-```
-
-Lancer la couverture :
-
-```bash
-dotnet test AdvancedDevSample.slnx --collect:"XPlat Code Coverage"
-```
-
-Lancer le pipeline qualite local :
-
-```bash
 ./eng/quality/quality.sh
 ```
 
-Equivalent PowerShell :
+PowerShell:
 
 ```powershell
 pwsh ./eng/quality/quality.ps1
@@ -131,66 +101,39 @@ pwsh ./eng/quality/quality.ps1
 
 ## Documentation
 
-- Version publiee : `https://bayryo.github.io/AdvancedDevSample/`
-- Accueil local : `docs/index.md`
+- site public: `https://bayryo.github.io/AdvancedDevSample/`
+- index local: `docs/index.md`
 
-Lancer la doc en local :
+Lancer localement:
 
 ```bash
 python3 -m pip install -r docs/requirements.txt
 python3 -m mkdocs serve
 ```
 
-Puis ouvrir `http://127.0.0.1:8000`.
+## Workflows GitHub Actions
 
-## Monitoring local (Prometheus + Grafana)
+- `quality.yml`: build, tests, couverture, Sonar, format, derive EF
+- `security.yml`: dependency review, CodeQL, Gitleaks
+- `docker.yml`: build images, tests de fumee compose, publication GHCR
+- `release.yml`: artefacts API/Frontend sur tags `v*`
+- `docs.yml`: build MkDocs strict + deployment GitHub Pages
 
-Lancer la stack:
-
-```bash
-docker compose -f monitoring/docker-compose.yml up -d
-```
-
-Acces:
-
-- Prometheus: `http://localhost:9090`
-- Grafana: `http://localhost:3000`
-
-## Carte du repo
+## Structure du repository
 
 ```text
 AdvancedDevSample/
-├── AdvancedDevSample.Api/             # API ASP.NET Core
-├── AdvancedDevSample.Application/     # Cas d'usage, DTOs, interfaces applicatives
-├── AdvancedDevSampleDomain/           # Entites, value objects, contrats domaine
-├── AdvancedDevSample.Infrastructure/  # EF Core, repositories, persistence, seeders
-├── AdvancedDevSample.Frontend/        # Application Blazor WebAssembly
-├── AdvancedDevSample.Test/            # Tests unitaires, integration, frontend
-├── docs/                              # Contenu MkDocs
-└── eng/quality/                       # Scripts qualite locale
+├── AdvancedDevSample.Api/
+├── AdvancedDevSample.Application/
+├── AdvancedDevSampleDomain/
+├── AdvancedDevSample.Infrastructure/
+├── AdvancedDevSample.Frontend/
+├── AdvancedDevSample.Test/
+├── docs/
+├── monitoring/
+└── eng/quality/
 ```
-
-## Workflows CI
-
-- `quality.yml`: build, tests, seuils couverture, formatage, controle derive EF, gate SonarQube
-- `security.yml`: dependency review, CodeQL, Gitleaks
-- `release.yml`: publication des artefacts sur tags `v*`
-- `docs.yml`: build MkDocs strict + deploiement GitHub Pages
-
-## Commencer selon ton profil
-
-- Nouveau contributeur : `docs/getting-started.md` -> `docs/configuration.md` -> `docs/troubleshooting.md`
-- Dev backend : `docs/architecture.md` -> `docs/api.md` -> `docs/database.md`
-- Dev frontend : `docs/frontend.md` -> `docs/api.md` -> `docs/security.md`
-- Mainteneur : `docs/quality.md` -> `docs/cicd.md` -> `docs/operations.md`
-
-## Gouvernance
-
-- conduite: `CODE_OF_CONDUCT.md`
-- securite: `SECURITY.md`
-- ownership: `.github/CODEOWNERS`
-- templates contribution: `.github/ISSUE_TEMPLATE/` et `.github/pull_request_template.md`
 
 ## Licence
 
-Ce projet est distribue sous licence MIT. Voir `LICENSE`.
+MIT. Voir `LICENSE`.

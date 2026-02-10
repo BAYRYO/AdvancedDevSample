@@ -11,7 +11,7 @@ RUN sed -i "s#\"ApiBaseUrl\": \".*\"#\"ApiBaseUrl\": \"${API_BASE_URL}\"#g" \
     AdvancedDevSample.Frontend/wwwroot/appsettings.json
 RUN dotnet publish AdvancedDevSample.Frontend/AdvancedDevSample.Frontend.csproj -c Release -o /app/publish
 
-FROM nginx:1.27-alpine AS runtime
+FROM nginx:stable-alpine AS runtime
 WORKDIR /usr/share/nginx/html
 
 COPY AdvancedDevSample.Frontend/nginx.conf /etc/nginx/conf.d/default.conf
@@ -19,6 +19,5 @@ COPY --from=build /app/publish/wwwroot ./
 
 RUN chown -R nginx:nginx /usr/share/nginx/html /var/cache/nginx /var/log/nginx /etc/nginx/conf.d
 
-USER nginx
 EXPOSE 8080
-CMD ["nginx", "-g", "daemon off; pid /tmp/nginx.pid;"]
+CMD ["nginx", "-g", "daemon off;"]

@@ -2,51 +2,49 @@
 
 Bienvenue dans la documentation technique de `AdvancedDevSample`.
 
-## Objectif du projet
+## Objectif
 
-`AdvancedDevSample` est une base de reference pour construire une application .NET modulaire avec:
+Fournir une base moderne .NET 10 orientee production avec:
 
-- separation stricte des responsabilites (Clean Architecture)
-- domaine metier explicite (DDD)
-- API REST securisee (JWT)
+- architecture en couches testable
+- API REST securisee (JWT + refresh token)
 - frontend Blazor WebAssembly
-- qualite logicielle automatisee (tests, couverture, format, checks CI)
+- persistance EF Core + PostgreSQL
+- observabilite (checks de sante, metriques Prometheus, Sentry)
+- CI/CD complete (qualite, securite, docker, release, docs)
 
-## Stack technique
+## Stack
 
-- **.NET 10**
-- **ASP.NET Core** (API)
-- **Blazor WebAssembly** (Frontend)
-- **Entity Framework Core 10** + **PostgreSQL**
-- **Sentry** (observabilite)
-- **xUnit** (tests)
-- **MkDocs Material** (documentation)
+- .NET 10
+- ASP.NET Core
+- Blazor WebAssembly
+- EF Core 10 + PostgreSQL
+- OpenTelemetry + Prometheus + Grafana
+- Sentry
+- xUnit
+- MkDocs Material
 
-## Ce que couvre cette documentation
+## Ce que couvre la documentation
 
-- installation locale et prerequis
+- installation et execution locale
 - configuration complete (env, appsettings, CORS, JWT)
-- vision produit, roadmap, gouvernance
-- architecture technique et flux de donnees
-- contrat API detaille (auth, produits, categories, utilisateurs)
-- frontend (auth state, refresh token, appels API)
-- base de donnees, migrations et seeding
-- securite (headers, rate limiting, roles)
-- tests, qualite, CI/CD
-- exploitation et troubleshooting
-- contribution projet
+- architecture et flux applicatifs
+- contrat API (auth, produits, categories, utilisateurs)
+- persistance, migrations, seeding
+- securite (headers, authz, rate limiting)
+- qualite, CI/CD, exploitation, troubleshooting
 
 ## Lecture recommandee
 
 1. [Demarrage](getting-started.md)
-2. [Vision produit](product.md)
-3. [Configuration](configuration.md)
-4. [Architecture](architecture.md)
-5. [API](api.md)
+2. [Configuration](configuration.md)
+3. [Architecture](architecture.md)
+4. [API](api.md)
+5. [Exploitation](operations.md)
 
 ## Parcours par profil
 
-- Nouveau developpeur: [Demarrage](getting-started.md) -> [Configuration](configuration.md) -> [Troubleshooting](troubleshooting.md)
-- Developpeur backend: [Architecture](architecture.md) -> [API](api.md) -> [Base de donnees](database.md)
-- Developpeur frontend: [Frontend](frontend.md) -> [API](api.md) -> [Securite](security.md)
-- Mainteneur projet: [Tests et qualite](quality.md) -> [CI/CD](cicd.md) -> [Exploitation](operations.md)
+- nouveau developpeur: [Demarrage](getting-started.md) -> [Configuration](configuration.md) -> [Depannage](troubleshooting.md)
+- developpeur backend: [Architecture](architecture.md) -> [API](api.md) -> [Base de donnees](database.md)
+- developpeur frontend: [Frontend](frontend.md) -> [API](api.md) -> [Securite](security.md)
+- mainteneur: [Tests et qualite](quality.md) -> [CI/CD](cicd.md) -> [Exploitation](operations.md)

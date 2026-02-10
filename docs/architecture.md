@@ -1,134 +1,70 @@
 # Architecture
 
-Le projet suit une architecture en couches avec dependances orientees vers le coeur metier.
+Le projet suit une architecture en couches avec dependances dirigees vers le domaine.
 
 ## Vue d'ensemble
 
 ```mermaid
 graph TD
-  A[Frontend Blazor WASM] -->|HTTP| B[API ASP.NET Core]
-  B --> C[Application Services]
-  C --> D[Domain<br/>Entities, VOs, Interfaces]
-  E[Infrastructure<br/>EF Core, Repositories] -.->|implements| D
-  C -.->|uses| E
+  FE[Frontend Blazor WASM] --> API[API ASP.NET Core]
+  API --> APP[Application Services]
+  APP --> DOM[Domaine\nEntities, Value Objects, Exceptions]
+  INF[Infrastructure\nEF Core, Repositories, Services] -. implemente .-> DOM
+  APP -. depend des interfaces .-> INF
+  INF --> DB[(PostgreSQL)]
 ```
 
-## Diagramme composants
+## Projets
 
-```mermaid
-graph TD
-  subgraph Client[Frontend]
-    UI[Blazor WebAssembly]
-    AuthState[AuthStateProvider]
-    ApiClient[ApiClient + AuthTokenHandler]
-    UI --> AuthState --> ApiClient
-  end
+- `AdvancedDevSample.Api`: composition racine, auth, middlewares, controllers, sante, metriques
+- `AdvancedDevSample.Application`: services d'orchestration, DTOs, validation mot de passe
+- `AdvancedDevSampleDomain`: modeles metier, value objects, exceptions, interfaces repository
+- `AdvancedDevSample.Infrastructure`: EF Core, repositories, mapping, JWT, password hashing, seeders
+- `AdvancedDevSample.Frontend`: pages Blazor, services auth/API, gestion de session
+- `AdvancedDevSample.Test`: tests domaine, application, integration API/persistence, frontend
 
-  subgraph Api[API ASP.NET Core]
-    MW[Middlewares]
-    Ctl[Controllers]
-    MW --> Ctl
-  end
+## Pipeline HTTP API
 
-  subgraph Core[Application + Domain]
-    App[Services Application]
-    Ports[Interfaces Repositories]
-    App --> Ports
-  end
+Ordre principal:
 
-  subgraph Infra[Infrastructure]
-    Repos[Repositories EF + TransactionManager]
-    Db[(PostgreSQL)]
-    Repos --> Db
-  end
+1. `UseSentryTracing`
+2. `UseSwagger` + Scalar (`Development`)
+3. `UseHttpsRedirection`
+4. `UseCors("Frontend")`
+5. `ExceptionHandlingMiddleware`
+6. `SecurityHeadersMiddleware`
+7. `UseAuthentication`
+8. `UseAuthorization`
+9. `UseRateLimiter`
+10. `MapPrometheusScrapingEndpoint("/metrics")`
+11. `MapHealthChecks("/health/live", "/health/ready")`
+12. `MapControllers`
 
-  ApiClient -->|HTTPS JSON| MW
-  Ctl --> App
-  Ports --> Repos
-```
+## Flux metier typiques
 
-## Projets et responsabilites
+### Creation produit
 
-- `AdvancedDevSample.Api`
-  - configuration DI
-  - middleware (exceptions, security headers)
-  - authentication/authorization/rate limiting
-  - controllers HTTP
+1. `POST /api/products`
+2. `ProductsController` -> `ProductService.CreateAsync`
+3. verification metier (SKU, categorie, prix)
+4. sauvegarde via `IProductRepository`
+5. reponse `201` avec `ProductResponse`
 
-- `AdvancedDevSample.Application`
-  - orchestration de cas d'usage
-  - DTOs d'entree/sortie
-  - validations applicatives (ex: robustesse mot de passe)
-  - interfaces transverses (`IJwtService`, `IPasswordHasher`, `ITransactionManager`)
-
-- `AdvancedDevSampleDomain`
-  - entites metier (`Product`, `Category`, `User`, `RefreshToken`, `AuditLog`)
-  - value objects (`Sku`, `Stock`, `Price`, `Discount`)
-  - exceptions metier
-  - contrats repositories
-
-- `AdvancedDevSample.Infrastructure`
-  - `AppDbContext` EF Core
-  - mapping domaine <-> persistence
-  - repositories EF
-  - service JWT + hash password
-  - seeders de donnees
-
-- `AdvancedDevSample.Frontend`
-  - pages UI Blazor
-  - client API typed
-  - etat d'authentification navigateur
-
-- `AdvancedDevSample.Test`
-  - tests domaine/application
-  - tests integration API/middlewares
-  - tests frontend
-
-## Flux type: creation de produit
-
-1. `POST /api/products` recu par `ProductsController`
-2. `ProductService.CreateAsync()` valide SKU et categorie
-3. creation de l'entite `Product`
-4. sauvegarde via `IProductRepository` (implementation EF)
-5. retour d'un `ProductResponse`
-
-```mermaid
-flowchart TD
-  A[Client POST /api/products] --> B[ProductsController]
-  B --> C[ProductService.CreateAsync]
-  C --> D{SKU unique ?}
-  D -- Non --> E[409 DuplicateSkuException]
-  D -- Oui --> F{Category existe ?}
-  F -- Non --> G[404 CategoryNotFoundException]
-  F -- Oui --> H[Creer Product]
-  H --> I[EfProductRepository.SaveAsync]
-  I --> J[201 Created + ProductResponse]
-```
-
-## Flux type: login + refresh token
+### Login + refresh
 
 1. `POST /api/auth/login`
-2. `AuthService` valide credentials et etat actif utilisateur
-3. generation JWT (`IJwtService`) + refresh token stocke en hash
-4. frontend stocke session (token + refresh token)
-5. expiration proche => appel `POST /api/auth/refresh`
-6. ancien refresh token revoque, nouveau token emis
+2. verification credentials + utilisateur actif
+3. generation JWT + refresh token
+4. revocation des anciens refresh tokens utilisateur
+5. `POST /api/auth/refresh` effectue une rotation de refresh token
 
-## Transactions
+## Gestion des erreurs
 
-- les operations multi-etapes sensibles (prix, discount, updates complexes) utilisent `ITransactionManager`
-- implementation `EfTransactionManager` en infrastructure
+`ExceptionHandlingMiddleware` mappe les exceptions vers des statuts HTTP coherents:
 
-## Strategie d'erreurs
-
-- exceptions domaine/app/infrastructure capturees par `ExceptionHandlingMiddleware`
-- mapping vers statuts HTTP coherents (`400/401/404/409/500`)
-- format JSON standardise:
-  - metier: `{ "title": "...", "detail": "..." }`
-  - technique: `{ "error": "Erreur technique" }`
-
-## Decouplage et testabilite
-
-- les services d'application dependent d'interfaces
-- l'API ne depend pas des details EF
-- tests integration incluent des repositories memoire et des scenarios persistance reel
+- `DomainException` -> `400`
+- `InvalidCredentialsException` -> `401`
+- `UserAlreadyExistsException` -> `409`
+- `ApplicationServiceException` -> statut porte par l'exception
+- `InfrastructureException` -> `500`
+- exception inattendue -> `500`

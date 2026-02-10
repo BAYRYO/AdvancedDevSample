@@ -128,7 +128,7 @@ public class ProductSeeder : ISeeder
             .RuleFor(p => p.Stock, f => f.Random.Int(0, 150))
             .RuleFor(p => p.CategoryId, f => f.PickRandom(categoryIds))
             .RuleFor(p => p.DiscountPercentage, f => f.Random.Bool(0.2f) ? Math.Round(f.Random.Decimal(5, 30), 2) : null)
-            .RuleFor(p => p.CreatedAt, f => f.Date.Past(1))
+            .RuleFor(p => p.CreatedAt, f => f.Date.Past(1).ToUniversalTime())
             .RuleFor(p => p.UpdatedAt, _ => DateTime.UtcNow);
 
         return faker.Generate(count);

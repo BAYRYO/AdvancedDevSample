@@ -76,7 +76,7 @@ public class CategorySeeder : ISeeder
             .RuleFor(c => c.Name, f => f.Commerce.Categories(1)[0])
             .RuleFor(c => c.Description, f => f.Lorem.Sentence())
             .RuleFor(c => c.IsActive, f => f.Random.Bool(0.9f))
-            .RuleFor(c => c.CreatedAt, f => f.Date.Past(1))
+            .RuleFor(c => c.CreatedAt, f => f.Date.Past(1).ToUniversalTime())
             .RuleFor(c => c.UpdatedAt, _ => DateTime.UtcNow);
 
         return faker.Generate(count);

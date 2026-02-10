@@ -27,7 +27,7 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Description).HasMaxLength(2000);
             entity.Property(e => e.Sku).HasMaxLength(20);
 
-            entity.HasIndex(e => e.Sku).IsUnique().HasFilter("[Sku] IS NOT NULL");
+            entity.HasIndex(e => e.Sku).IsUnique().HasFilter("\"Sku\" IS NOT NULL");
 
             entity.HasOne(e => e.Category)
                 .WithMany(c => c.Products)

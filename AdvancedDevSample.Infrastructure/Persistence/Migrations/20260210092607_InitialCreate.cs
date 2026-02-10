@@ -174,7 +174,7 @@ namespace AdvancedDevSample.Infrastructure.Persistence.Migrations
                 table: "Products",
                 column: "Sku",
                 unique: true,
-                filter: "[Sku] IS NOT NULL");
+                filter: "\"Sku\" IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_Token",

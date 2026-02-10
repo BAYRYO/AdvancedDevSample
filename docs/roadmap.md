@@ -1,37 +1,26 @@
 # Roadmap
 
-## Horizon 0-30 jours
+## Horizon court terme (0-30 jours)
 
-1. Renforcer qualite frontend
-- augmenter la couverture frontend
-- ajouter tests de parcours auth + CRUD principal
+1. enrichir les tests de parcours frontend (auth + CRUD principaux)
+2. augmenter la couverture sur scenarios erreurs API/infra
+3. affiner UX (etats vides, feedback d'erreur, pagination)
 
-2. Renforcer UX
-- ameliorer onboarding, messages d'erreur, et etats vides
-- harmoniser microcopy et actions critiques
+## Horizon moyen terme (30-90 jours)
 
-3. Renforcer confiance produit
-- stabiliser pages about/contact/privacy
-- maintenir metadata SEO et assets partage social
+1. ajouter tests end-to-end naviguant frontend + API
+2. durcir la configuration production (CORS, headers, secrets rotation)
+3. enrichir dashboards et alertes selon SLI/SLO critiques
 
-## Horizon 30-90 jours
+## Horizon long terme (90+ jours)
 
-1. Excellence operationnelle
-- ajouter healthchecks applicatifs
-- definir SLI/SLO et alertes de base
+1. versionnement API explicite et politique de deprecation
+2. publication d'images Docker signees avec SBOM
+3. strategie multi-environnements (staging/prod) documentee
 
-2. Industrialisation base de donnees
-- preparer option PostgreSQL pour scenario production
-- definir strategie de migration et rollback
+## Definition d'excellence
 
-3. Observabilite avancee
-- dashboards incidents/performance
-- runbooks enrichis par type d'incident
-
-## Critere "projet excellent"
-
-- couverture > 80% sur logique critique
-- tests e2e des flux principaux
-- documentation produit + technique + operationnelle alignee
-- securite automatisee en continu
-- gouvernance contribution claire et appliquee
+- couverture test elevee sur flux critiques
+- observabilite exploitable en incident
+- documentation toujours alignee code/workflows
+- securite automatisee et surveillee en continu

@@ -186,7 +186,7 @@ namespace AdvancedDevSample.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("Sku")
                         .IsUnique()
-                        .HasFilter("[Sku] IS NOT NULL");
+                        .HasFilter("\"Sku\" IS NOT NULL");
 
                     b.ToTable("Products");
                 });

@@ -1,30 +1,24 @@
 # Tests et qualite
 
-## Strategie de test
+## Couverture des tests
 
-`AdvancedDevSample.Test` couvre:
+Projet `AdvancedDevSample.Test`:
 
 - domaine (entites, value objects)
 - application (services, validateurs)
-- integration API (controllers, middlewares)
-- persistance (PostgreSQL/in-memory)
-- frontend (services/composants)
+- integration API (controllers, middlewares, sante, metriques)
+- persistance EF/repositories
+- frontend (services et composants)
 
-## Lancer les tests
+## Commandes utiles
 
 ```bash
 dotnet test AdvancedDevSample.slnx
 ```
 
-## Couverture
-
 ```bash
 dotnet test AdvancedDevSample.slnx --collect:"XPlat Code Coverage"
 ```
-
-Fichier de configuration coverage:
-
-- `eng/quality/coverage.runsettings`
 
 ## Pipeline qualite locale
 
@@ -48,34 +42,24 @@ Le pipeline local execute:
 4. verification seuils couverture
 5. verification formatage
 
-## Seuils de couverture
+## Seuils couverture
 
-Dans la pipeline qualite (`quality.sh` / `quality.ps1`):
+Appliques via `eng/quality/check-coverage.*`:
 
-- couverture globale lignes >= `60%`
-- couverture lignes `AdvancedDevSample.Infrastructure` >= `45%`
-- couverture lignes `AdvancedDevSample.Frontend` >= `8%` (seuil anti-regression)
+- global lignes >= `60%`
+- `AdvancedDevSample.Infrastructure` >= `45%`
+- `AdvancedDevSample.Frontend` >= `8%`
 
-Scripts d'analyse:
+## Controles CI complementaires
 
-- `eng/quality/check-coverage.sh`
-- `eng/quality/check-coverage.ps1`
+`quality.yml` ajoute:
 
-## Formatage
+- SonarQube + Quality Gate bloquante
+- verification `dotnet format --verify-no-changes`
+- verification derive EF (`has-pending-model-changes`)
 
-```bash
-dotnet format AdvancedDevSample.slnx --verify-no-changes --severity error --verbosity minimal
-```
-
-## Verifications CI additionnelles
-
-Le workflow CI `quality.yml` ajoute:
-
-- SonarQube (Quality Gate)
-- controle derive modele EF (`has-pending-model-changes`)
-
-## Conseils avant PR
+## Avant PR
 
 - executer `./eng/quality/quality.sh`
-- verifier que les nouveaux endpoints sont testes
-- verifier les cas d'erreur (400/401/403/404/409/500)
+- ajouter/mettre a jour les tests des comportements modifies
+- mettre a jour la documentation associee

@@ -3,13 +3,15 @@
 ## Prerequis
 
 - .NET SDK 10.x
+- Docker + Docker Compose (recommande)
 - Git
-- Python 3.11+ (uniquement pour la doc MkDocs)
+- Python 3.11+ (uniquement pour la doc)
 
-Verifier rapidement:
+Verification rapide:
 
 ```bash
 dotnet --version
+docker --version
 git --version
 python --version
 ```
@@ -24,8 +26,6 @@ dotnet restore AdvancedDevSample.slnx
 
 ## Configuration minimale
 
-Copier le template:
-
 Linux/macOS:
 
 ```bash
@@ -38,28 +38,39 @@ PowerShell:
 Copy-Item .env.example .env
 ```
 
-Variables essentielles:
+Variables importantes:
 
-- `JWT_SECRET` (obligatoire; >= 32 caracteres)
-- `ADMIN_EMAIL` + `ADMIN_PASSWORD` (recommande en dev pour creer un admin)
+- `JWT_SECRET` (obligatoire, >= 32 caracteres)
+- `ADMIN_EMAIL` + `ADMIN_PASSWORD` (admin seed en Development)
+- `OTEL_EXPORTER_OTLP_ENDPOINT` (optionnel)
+- `SENTRY_DSN` (optionnel)
 
-## Lancer toute la stack avec Docker
+## Lancer avec Docker
 
 ```bash
 docker compose up --build -d
 ```
 
-## URLs en Docker
+URLs:
 
-- PostgreSQL: `localhost:5432`
-- API HTTP: `http://localhost:5069`
+- API: `http://localhost:5069`
 - Frontend: `http://localhost:8080`
 - Swagger: `http://localhost:5069/swagger`
 - Scalar: `http://localhost:5069/scalar/v1`
+- PostgreSQL: `localhost:5432`
 
-## Lancer sans Docker (optionnel)
+Monitoring local:
 
-Dans 2 terminaux:
+```bash
+docker compose --profile monitoring up -d
+```
+
+- Prometheus: `http://localhost:9090`
+- Grafana: `http://localhost:3000`
+
+## Lancer sans Docker
+
+Dans deux terminaux:
 
 ```bash
 dotnet run --project AdvancedDevSample.Api
@@ -69,29 +80,22 @@ dotnet run --project AdvancedDevSample.Api
 dotnet run --project AdvancedDevSample.Frontend
 ```
 
-## URLs de developpement
+URLs de dev:
 
 - API HTTP: `http://localhost:5069`
 - API HTTPS: `https://localhost:7119`
 - Frontend HTTP: `http://localhost:5173`
 - Frontend HTTPS: `https://localhost:7173`
 
-Le frontend pointe par defaut vers `http://localhost:5069` (`AdvancedDevSample.Frontend/wwwroot/appsettings.json`).
+## Premier demarrage API
 
-## Documentation API runtime (dev)
+Au boot de l'API:
 
-- Swagger: `http://localhost:5069/swagger`
-- Scalar: `http://localhost:5069/scalar/v1`
+- migrations appliquees si `UseMigrations=true` et migrations presentes
+- repli `EnsureCreated()` en `Development` sans migration
+- seeding execute uniquement en `Development` si `SeedDatabase=true`
 
-## Base de donnees au premier demarrage
-
-Au lancement de l'API:
-
-- application des migrations EF si disponibles
-- fallback `EnsureCreated()` en `Development` si aucune migration
-- seeding automatique si `SeedDatabase=true` (dev)
-
-## Executer les tests
+## Tests
 
 ```bash
 dotnet test AdvancedDevSample.slnx
@@ -103,7 +107,7 @@ Avec couverture:
 dotnet test AdvancedDevSample.slnx --collect:"XPlat Code Coverage"
 ```
 
-## Lancer la documentation localement
+## Documentation locale
 
 ```bash
 python3 -m pip install -r docs/requirements.txt
@@ -111,9 +115,3 @@ python3 -m mkdocs serve
 ```
 
 Ouvrir `http://127.0.0.1:8000`.
-
-## Voir aussi
-
-- [Configuration](configuration.md)
-- [API](api.md)
-- [Troubleshooting](troubleshooting.md)

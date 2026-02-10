@@ -1,27 +1,25 @@
 # Gouvernance
 
-## Standards de contribution
+## Principes
 
-- utiliser les templates issue/PR
-- lier chaque changement a un besoin explicite
-- inclure validation locale avant ouverture PR
+- changements relies a un besoin explicite
+- validation locale avant PR
+- revue orientee risque (fonctionnel, securite, regression)
+- documentation maintenue au meme rythme que le code
 
 ## Revue de code
 
 Priorites:
 
-1. risques fonctionnels et regressions
+1. comportement et regressions
 2. securite et exposition de donnees
-3. maintenabilite et lisibilite
-4. couverture de tests
-5. impact documentation
+3. robustesse et maintenabilite
+4. couverture des tests
+5. impact docs/ops
 
-## Ownership
+## Ownership et politiques
 
-Le fichier `CODEOWNERS` definit les responsables de revue par zone.
-
-## Politiques projet
-
-- `CODE_OF_CONDUCT.md`
-- `SECURITY.md`
-- `LICENSE`
+- ownership: `.github/CODEOWNERS`
+- conduite: `CODE_OF_CONDUCT.md`
+- securite: `SECURITY.md`
+- licence: `LICENSE`

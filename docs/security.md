@@ -3,35 +3,36 @@
 ## Authentification
 
 - scheme `JwtBearer`
-- verification issuer/audience/signature/expiration
-- `ClockSkew = 0` (pas de marge)
-- secret JWT impose: minimum 32 caracteres
+- validation issuer/audience/signature/expiration
+- `ClockSkew = 0`
+- secret JWT obligatoire (>= 32 caracteres)
 
 ## Autorisation
 
 Politiques configurees:
 
-- `AdminOnly`: role `Admin`
-- `UserOrAdmin`: roles `User` ou `Admin`
+- `AdminOnly`
+- `UserOrAdmin`
 
-Exemples d'usage:
+Protection actuelle:
 
-- suppression produit/categorie: admin uniquement
-- endpoints `/api/users`: admin uniquement
+- `DELETE /api/products/{id}` -> admin
+- `DELETE /api/categories/{id}` -> admin
+- `/api/users/*` -> admin
 
-## Refresh token
+## Refresh tokens
 
-- token random 64 bytes (Base64)
-- stockage en hash SHA-256 (`TokenHash`)
-- rotation a chaque refresh
-- revocation des anciens tokens a la connexion
+- token random 64 bytes (base64)
+- hash SHA-256 stocke en base
+- rotation sur `/api/auth/refresh`
+- revocation des tokens actifs au login
 
 ## Rate limiting
 
 Politique `login`:
 
 - `5` requetes / minute / IP
-- depassement: HTTP `429`
+- statut `429` en depassement
 
 Appliquee sur:
 
@@ -39,40 +40,27 @@ Appliquee sur:
 
 ## Headers de securite
 
-Middleware `SecurityHeadersMiddleware`:
+Middleware `SecurityHeadersMiddleware` ajoute:
 
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`
 - `Referrer-Policy: no-referrer`
-- `X-Permitted-Cross-Domain-Policies: none`
 - `Permissions-Policy: camera=(), microphone=(), geolocation=()`
 - `Cross-Origin-Opener-Policy: same-origin`
 - `Cross-Origin-Resource-Policy: same-origin`
 - HSTS en HTTPS hors `Development`
-- CSP differenciee pour `/swagger` et `/scalar`
+- CSP stricte (specifique pour `/swagger` et `/scalar`, encore plus stricte ailleurs)
 
 ## CORS
 
 Politique `Frontend`:
 
-- origines configurees via `Cors:AllowedOrigins`
-- valeurs par defaut: `http://localhost:5173`, `https://localhost:7173`
+- origines via `Cors:AllowedOrigins`
+- valeurs par defaut locales: `http://localhost:5173`, `https://localhost:7173`
+- en Docker Compose, `http://localhost:8080` est injecte
 
-## Monitoring des erreurs
+## Telemetrie securite
 
-- integration Sentry API
-- breadcrumbs HTTP + contexte requete
-- capture differenciee selon type d'erreur
-
-## Bonnes pratiques recommandees
-
-- ne jamais versionner de vrais secrets
-- utiliser un `JWT_SECRET` long et aleatoire
-- durcir CORS en production (origines exactes)
-- activer et surveiller Sentry en environnements non-dev
-
-## Voir aussi
-
-- [Configuration](configuration.md)
-- [API](api.md)
-- [Exploitation](operations.md)
+- exceptions capturees dans Sentry
+- breadcrumbs HTTP sur requete/reponse
+- erreurs metier vs techniques distingues dans les reponses API

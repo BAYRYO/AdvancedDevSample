@@ -2,13 +2,13 @@
 
 Persistance via EF Core 10 + PostgreSQL.
 
-## Contexte
+## Contexte EF
 
 - `AppDbContext`: `AdvancedDevSample.Infrastructure/Persistence/AppDbContext.cs`
-- provider: `UseNpgsql(...)`
-- fallback connection string: `Host=localhost;Port=5432;Database=advanceddevsample;Username=postgres;Password=postgres`
+- provider principal: `UseNpgsql(...)`
+- repli possible: base in-memory (`UseInMemoryDatabase`)
 
-## Entites persistantes
+## Tables principales
 
 - `Products`
 - `Categories`
@@ -17,85 +17,20 @@ Persistance via EF Core 10 + PostgreSQL.
 - `RefreshTokens`
 - `AuditLogs`
 
-## Contraintes principales
+## Contraintes
 
 - `Products.Sku` unique (si non null)
 - `Users.Email` unique
-- `RefreshTokens.Token` unique
-- precision prix:
-  - `Price` et `OldPrice`/`NewPrice`: `18,2`
-  - `DiscountPercentage`: `5,2`
+- `RefreshTokens.Token` unique (stocke la version hashee du refresh token)
+- precision prix `18,2`
+- precision remise `5,2`
 
 ## Relations
 
-- `Product -> Category` (`SetNull` au delete categorie)
+- `Product -> Category` (`SetNull`)
 - `PriceHistory -> Product` (`Cascade`)
 - `RefreshToken -> User` (`Cascade`)
-
-## ERD simplifie
-
-```mermaid
-erDiagram
-  CATEGORY ||--o{ PRODUCT : categorizes
-  PRODUCT ||--o{ PRICE_HISTORY : has
-  USER ||--o{ REFRESH_TOKEN : owns
-  USER ||--o{ AUDIT_LOG : generates
-
-  CATEGORY {
-    guid Id PK
-    string Name
-    string Description
-    bool IsActive
-  }
-
-  PRODUCT {
-    guid Id PK
-    string Name
-    string Sku UK
-    decimal Price
-    decimal DiscountPercentage
-    int Stock
-    guid CategoryId FK
-    bool IsActive
-  }
-
-  PRICE_HISTORY {
-    guid Id PK
-    guid ProductId FK
-    decimal OldPrice
-    decimal NewPrice
-    decimal DiscountPercentage
-    datetime ChangedAt
-    string Reason
-  }
-
-  USER {
-    guid Id PK
-    string Email UK
-    string PasswordHash
-    string FirstName
-    string LastName
-    int Role
-    bool IsActive
-  }
-
-  REFRESH_TOKEN {
-    guid Id PK
-    guid UserId FK
-    string Token UK
-    datetime ExpiresAt
-    bool IsRevoked
-  }
-
-  AUDIT_LOG {
-    guid Id PK
-    guid UserId FK
-    string EventType
-    string UserEmail
-    bool IsSuccess
-    datetime CreatedAt
-  }
-```
+- `AuditLog -> User` (FK nullable selon type d'evenement)
 
 ## Migrations
 
@@ -103,33 +38,30 @@ Dossier:
 
 - `AdvancedDevSample.Infrastructure/Persistence/Migrations`
 
-Au demarrage:
+Comportement au boot:
 
-- si `UseMigrations=true` et migrations presentes -> `Migrate()`
-- si `Development` sans migration -> fallback `EnsureCreated()`
-- hors `Development` sans migration -> erreur
+- `UseMigrations=true` + migrations presentes -> `Migrate()`
+- sans migration en `Development` -> `EnsureCreated()`
+- sans migration hors `Development` -> erreur de demarrage
 
-## Seeding (dev)
+## Seeding (`Development`)
 
-Ordre des seeders:
+Ordre:
 
 1. `AdminUserSeeder`
 2. `CategorySeeder`
 3. `ProductSeeder`
 4. `PriceHistorySeeder`
 
-### Admin seeding
+Details:
 
-- cree un admin uniquement si aucun admin n'existe deja
-- requiert `ADMIN_EMAIL` et `ADMIN_PASSWORD`
-
-### Donnees seed
-
+- admin cree seulement si aucun admin n'existe
+- admin cree seulement si `ADMIN_EMAIL` et `ADMIN_PASSWORD` sont definis
 - categories predefinies + categories aleatoires
-- produits predefinis + produits aleatoires
-- historiques de prix aleatoires
+- produits predefinis + 20 produits aleatoires
+- historiques de prix aleatoires par produit
 
-## Verifier la derive de modele
+## Verification derive modele
 
 ```bash
 dotnet ef migrations has-pending-model-changes \

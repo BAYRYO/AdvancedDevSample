@@ -375,3 +375,5 @@ AdvancedDevSample.Api/*.db-wal
 # Malformed Windows-style build directory names created on POSIX filesystems
 **/bin\\Debug/
 **/obj\\Debug/
+
+.venv/

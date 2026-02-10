@@ -1,43 +1,39 @@
 # Deploiement de la documentation
 
-La documentation est publiee automatiquement sur GitHub Pages via `.github/workflows/docs.yml`.
+La documentation est publiee via `.github/workflows/docs.yml`.
 
-## Conditions de declenchement
+## Declencheurs
 
-- `push` sur `main` avec changements:
+- `push` sur `main` avec changements sur:
   - `docs/**`
   - `mkdocs.yml`
   - `.github/workflows/docs.yml`
-- execution manuelle (`workflow_dispatch`)
+- `workflow_dispatch`
 
 ## Prerequis GitHub
 
-Dans le repository GitHub:
+Dans le repository:
 
 1. `Settings > Pages`
 2. Source: `GitHub Actions`
 
-## Pipeline de publication
+## Pipeline
 
 1. checkout
 2. setup Python 3.12
-3. installation dependances docs (`docs/requirements.txt`)
-4. build strict (`mkdocs build --strict`)
+3. install dependances (`docs/requirements.txt`)
+4. `mkdocs build --strict`
 5. upload artefact `site`
-6. deploiement `actions/deploy-pages`
+6. deploy via `actions/deploy-pages`
 
-## URL de publication
+## URL
 
-Pour `BAYRYO/AdvancedDevSample`:
+`https://bayryo.github.io/AdvancedDevSample/`
 
-- `https://bayryo.github.io/AdvancedDevSample/`
-
-## Verification locale avant push
+## Verification locale
 
 ```bash
 python3 -m pip install -r docs/requirements.txt
 python3 -m mkdocs build --strict
 python3 -m mkdocs serve
 ```
-
-Corriger toutes les erreurs de build strict avant merge.

@@ -2,31 +2,26 @@
 
 ## Positionnement
 
-`AdvancedDevSample` est une reference full-stack .NET orientee "ready for production".
+`AdvancedDevSample` est une base de reference full-stack .NET 10 orientee delivery.
 
-Objectif: accelerer l'apprentissage et la livraison avec un socle qui couvre:
+Le but est de fournir un projet assez realiste pour apprendre et assez compact pour etre repris rapidement.
 
-- architecture et separation des couches
-- securite applicative
-- qualite automatisee
-- exploitation de base
+## Public cible
 
-## Personas cibles
+1. etudiants et profils junior qui veulent comprendre une architecture propre
+2. equipes qui veulent un socle API + frontend + CI/CD + docs
+3. mainteneurs qui veulent onboarder vite avec conventions explicites
 
-1. etudiant / junior qui veut comprendre une architecture serieuse
-2. equipe qui veut un template de depart pour API + frontend + CI
-3. mainteneur qui veut une base documentee pour onboarder vite
+## Valeur apportee
 
-## Proposition de valeur
+- reduction du temps de bootstrap technique
+- exemples concrets de securite applicative et observabilite
+- pipeline qualite et securite operationnelle des le depart
+- documentation exploitable par profil (backend, frontend, ops)
 
-- reduire le temps de setup initial
-- reduire les erreurs de conception frequentes
-- fournir un exemple concret de "bonnes pratiques qui tournent"
+## Criteres de succes projet
 
-## Metriques de succes recommandees
-
-- lead time PR merge
-- taux de PR vertes au premier passage CI
-- couverture de tests par couche
-- temps de resolution des incidents
-- temps d'onboarding d'un nouveau contributeur
+- taux de CI verte eleve sur PR
+- couverture de tests stable par couche
+- delai d'onboarding reduit
+- runbooks docs alignes avec le code
