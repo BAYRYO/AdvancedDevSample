@@ -122,7 +122,7 @@ static void ConfigureDatabase(WebApplicationBuilder builder)
     bool useInMemoryDatabase = builder.Configuration.GetValue<bool>("UseInMemoryDatabase");
     string inMemoryDatabaseName = builder.Configuration["InMemoryDatabaseName"] ?? "AdvancedDevSample";
     string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-                              ?? "Host=localhost;Port=5432;Database=advanceddevsample;Username=postgres;Password=postgres";
+                              ?? "Host=localhost;Port=5432;Database=advanceddevsample;Username=postgres";
 
     builder.Services.AddDbContext<AppDbContext>(options =>
     {

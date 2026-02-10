@@ -5,7 +5,7 @@
       <DataCollector friendlyName="XPlat Code Coverage">
         <Configuration>
           <Format>cobertura,opencover</Format>
-          <Exclude>[AdvancedDevSample.Frontend]*,[*.Test]*</Exclude>
+          <Exclude>[*.Test]*</Exclude>
           <ExcludeByAttribute>Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute,ExcludeFromCodeCoverageAttribute</ExcludeByAttribute>
           <ExcludeByFile>**/Migrations/*.cs,**/Program.cs,**/Properties/launchSettings.json,**/AdvancedDevSample.Application/DTOs/**/*.cs,**/AdvancedDevSample.Application/Interfaces/**/*.cs,**/AdvancedDevSample.Infrastructure/Persistence/Entities/**/*.cs,**/AdvancedDevSample.Infrastructure/Persistence/Mappers/**/*.cs</ExcludeByFile>
         </Configuration>
