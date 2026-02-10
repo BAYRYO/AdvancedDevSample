@@ -2,6 +2,24 @@
 
 Le repository utilise GitHub Actions pour la qualite, la securite, Docker, les releases et la documentation.
 
+## Vue pipeline
+
+```mermaid
+flowchart TD
+  PR[Pull Request vers main] --> Q[quality.yml]
+  PR --> S[security.yml]
+  PR --> DCI[docker.yml job docker-ci]
+
+  MAIN[Push sur main] --> Q
+  MAIN --> DCI
+  MAIN --> DCD[docker.yml job docker-cd]
+  MAIN --> VULN[docker.yml job image-vuln-scan]
+  MAIN --> DOCS[docs.yml]
+
+  TAG[Push tag v*] --> REL[release.yml]
+  TAG --> DCD
+```
+
 ## `quality.yml`
 
 Declencheurs:
@@ -16,6 +34,16 @@ Actions:
 3. SonarQube + attente Quality Gate
 4. verification formatage
 5. verification derive migrations EF
+
+```mermaid
+flowchart LR
+  B[build] --> T[tests]
+  T --> C[couverture]
+  C --> SQ[SonarQube]
+  SQ --> QG[Quality Gate]
+  QG --> F[format]
+  F --> M[migrations drift]
+```
 
 ## `security.yml`
 

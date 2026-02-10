@@ -13,6 +13,20 @@ Fournir une base moderne .NET 10 orientee production avec:
 - observabilite (checks de sante, metriques Prometheus, Sentry)
 - CI/CD complete (qualite, securite, docker, release, docs)
 
+## Vue rapide
+
+```mermaid
+graph LR
+  U[Utilisateur] --> FE[Frontend Blazor WASM]
+  FE --> API[API ASP.NET Core]
+  API --> APP[Couche Application]
+  APP --> DOM[Domaine]
+  API --> INF[Infrastructure EF Core]
+  INF --> DB[(PostgreSQL)]
+  API --> OBS[Metrics and Health]
+  OBS --> PROM[Prometheus and Grafana]
+```
+
 ## Stack
 
 - .NET 10

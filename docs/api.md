@@ -20,6 +20,29 @@ Base URL locale:
   - `AdminOnly`
   - `UserOrAdmin`
 
+### Sequence login + refresh token
+
+```mermaid
+sequenceDiagram
+  participant C as Client
+  participant A as AuthController
+  participant S as AuthService
+  participant R as RefreshTokenRepository
+
+  C->>A: POST /api/auth/login
+  A->>S: LoginAsync(email, password)
+  S->>R: Revoke old user tokens
+  S->>R: Save new refresh token
+  S-->>A: JWT + refresh token
+  A-->>C: 200 AuthResponse
+
+  C->>A: POST /api/auth/refresh
+  A->>S: RefreshTokenAsync(token)
+  S->>R: Validate and rotate token
+  S-->>A: new JWT + new refresh token
+  A-->>C: 200 AuthResponse
+```
+
 ## Routes auth (`/api/auth`)
 
 | Methode | Route | Auth | Notes |
@@ -62,6 +85,20 @@ Contraintes:
 
 - `page >= 1`
 - `1 <= pageSize <= 100`
+
+### Flux lecture liste produits
+
+```mermaid
+flowchart LR
+  C[Client] -->|GET /api/products| PC[ProductsController]
+  PC --> PS[ProductService]
+  PS --> PR[IProductRepository]
+  PR --> DB[(PostgreSQL)]
+  DB --> PR
+  PR --> PS
+  PS --> PC
+  PC -->|200 PagedResponse<ProductResponse>| C
+```
 
 ## Routes categories (`/api/categories`)
 
