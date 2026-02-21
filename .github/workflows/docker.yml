@@ -229,7 +229,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Scan API image (HIGH/CRITICAL)
-        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # 0.28.0
+        uses: aquasecurity/trivy-action@e368e328979b113139d6f9068e03accaed98a518 # 0.34.1
         with:
           image-ref: ghcr.io/${{ steps.owner.outputs.value }}/advanceddevsample-api@${{ needs.docker-cd.outputs.api_digest }}
           format: table
@@ -239,7 +239,7 @@ jobs:
           exit-code: "1"
 
       - name: Scan Frontend image (HIGH/CRITICAL)
-        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # 0.28.0
+        uses: aquasecurity/trivy-action@e368e328979b113139d6f9068e03accaed98a518 # 0.34.1
         with:
           image-ref: ghcr.io/${{ steps.owner.outputs.value }}/advanceddevsample-frontend@${{ needs.docker-cd.outputs.frontend_digest }}
           format: table
